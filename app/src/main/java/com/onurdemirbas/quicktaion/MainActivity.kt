@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -18,11 +20,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.onurdemirbas.quicktaion.ui.theme.QuicktaionTheme
-import com.onurdemirbas.quicktaion.view.ForgotPasswordPage
-import com.onurdemirbas.quicktaion.view.LoginPage
-import com.onurdemirbas.quicktaion.view.OpenPage
-import com.onurdemirbas.quicktaion.view.RegisterPage
+import com.onurdemirbas.quicktaion.view.*
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +50,12 @@ class MainActivity : ComponentActivity() {
                         //forgot_password_page codes
                         ForgotPasswordPage(navController)
                     }
+                    composable("policy_page")
+                    {
+                        PolicyPage(navController = navController)
+                    }
                 }
-            }
+        }
     }
 }
+

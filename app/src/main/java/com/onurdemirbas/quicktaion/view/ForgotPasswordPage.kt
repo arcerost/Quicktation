@@ -3,6 +3,7 @@ package com.onurdemirbas.quicktaion.view
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -60,6 +66,7 @@ fun ForgotPasswordPage(navController: NavController) {
                     placeholder = {
                         Text(text = "Email", color = Color.White, fontFamily = openSansFontFamily)
                     })
+                AlreadyHaveAnAccText(fullText = "Giriş yapmayı dene!", hyperLinks = listOf(""), linkText = listOf("Giriş yapmayı dene!"), navController = navController)
                 Spacer(modifier = Modifier.size(75.dp))
                 Button(
                     onClick = { },
@@ -77,4 +84,54 @@ fun ForgotPasswordPage(navController: NavController) {
             }
         }
     }
+}
+
+@Composable
+fun TryLogin(
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    fullText: String,
+    linkText: List<String>,
+    linkTextColor: Color  = Color.Yellow,
+    linkTextFontWeight: FontWeight = FontWeight.Medium,
+    linkTextDecoration: TextDecoration = TextDecoration.Underline,
+    hyperLinks: List<String>,
+    fontSize: TextUnit = TextUnit.Unspecified
+) {
+    val annotatedString = buildAnnotatedString {
+        append(fullText)
+        addStyle(style = SpanStyle(fontSize = fontSize, color = Color.White, fontFamily = openSansFontFamily), start = 0, end = fullText.length)
+        linkText.forEachIndexed { index, s ->
+            val  startIndex  = fullText.indexOf(s)
+            val endIndex = startIndex + s.length
+            addStyle(
+                style = SpanStyle(
+                    color = linkTextColor,
+                    fontSize  =  fontSize,
+                    fontWeight = linkTextFontWeight,
+                    textDecoration = linkTextDecoration
+                ),
+                start = startIndex,
+                end = endIndex
+            )
+            addStringAnnotation(
+                tag = "URL",
+                annotation = hyperLinks[index],
+                start = startIndex,
+                end = endIndex
+            )
+            addStyle(
+                style = SpanStyle(
+                    color = Color.White),
+                start = endIndex,
+                end = fullText.length
+            )
+        }
+    }
+    ClickableText(
+        modifier = modifier,
+        text = annotatedString,
+        onClick ={
+            navController.navigate("login_page")
+        } )
 }

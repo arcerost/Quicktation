@@ -72,8 +72,3 @@ fun OpenPage(navController: NavController) {
         }
     }
 }
-
-@Composable
-fun Selam() {
-    
-}
