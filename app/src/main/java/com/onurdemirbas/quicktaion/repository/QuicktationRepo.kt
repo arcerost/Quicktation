@@ -17,21 +17,17 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi) {
         try {
             when (response.error) {
                 0 -> {
-                    println("value 0")
                 }
                 1 -> {
-                    println("value 1")
                     hatametni = response.errorText
                     return Resource.Error(hatametni)
                 }
                 else -> {
-                    println("Values is not 0-1")
                 }
             }
         } catch (e: Exception) {
             return Resource.Error(e.message.toString())
         }
-        println("Error: "+response.error.toString()+" //   Response: " +response.errorText)
         return Resource.Success(response)
     }
 }

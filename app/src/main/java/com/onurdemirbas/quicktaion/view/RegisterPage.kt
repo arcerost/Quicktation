@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
@@ -32,6 +33,8 @@ import com.onurdemirbas.quicktaion.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktaion.viewmodel.RegisterViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import java.security.MessageDigest
 
 
 @Composable
@@ -45,9 +48,13 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
     val context = LocalContext.current
 
     val EMAIL_REGEX = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
-        fun isEmailValid(email: String): Boolean {
+    fun isEmailValid(email: String): Boolean {
             return EMAIL_REGEX.toRegex().matches(email);
-        }
+    }
+    fun md5(input:String): String {
+        val md = MessageDigest.getInstance("MD5")
+        return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
+    }
     Surface {
         Box(contentAlignment = Alignment.Center) {
             Image(
@@ -75,12 +82,12 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
             }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Email", color= Color.White, fontFamily = openSansFontFamily)
             })
-            TextField(value = password.value, onValueChange ={
+            TextField(value = password.value, visualTransformation = PasswordVisualTransformation(), onValueChange ={
                 password.value = it
             }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Şifre", color= Color.White, fontFamily = openSansFontFamily)
             })
-            TextField(value = password2.value, onValueChange ={
+            TextField(value = password2.value, visualTransformation = PasswordVisualTransformation(), onValueChange ={
                 password2.value = it
             }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Şifre (Tekrar)", color= Color.White, fontFamily = openSansFontFamily)
@@ -119,7 +126,7 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                         if (password.value.text == password2.value.text) {
                                             viewModel.beRegister(
                                                 email = email.value.text,
-                                                password = password.value.text,
+                                                password = md5(password.value.text),
                                                 namesurname = name.value.text,
                                                 navController = navController
                                             )
@@ -127,12 +134,9 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                                 delay(600)
                                                 val errorMessage = viewModel.errorMessage
                                                 if (errorMessage.value.isEmpty()) {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Success!",
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                        .show()
+
+                                                    //Başarı durumunda yapılacaklar
+                                                    println("Başarılı Giriş")
                                                 } else {
                                                     Toast.makeText(
                                                         context,

@@ -21,10 +21,8 @@ class RegisterViewModel @Inject constructor(private val repository: QuicktationR
     ) {
         viewModelScope.launch {
             val result = repository.postRegisterApi(email, password, namesurname)
-            println("Result mesajı = " + result.message)
             if (result.message != null && result.message != "")
             {
-                println("Error Message:  "+ result.message)
                 result.message.let {
                     errorMessage.value = it
                 }
@@ -32,7 +30,6 @@ class RegisterViewModel @Inject constructor(private val repository: QuicktationR
             else if (result.data!!.error == 0)
             {
                 navController.navigate("open_page")
-                println("Result Data Error:  "+result.data.error.toString())
             }
             /*
             if(result.data!!.error ==1)
