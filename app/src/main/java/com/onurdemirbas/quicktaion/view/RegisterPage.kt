@@ -46,15 +46,17 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
     val s1check = remember { mutableStateOf(false)}
     val s2check = remember { mutableStateOf(false)}
     val context = LocalContext.current
+    val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
 
-    val EMAIL_REGEX = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
+
     fun isEmailValid(email: String): Boolean {
-            return EMAIL_REGEX.toRegex().matches(email);
+            return emailRegex.toRegex().matches(email);
     }
     fun md5(input:String): String {
         val md = MessageDigest.getInstance("MD5")
         return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
     }
+
     Surface {
         Box(contentAlignment = Alignment.Center) {
             Image(

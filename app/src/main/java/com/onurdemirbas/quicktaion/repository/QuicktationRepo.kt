@@ -1,7 +1,10 @@
 package com.onurdemirbas.quicktaion.repository
 
+import com.onurdemirbas.quicktaion.model.Login
+import com.onurdemirbas.quicktaion.model.LoginResponse
 import com.onurdemirbas.quicktaion.model.Register
 import com.onurdemirbas.quicktaion.model.RegisterResponse
+import com.onurdemirbas.quicktaion.service.LoginApi
 import com.onurdemirbas.quicktaion.service.RegisterApi
 import com.onurdemirbas.quicktaion.util.Resource
 import dagger.hilt.android.scopes.ActivityScoped
@@ -9,9 +12,14 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @ActivityScoped
-class QuicktationRepo @Inject constructor(private val api: RegisterApi) {
+class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi) {
     private lateinit var hatametni: String
-    suspend fun postRegisterApi(email: String, password: String, namesurname: String): Resource<RegisterResponse> {
+    private lateinit var loginError: String
+    suspend fun postRegisterApi(
+        email: String,
+        password: String,
+        namesurname: String
+    ): Resource<RegisterResponse> {
         val request = Register(email, password, namesurname)
         val response = api.postRegisterApi(request)
         try {
@@ -26,6 +34,28 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi) {
                 }
             }
         } catch (e: Exception) {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postLoginApi(email: String, password: String): Resource<LoginResponse> {
+        val request = Login(email, password)
+        val response = api2.postLoginApi(request)
+        try {
+            when (response.error) {
+                0 -> {
+                }
+                1 -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
             return Resource.Error(e.message.toString())
         }
         return Resource.Success(response)
