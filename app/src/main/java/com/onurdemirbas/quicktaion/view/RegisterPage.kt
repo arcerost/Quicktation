@@ -136,8 +136,6 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                                 delay(600)
                                                 val errorMessage = viewModel.errorMessage
                                                 if (errorMessage.value.isEmpty()) {
-
-                                                    //Başarı durumunda yapılacaklar
                                                     println("Başarılı Giriş")
                                                 } else {
                                                     Toast.makeText(
