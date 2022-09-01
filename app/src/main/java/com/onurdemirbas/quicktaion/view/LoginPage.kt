@@ -140,8 +140,8 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                 navController.navigate("register_page")
             } )
     }
-    var email = remember { mutableStateOf(TextFieldValue()) }
-    var password = remember { mutableStateOf(TextFieldValue()) }
+    val email = remember { mutableStateOf(TextFieldValue()) }
+    val password = remember { mutableStateOf(TextFieldValue()) }
     val context = LocalContext.current
     Surface {
         Box(contentAlignment = Alignment.Center) {

@@ -1,9 +1,11 @@
 package com.onurdemirbas.quicktaion.view
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -12,10 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -32,24 +32,27 @@ import com.onurdemirbas.quicktaion.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktaion.viewmodel.ForgotPasswordViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordViewModel = hiltViewModel()) {
     val email = remember { mutableStateOf(TextFieldValue()) }
     val code = remember { mutableStateOf(TextFieldValue()) }
     val newPw = remember { mutableStateOf(TextFieldValue()) }
     val openDialog = remember { mutableStateOf(false) }
-    val openDialog2 = remember { mutableStateOf(false)}
+    val openDialog2 = remember { mutableStateOf(false) }
     val maxChar = 6
     val context = LocalContext.current
     var errorMessage: MutableState<String>
+    val bringIntoViewRequester: BringIntoViewRequester
     Surface {
-        Box(contentAlignment = Alignment.Center) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
             Image(
                 painter = painterResource(id = R.drawable.background),
                 contentDescription = "Color Gradient Background",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillHeight
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                contentScale = ContentScale.FillBounds
             )
         }
         Column(
@@ -71,8 +74,8 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                     value = email.value,
                     onValueChange = {
                         email.value = it
-                    }
-                    , colors = TextFieldDefaults.textFieldColors(
+                    },
+                    colors = TextFieldDefaults.textFieldColors(
                         textColor = Color.White,
                         backgroundColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.White
@@ -90,8 +93,7 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                 Spacer(modifier = Modifier.size(75.dp))
                 Button(
                     onClick = {
-                        if(email.value.text !="")
-                        {
+                        if (email.value.text != "") {
                             viewModel.forgotPassword(email = email.value.text)
                             viewModel.viewModelScope.launch {
                                 delay(1000)
@@ -107,9 +109,8 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                                     ).show()
                                 }
                             }
-                        }
-                        else
-                            Toast.makeText(context,"Email Boş Olamaz",Toast.LENGTH_LONG).show()
+                        } else
+                            Toast.makeText(context, "Email Boş Olamaz", Toast.LENGTH_LONG).show()
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.White,
@@ -122,26 +123,23 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                 ) {
                     Text(text = "Şifremi Unuttum", fontSize = 25.sp, fontFamily = nunitoFontFamily)
                 }
-                Button(onClick = { openDialog.value = !openDialog.value}) {
-                    Text(text = "aç")
-                }
             }
         }
     }
-    if (openDialog.value)
-    {
+    if (openDialog.value) {
         Popup(
-            alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value},
+            alignment = Alignment.BottomCenter,
+            onDismissRequest = { openDialog.value = !openDialog.value },
             properties = PopupProperties(
                 focusable = true,
                 dismissOnClickOutside = true,
                 dismissOnBackPress = true,
-                clippingEnabled = false
             )
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(color = Color.White, shape = RoundedCornerShape(10.dp))
-                .size(750.dp, 250.dp)
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(color = Color.White, shape = RoundedCornerShape(10.dp))
+                    .size(750.dp, 333.dp).windowInsetsPadding(WindowInsets.ime)
             ) {
                 Column(
                     verticalArrangement = Arrangement.Bottom,
@@ -150,9 +148,9 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                     TextField(
                         value = code.value,
                         onValueChange = {
-                            if(it.text.length <= maxChar)
+                            if (it.text.length <= maxChar)
                                 code.value = it
-                        }, modifier = Modifier.onGloballyPositioned { Modifier.padding(bottom = 25.dp) }.onFocusChanged { Modifier.padding(bottom = 50.dp) },
+                        }, modifier = Modifier.windowInsetsPadding(WindowInsets.ime),
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
                             backgroundColor = Color.Transparent,
@@ -168,7 +166,7 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                     Spacer(modifier = Modifier.size(20.dp))
                     Button(
                         onClick = {
-                            viewModel.checkCode(email.value.text,code.value.text)
+                            viewModel.checkCode(email.value.text, code.value.text)
                             viewModel.viewModelScope.launch {
                                 delay(1000)
                                 errorMessage = viewModel.errorMessage
@@ -204,78 +202,88 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
             }
         }
     }
-    if(openDialog2.value)
-    {
-        Popup(
-            alignment = Alignment.Center, onDismissRequest = {openDialog2.value = !openDialog2.value},
-            properties = PopupProperties(
-                focusable = true,
-                dismissOnClickOutside = true,
-                dismissOnBackPress = true,
-                clippingEnabled = false
-            ), offset = IntOffset(0,0))
-        {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(color = Color.White)
-                .size(750.dp, 250.dp)) {
-                Column(
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.CenterHorizontally
+    if (openDialog2.value) {
+            Popup(
+                alignment = Alignment.BottomCenter,
+                onDismissRequest = { openDialog2.value = !openDialog2.value },
+                properties = PopupProperties(
+                    focusable = true,
+                    dismissOnClickOutside = true,
+                    dismissOnBackPress = true,
+                    clippingEnabled = false,
+                    excludeFromSystemGesture = true
+                )
+            )
+            {
+                Box(
+                    contentAlignment = Alignment.Center, modifier = Modifier
+                        .background(color = Color.White)
+                        .size(750.dp, 33
+                            .dp)
                 ) {
-                    TextField(
-                        value = newPw.value,
-                        onValueChange = {
-                                newPw.value = it
-                        },
-                        colors = TextFieldDefaults.textFieldColors(
-                            textColor = Color.Black,
-                            backgroundColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Black
-                        ),
-                        placeholder = {
-                            Text(
-                                text = "Yeni Şifrenizi giriniz",
-                                color = Color.Black,
-                                fontFamily = openSansFontFamily
-                            )
-                        })
-                    Spacer(modifier = Modifier.size(20.dp))
-                    Button(
-                        onClick = {
-                            viewModel.updatePassword(email.value.text,newPw.value.text,navController)
-                            viewModel.viewModelScope.launch {
-                                delay(1000)
-                                errorMessage = viewModel.errorMessage
-                                if (errorMessage.value.isEmpty()) {
-                                    Toast.makeText(context,"EEEEE oldu",Toast.LENGTH_LONG).show()
-                                    println("Başarılı Doğrulama")
-                                    openDialog2.value = !openDialog2.value
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        errorMessage.value,
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.Yellow,
-                            contentColor = Color.Black
-                        ),
-                        shape = RoundedCornerShape(15.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 15.dp, vertical = 15.dp)
+                    Column(
+                        verticalArrangement = Arrangement.Bottom,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "Şifreyi Onayla",
-                            fontSize = 25.sp,
-                            fontFamily = nunitoFontFamily
-                        )
+                        TextField(
+                            value = newPw.value,
+                            onValueChange = {
+                                newPw.value = it
+                            }, modifier = Modifier.windowInsetsPadding(WindowInsets.ime),
+                            colors = TextFieldDefaults.textFieldColors(
+                                textColor = Color.Black,
+                                backgroundColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Black
+                            ),
+                            placeholder = {
+                                Text(
+                                    text = "Yeni Şifrenizi giriniz",
+                                    color = Color.Black,
+                                    fontFamily = openSansFontFamily
+                                )
+                            })
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Button(
+                            onClick = {
+                                viewModel.updatePassword(
+                                    email.value.text,
+                                    newPw.value.text,
+                                    navController
+                                )
+                                viewModel.viewModelScope.launch {
+                                    delay(1000)
+                                    errorMessage = viewModel.errorMessage
+                                    if (errorMessage.value.isEmpty()) {
+                                        Toast.makeText(context, "EEEEE oldu", Toast.LENGTH_LONG)
+                                            .show()
+                                        println("Başarılı Doğrulama")
+                                        openDialog2.value = !openDialog2.value
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            errorMessage.value,
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Yellow,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(15.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp, vertical = 15.dp)
+                        ) {
+                            Text(
+                                text = "Şifreyi Onayla",
+                                fontSize = 25.sp,
+                                fontFamily = nunitoFontFamily
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
