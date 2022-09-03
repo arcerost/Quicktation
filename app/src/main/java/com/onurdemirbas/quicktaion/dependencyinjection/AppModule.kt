@@ -1,8 +1,10 @@
 package com.onurdemirbas.quicktaion.dependencyinjection
 
+import com.onurdemirbas.quicktaion.model.Main
 import com.onurdemirbas.quicktaion.repository.QuicktationRepo
 import com.onurdemirbas.quicktaion.service.ForgotPwApi
 import com.onurdemirbas.quicktaion.service.LoginApi
+import com.onurdemirbas.quicktaion.service.MainApi
 import com.onurdemirbas.quicktaion.service.RegisterApi
 import com.onurdemirbas.quicktaion.util.Constants.BASE_URL
 import dagger.Module
@@ -11,6 +13,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import javax.inject.Singleton
 
 @Module
@@ -19,7 +22,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi) = QuicktationRepo(api,api2,api3)
+    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: MainApi) = QuicktationRepo(api,api2,api3,api4)
 
 
     @Singleton
@@ -50,6 +53,16 @@ object AppModule {
             .baseUrl(BASE_URL)
             .build()
             .create(ForgotPwApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideQuicktationMainApi(): MainApi{
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(MainApi::class.java)
     }
 
 }

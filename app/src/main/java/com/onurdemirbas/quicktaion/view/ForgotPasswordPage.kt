@@ -1,11 +1,9 @@
 package com.onurdemirbas.quicktaion.view
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -19,7 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.*
@@ -32,7 +29,9 @@ import com.onurdemirbas.quicktaion.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktaion.viewmodel.ForgotPasswordViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-@OptIn(ExperimentalFoundationApi::class)
+import java.math.BigInteger
+import java.security.MessageDigest
+
 @Composable
 fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordViewModel = hiltViewModel()) {
     val email = remember { mutableStateOf(TextFieldValue()) }
@@ -43,7 +42,10 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
     val maxChar = 6
     val context = LocalContext.current
     var errorMessage: MutableState<String>
-    val bringIntoViewRequester: BringIntoViewRequester
+    fun md5(input:String): String {
+        val md = MessageDigest.getInstance("MD5")
+        return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
+    }
     Surface {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
             Image(
@@ -218,8 +220,7 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                 Box(
                     contentAlignment = Alignment.Center, modifier = Modifier
                         .background(color = Color.White)
-                        .size(750.dp, 33
-                            .dp)
+                        .size(750.dp, 333.dp)
                 ) {
                     Column(
                         verticalArrangement = Arrangement.Bottom,
@@ -247,7 +248,7 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                             onClick = {
                                 viewModel.updatePassword(
                                     email.value.text,
-                                    newPw.value.text,
+                                    md5(newPw.value.text),
                                     navController
                                 )
                                 viewModel.viewModelScope.launch {

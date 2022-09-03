@@ -27,14 +27,13 @@ class LoginViewModel @Inject constructor(private val repository: QuicktationRepo
             }
             else if (result.data!!.error == 0)
             {
-                navController.navigate("open_page")
+                navController.navigate("home_page")
             }
             /*
             if(result.data!!.error ==1)
             {
                 errorMessage.value = result.message!!
             }
-
              */
         }
     }
