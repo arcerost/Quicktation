@@ -1,26 +1,38 @@
 package com.onurdemirbas.quicktaion.view
 
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.navigation.NavController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.onurdemirbas.quicktaion.R
+import com.onurdemirbas.quicktaion.model.MainResponse
+import com.onurdemirbas.quicktaion.viewmodel.MainViewModel
 
 @Composable
-fun HomePage(navController: NavController,) {
+fun HomePage(navController: NavController) {
+
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
     Column(
@@ -32,7 +44,7 @@ fun HomePage(navController: NavController,) {
         Image(
             painter = painterResource(id = R.drawable.quicktation_black),
             contentDescription = "quicktationlogo",
-            Modifier.size(181.dp,55.dp)
+            Modifier.size(181.dp, 55.dp)
         )
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
@@ -40,10 +52,10 @@ fun HomePage(navController: NavController,) {
             modifier = Modifier.fillMaxSize()
         )
         {
-            MainRow()
-            MainRow()
-            MainRow()
             //Lazy column row
+            MainRow()
+            MainRow()
+            MainRow()
         }
     }
 
@@ -95,12 +107,51 @@ fun HomePage(navController: NavController,) {
     }
 }
 
+
+@Composable
+fun PostList(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
+    val postList by remember { viewModel.mainList }
+    PostListView(posts = postList, navController = navController)
+}
+
+@Composable
+fun PostListView(posts: List<MainResponse>,navController: NavController) {
+    LazyColumn(contentPadding = PaddingValues(5.dp)) {
+        items(posts) { post ->
+           // MainRow(post =  post)
+        }
+    }
+}
 @Composable
 fun MainRow() {
-    val colorControl = remember { MutableInteractionSource() }
+    val colorControl = MutableInteractionSource()
     val isPressed by colorControl.collectIsPressedAsState()
     val color = if (isPressed) Color(0xFFD9DD23) else Color.White
-
+    val mediaCheck = remember { mutableStateOf(false)}
+    val url = "http://cld3097web.audiovideoweb.com/va90web25003/companions/Foundations%20of%20Rock/13.01.mp3" // your URL here
+    val mediaPlayer = MediaPlayer()
+        mediaPlayer.apply {
+        setAudioAttributes(
+            AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build()
+        )
+        setDataSource(url)
+        setOnPreparedListener {
+            fun onPrepared(player: MediaPlayer) {
+                if(mediaCheck.value)
+                {
+                    it.start()
+                }
+                else if(!mediaCheck.value)
+                {
+                    it.pause()
+                }
+            }
+        }
+        prepareAsync()
+    }
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopStart)
     {
         Surface(
@@ -131,7 +182,18 @@ fun MainRow() {
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Spacer(modifier = Modifier.padding(15.dp))
-                        IconButton(onClick = { /*TODO*/ }) {
+
+                        IconButton(onClick = {
+                            mediaCheck.value = !mediaCheck.value
+                            if(mediaCheck.value)
+                            {
+                                mediaPlayer.start()
+                            }
+                            else if(!mediaCheck.value)
+                            {
+                                mediaPlayer.pause()
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.play_pause),
                                 modifier = Modifier.size(10.dp, 12.dp),
@@ -189,14 +251,20 @@ fun MainRow() {
                                     }
                             )
                             Spacer(modifier = Modifier.padding(10.dp))
-                            Icon(
-                                painter = painterResource(id = R.drawable.like),
-                                contentDescription = "like",
-                                tint = color,
-                                modifier = Modifier.size(21.dp, 22.dp).clickable {
+                            IconButton(
+                                onClick = {
 
-                                }
-                            )
+                                }, interactionSource = colorControl, modifier = Modifier
+                                    .size(21.dp, 20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.like),
+                                    contentDescription = "like",
+                                    tint = color,
+                                    modifier = Modifier
+                                        .size(21.dp, 20.dp)
+                                )
+                            }
                         }
                     }
                 }
