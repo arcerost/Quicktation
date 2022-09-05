@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "home_page")
+                NavHost(navController = navController, startDestination = "notifications_page")
                 {
                     composable("open_page")
                     {
@@ -43,6 +43,10 @@ class MainActivity : ComponentActivity() {
                     composable("home_page")
                     {
                         HomePage(navController = navController)
+                    }
+                    composable("notifications_page")
+                    {
+                        NotificationsPage(navController = navController)
                     }
                 }
         }

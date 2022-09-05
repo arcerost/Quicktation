@@ -1,17 +1,14 @@
 package com.onurdemirbas.quicktaion.repository
 
 import com.onurdemirbas.quicktaion.model.*
-import com.onurdemirbas.quicktaion.service.ForgotPwApi
-import com.onurdemirbas.quicktaion.service.LoginApi
-import com.onurdemirbas.quicktaion.service.MainApi
-import com.onurdemirbas.quicktaion.service.RegisterApi
+import com.onurdemirbas.quicktaion.service.*
 import com.onurdemirbas.quicktaion.util.Resource
 import dagger.hilt.android.scopes.ActivityScoped
 import javax.inject.Inject
 import kotlin.Exception
 
 @ActivityScoped
-class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: MainApi) {
+class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: MainApi, private val api5: NotificationsApi) {
     private lateinit var hatametni: String
     private lateinit var loginError: String
     suspend fun postRegisterApi(
@@ -175,7 +172,40 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         return Resource.Success(response)
 
     }
+    //yöntem 1
+    /*
+    suspend fun postNotificationApi(error: String): Resource<NotificationsResponse>
+    {
+        val request = Notifications(error)
+        val response = api5.postNotificationApi(request)
+        try {
+            when (response.error) {
+                0 -> {
+                }
+                1 -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+    */
 
-
-
+    //yöntem 2
+    suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>>
+    {
+        val response = try{
+            api5.postNotificationApi(Notifications(error))
+        }catch (e:Exception) {
+            return Resource.Error("erör")
+        }
+        return Resource.Success(response)
+    }
 }

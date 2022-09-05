@@ -32,6 +32,8 @@ import com.onurdemirbas.quicktaion.viewmodel.MainViewModel
 
 @Composable
 fun HomePage(navController: NavController) {
+    val interactionSource =  MutableInteractionSource()
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -80,27 +82,27 @@ fun HomePage(navController: NavController) {
                 Image(painter = painterResource(id = R.drawable.home),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable { navController.navigate("home_page") }
+                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.notifications_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable { navController.navigate("home_page") }
+                        .clickable(interactionSource,indication = null){navController.navigate("notifications_page")}
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable { navController.navigate("home_page") }
+                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable { navController.navigate("home_page") }
+                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable { navController.navigate("home_page") }
+                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
                         .size(28.dp, 31.dp))
             }
         }
