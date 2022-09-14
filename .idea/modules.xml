@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Quicktaion.iml" filepath="$PROJECT_DIR$/.idea/modules/Quicktaion.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.androidTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktaion.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Quicktation.iml" filepath="$PROJECT_DIR$/.idea/modules/Quicktation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktation.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktation.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktation.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktation.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktation.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktation.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Quicktation.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Quicktation.app.unitTest.iml" />
     </modules>
   </component>
 </project>

@@ -1,6 +1,5 @@
 package com.onurdemirbas.quicktaion.dependencyinjection
 
-import com.onurdemirbas.quicktaion.model.Main
 import com.onurdemirbas.quicktaion.repository.QuicktationRepo
 import com.onurdemirbas.quicktaion.service.*
 import com.onurdemirbas.quicktaion.util.Constants.BASE_URL
@@ -10,7 +9,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 import javax.inject.Singleton
 
 @Module
@@ -19,7 +17,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: MainApi, api5: NotificationsApi) = QuicktationRepo(api,api2,api3,api4,api5)
+    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: MainApi, api5: NotificationsApi, api6: LikeApi) = QuicktationRepo(api,api2,api3,api4,api5,api6)
 
 
     @Singleton
@@ -70,5 +68,14 @@ object AppModule {
             .baseUrl(BASE_URL)
             .build()
             .create(NotificationsApi::class.java)
+    }
+    @Singleton
+    @Provides
+    fun provideQuicktationLikeApi(): LikeApi {
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(LikeApi::class.java)
     }
 }

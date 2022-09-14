@@ -9,6 +9,6 @@ import retrofit2.http.POST
 interface MainApi {
 
     @Headers("Content-Type:application/json")
-    @POST("/main")
-    suspend fun postMainApi(@Body request: Main): ArrayList<MainResponse> //: MainResponse
+    @POST("/homepageitems")
+    suspend fun postMainApi(@Body request: Main): MainResponse //: MainResponse
 }

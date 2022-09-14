@@ -6,7 +6,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -105,17 +104,17 @@ fun NotificationsPage(navController: NavController) {
 
 @Composable
 fun NotificationList(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
-    val postList by remember { viewModel.mainList }
-    NotificationListView(posts = postList, navController = navController)
+   // val postList by remember { viewModel.mainList }
+   // NotificationListView(posts = postList, navController = navController)
 }
 
 @Composable
 fun NotificationListView(posts: List<MainResponse>, navController: NavController) {
-    LazyColumn(contentPadding = PaddingValues(5.dp)) {
-        items(posts) { post ->
+  //  LazyColumn(contentPadding = PaddingValues(5.dp)) {
+     //   items(posts) { post ->
             // MainRow(post =  post)
-        }
-    }
+       // }
+   // }
 }
 
 @Composable
