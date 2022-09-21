@@ -226,7 +226,6 @@ fun HyperLinkText(
                 start = startIndex,
                 end = endIndex
             )
-
              */
             addStyle(
                 style = SpanStyle(

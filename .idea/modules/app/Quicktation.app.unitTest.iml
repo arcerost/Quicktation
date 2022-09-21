@@ -32,6 +32,7 @@
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/cea475f0ff969240473b6516e448811a/transformed/accompanist-insets-ui-0.24.7-alpha-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/ca1b7045cbeaea853d17a333366ea353/transformed/material-1.2.0-alpha08-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/0cb6ba22d9de536f3439d45b6f0da876/transformed/ui-tooling-preview-1.1.0-beta01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/5cd9ccb117989a98589f3e83c9bb7384/transformed/runtime-livedata-1.1.0-beta01-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/3a37190cad4e3d86f12473a4f25a15dc/transformed/ui-tooling-data-1.1.0-beta01-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/f31e13d1158bfe0736e6fc906b0be3a0/transformed/material-ripple-1.2.0-alpha08-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/3090a9df2db4682ed14502c8e24047c2/transformed/foundation-1.2.0-alpha08-api.jar</arg>
@@ -78,7 +79,7 @@
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/16b6bfe0a5be862ce602cfdbc1d3b537/transformed/ui-unit-1.2.0-alpha08-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/036b0d7eb78826286ba64a4e0b0e1849/transformed/ui-geometry-1.2.0-alpha08-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common-java8/2.5.1/5b8f86fea035328fc9e8c660773037a3401ce25f/lifecycle-common-java8-2.5.1.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/bad2b4bcb3948c58de95810ba43c4e34/transformed/lifecycle-livedata-2.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/8b7833438a98102cc05dd24cffe87fbf/transformed/lifecycle-livedata-2.2.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/8de0ec56648d6e140616320774e39bb6/transformed/lifecycle-livedata-core-2.5.1-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common/2.5.1/1fdb7349701e9cf2f0a69fc10642b6fef6bb3e12/lifecycle-common-2.5.1.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/transforms-3/15bf7776305441a9fa29a67a498c0fd5/transformed/core-runtime-2.1.0-api.jar</arg>
@@ -228,7 +229,7 @@
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.viewpager:viewpager:1.0.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.customview:customview:1.0.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.loader:loader:1.0.0@aar" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: androidx.lifecycle:lifecycle-livedata:2.2.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.arch.core:core-runtime:2.1.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.hilt:hilt-navigation-compose:1.0.0@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: androidx.hilt:hilt-navigation:1.0.0@aar" level="project" />
@@ -238,6 +239,7 @@
     <orderEntry type="library" scope="TEST" name="Gradle: io.coil-kt:coil:1.3.2@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.coil-kt:coil-base:1.3.2@aar" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: io.coil-kt:coil-compose-base:1.3.2@aar" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: androidx.compose.runtime:runtime-livedata:1.1.0-beta01@aar" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="Quicktation.app.main" />
 </module>
