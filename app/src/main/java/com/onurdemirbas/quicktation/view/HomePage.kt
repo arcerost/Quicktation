@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -59,7 +60,6 @@ fun HomePage(navController: NavController) {
             PostList(navController = navController)
         }
     }
-
     //BottomBar
     Box(
         modifier = Modifier
@@ -123,6 +123,32 @@ fun HomePage(navController: NavController) {
     }
 }
 
+@Composable
+fun LoadMoreButton(isVisible: Boolean, viewModel: MainViewModel = hiltViewModel(),navController: NavController){
+    val scanIndex by viewModel.scanIndex.collectAsState()
+    if(isVisible) {
+        IconButton(
+            onClick = {
+                      if(scanIndex>0) {
+                            //PostList(navController = navController,viewModel)
+                      }
+                      else {
+
+                      }
+                      //loadmorethings
+            }, modifier = Modifier
+                .size(25.dp, 25.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.show_more),
+                contentDescription = "load more",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(25.dp, 25.dp)
+            )
+        }
+    }
+}
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -130,22 +156,36 @@ fun PostList(navController: NavController, viewModel: MainViewModel = hiltViewMo
     val postList by viewModel.mainList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
-    val scanIndex by remember { viewModel.scanIndex}
+    //val scanIndex by viewModel.scanIndex.collectAsState()
     PostListView(posts = postList, navController = navController)
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
     }
 }
-
 @Composable
-fun PostListView(posts: List<Quotation>, navController: NavController) {
-    LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly) {
+fun PostListView(posts: List<Quotation>, navController: NavController,viewModel: MainViewModel = hiltViewModel()) {
+    LazyColumn(
+        contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        item {
+            //header
+        }
         items(posts) { post ->
             MainRow(post = post, navController = navController)
         }
+        item {
+            //footer
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LoadMoreButton(isVisible = true,viewModel,navController)
+            }
+        }
     }
 }
-
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -170,7 +210,7 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
     val color = remember { mutableStateOf(Color.Black) }
     val mediaCheck = remember { mutableStateOf(false) }
     val url = BASE_URL+quoteUrl
-    var mediaPressed = remember { mutableStateOf(false)}
+    val mediaPressed = remember { mutableStateOf(false)}
     val mediaPlayer = MediaPlayer()
     mediaPlayer.apply {
         setAudioAttributes(
@@ -284,12 +324,16 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint = if (amILike == 1) {
-                                        Color(0xFFD9DD23)
-                                    } else if (amILike == 0) {
-                                        Color.White
-                                    } else {
-                                        Color.Black
+                                    tint = when (amILike) {
+                                        1 -> {
+                                            Color(0xFFD9DD23)
+                                        }
+                                        0 -> {
+                                            Color.White
+                                        }
+                                        else -> {
+                                            Color.Black
+                                        }
                                     },
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
@@ -364,7 +408,7 @@ fun HashText(
     fontSize: TextUnit = TextUnit.Unspecified,
     onClick: () -> Unit,
 ) {
-    var startIndex = 0
+    var startIndex: Int
     var endIndex = 0
     val annotatedString = buildAnnotatedString {
         append(fullText)
@@ -378,7 +422,7 @@ fun HashText(
         val words = fullText.split("\\s+".toRegex()).map { word ->
             word.replace("""^[,\.]|[,\.]$""".toRegex(), "")
         }
-        words.forEachIndexed { index, s ->
+        words.forEachIndexed { _, s ->
             if (s.startsWith("#")) {
                 startIndex = fullText.indexOf(s)
                 endIndex = startIndex + s.length

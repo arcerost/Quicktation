@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
     var errorMessage = mutableStateOf("")
-    var scanIndex = mutableStateOf(0)
+    var scanIndex = MutableStateFlow(0)
     var mainList = MutableStateFlow<List<Quotation>>(listOf())
     var isDeleted = mutableStateOf(5)
 
