@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.dependencyinjection
 
+import com.onurdemirbas.quicktation.model.QuoteDetail
 import com.onurdemirbas.quicktation.repository.QuicktationRepo
 import com.onurdemirbas.quicktation.service.*
 import com.onurdemirbas.quicktation.util.Constants.BASE_URL
@@ -17,7 +18,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: MainApi, api5: NotificationsApi, api6: LikeApi) = QuicktationRepo(api,api2,api3,api4,api5,api6)
+    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: HomeApi, api5: NotificationsApi, api6: LikeApi, api7: QuoteDetailApi) = QuicktationRepo(api,api2,api3,api4,api5,api6,api7)
 
 
     @Singleton
@@ -52,12 +53,12 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationMainApi(): MainApi{
+    fun provideQuicktationMainApi(): HomeApi{
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BASE_URL)
             .build()
-            .create(MainApi::class.java)
+            .create(HomeApi::class.java)
     }
 
     @Singleton
@@ -77,5 +78,14 @@ object AppModule {
             .baseUrl(BASE_URL)
             .build()
             .create(LikeApi::class.java)
+    }
+    @Singleton
+    @Provides
+    fun provideQuicktationQuoteDetailApi(): QuoteDetailApi {
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(QuoteDetailApi::class.java)
     }
 }

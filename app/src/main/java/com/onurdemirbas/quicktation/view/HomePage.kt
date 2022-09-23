@@ -1,8 +1,8 @@
 package com.onurdemirbas.quicktation.view
 
-import android.annotation.SuppressLint
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -10,7 +10,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.Slider
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
@@ -18,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,8 +38,9 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants.BASE_URL
-import com.onurdemirbas.quicktation.viewmodel.MainViewModel
+import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
+import kotlin.math.absoluteValue
 
 
 @Composable
@@ -123,91 +125,90 @@ fun HomePage(navController: NavController) {
     }
 }
 
-@Composable
-fun LoadMoreButton(isVisible: Boolean, viewModel: MainViewModel = hiltViewModel(),navController: NavController){
-    val scanIndex by viewModel.scanIndex.collectAsState()
-    if(isVisible) {
-        IconButton(
-            onClick = {
-                      if(scanIndex>0) {
-                            //PostList(navController = navController,viewModel)
-                      }
-                      else {
 
-                      }
-                      //loadmorethings
-            }, modifier = Modifier
-                .size(25.dp, 25.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.show_more),
-                contentDescription = "load more",
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(25.dp, 25.dp)
-            )
-        }
-    }
-}
-
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun PostList(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
+fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val postList by viewModel.mainList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
-    //val scanIndex by viewModel.scanIndex.collectAsState()
-    PostListView(posts = postList, navController = navController)
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
     }
+    else
+    {
+        PostListView(posts = postList, navController = navController)
+    }
 }
+
 @Composable
-fun PostListView(posts: List<Quotation>, navController: NavController,viewModel: MainViewModel = hiltViewModel()) {
-    LazyColumn(
-        contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp),
-        verticalArrangement = Arrangement.SpaceEvenly
-    ) {
-        item {
-            //header
-        }
+fun PostListView(posts: List<Quotation>, navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val scanIndex by viewModel.scanIndex.collectAsState()
+    var checkState by remember { mutableStateOf(false) }
+    val postList by viewModel.mainList.collectAsState()
+    val errorMessage by remember { viewModel.errorMessage }
+    val context = LocalContext.current
+    val state = rememberLazyListState()
+    fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
+    val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
+    LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
         items(posts) { post ->
             MainRow(post = post, navController = navController)
         }
         item {
-            //footer
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                LoadMoreButton(isVisible = true,viewModel,navController)
+            LaunchedEffect(endOfListReached) {
+                if(scanIndex != 0) {
+                    if(scanIndex == -1)
+                    {
+//                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                    }
+                    else {
+                        viewModel.viewModelScope.launch {
+                            async {
+                                viewModel.loadMainScans(1, scanIndex)
+                            }.await()
+                            checkState = !checkState
+                        }
+                    }
+                }
             }
+        }
+    }
+    if(checkState) {
+        if(endOfListReached)
+        {
+            if(scanIndex>0) {
+                PostListView(posts = postList, navController = navController)
+                if (errorMessage.isNotEmpty()) {
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
+            checkState= !checkState
         }
     }
 }
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun RefreshWithLike(viewModel: MainViewModel = hiltViewModel(), userId: Int, id: Int) {
-    viewModel.amILike(userId,id)
-    viewModel.viewModelScope.launch { delay(500)
-        viewModel.loadMains(userId) }
+fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
+    viewModel.amILike(userId,quoteId)
+    viewModel.viewModelScope.launch { delay(200) }
 }
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navController: NavController) {
-    val id  by remember { mutableStateOf(post.id) }
+fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController) {
+    val quoteId  = post.id
+    Log.d("ids","quoteid: ${quoteId.absoluteValue}")
+    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
+    Log.d("ids","quoteidFromVm: ${quoteIdFromVm.value}")
     val username by remember { mutableStateOf(post.username) }
     val quoteUrl by remember { mutableStateOf(post.quote_url) }
     val amILike = post.amIlike
+    val amILikeFromVm = viewModel.isDeleted.collectAsState()
     val likeCount = post.likeCount
+    val likeCountFromVm = viewModel.likeCount.collectAsState()
     val quoteText by remember { mutableStateOf(post.quote_text) }
     val userPhoto by remember { mutableStateOf(post.userphoto) }
     val userId by remember { mutableStateOf(post.userId) }
     var isPressed by remember { mutableStateOf(false) }
-    val color = remember { mutableStateOf(Color.Black) }
     val mediaCheck = remember { mutableStateOf(false) }
     val url = BASE_URL+quoteUrl
     val mediaPressed = remember { mutableStateOf(false)}
@@ -228,6 +229,7 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                     it.pause()
                 }
             }
+            //onPrepared(mediaPlayer)
         }
         prepareAsync()
     }
@@ -237,7 +239,9 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
         .wrapContentSize(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
-            .clickable {}) {
+            .clickable {
+                navController.navigate("quote_detail_page/$quoteId/$userId")
+            }) {
             Box(
                 modifier = Modifier
                     .defaultMinSize(343.dp, 140.dp)
@@ -275,13 +279,21 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                                 tint = Color.White
                             )
                         }
-                        Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp), colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
+                        Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Spacer(modifier = Modifier.padding(start=0.dp))
-                        Text(text = "1:31", color = Color.White, modifier = Modifier.padding(top = 15.dp))
+                        Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 60.dp))
-                        Text(text = "$likeCount BEĞENME", color = Color.White, modifier = Modifier
-                            .padding(top = 15.dp)
-                            .clickable {})
+                        Text(text = if(quoteId != quoteIdFromVm.value)
+                        {
+                            "$likeCount BEĞENME"
+                        }
+                            else
+                        {
+                            "${likeCountFromVm.value} BEĞENME"
+                        }
+                        , color = Color.White, modifier = Modifier
+                                .padding(top = 15.dp)
+                                .clickable {})
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -289,7 +301,6 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        //Text(quoteText, color = Color.White)
                         HashText(navController = navController, fullText = quoteText) {
 
                         }
@@ -324,7 +335,43 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint = when (amILike) {
+                                    tint =
+                                    if(quoteId != quoteIdFromVm.value) {
+                                        when (amILike) {
+                                            1 -> {
+                                                Color(0xFFD9DD23)
+                                            }
+                                            0 -> {
+                                                Color.White
+                                            }
+                                            else -> {
+                                                Color.Black
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        when (amILikeFromVm.value) {
+                                            0 -> {
+                                                Color(0xFFD9DD23)
+                                            }
+                                            1 -> {
+                                                Color.White
+                                            }
+                                            else -> {
+                                                Color.Black
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .size(21.dp, 20.dp)
+                                )
+                        }
+                            if (isPressed) {
+                                RefreshWithLike(viewModel, 1, quoteId)
+                                isPressed = false
+                                if(quoteId != quoteIdFromVm.value) {
+                                    when (amILike) {
                                         1 -> {
                                             Color(0xFFD9DD23)
                                         }
@@ -334,23 +381,20 @@ fun MainRow(viewModel: MainViewModel = hiltViewModel(), post: Quotation, navCont
                                         else -> {
                                             Color.Black
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .size(21.dp, 20.dp)
-                                )
-                        }
-                            if (isPressed) {
-                                RefreshWithLike(viewModel, 1, id)
-                                isPressed = false
-                                when (amILike) {
-                                    1 -> {
-                                        Color(0xFFD9DD23)
                                     }
-                                    0 -> {
-                                        Color.White
-                                    }
-                                    else -> {
-                                        Color.Black
+                                }
+                                else
+                                {
+                                    when (amILikeFromVm.value) {
+                                        0 -> {
+                                            Color(0xFFD9DD23)
+                                        }
+                                        1 -> {
+                                            Color.White
+                                        }
+                                        else -> {
+                                            Color.Black
+                                        }
                                     }
                                 }
                             }
@@ -442,9 +486,6 @@ fun HashText(
                     start = startIndex,
                     end = endIndex
                 )
-//                modifier.clickable{
-//                    navController.navigate("notifications_page")
-//                }
             } else {
                 addStyle(
                     style = SpanStyle(

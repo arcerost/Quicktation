@@ -8,7 +8,7 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @ActivityScoped
-class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: MainApi, private val api5: NotificationsApi, private val api6: LikeApi) {
+class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi) {
     private lateinit var hatametni: String
     private lateinit var loginError: String
     suspend fun postRegisterApi(email: String, password: String, namesurname: String): Resource<RegisterResponse> {
@@ -119,9 +119,9 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
     }
 
 
-    suspend fun postMainApi(userid: Int): Resource<MainResponse> {
+    suspend fun postMainApi(userid: Int): Resource<HomeResponse> {
 
-        val request = Main(userid)
+        val request = Home(userid,0)
         val response = api4.postMainApi(request)
         try {
             when (response.error) {
@@ -165,27 +165,11 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         return Resource.Success(response)
     }
 
- /*
 
-    suspend fun getMainList(userid: Int): Resource<ArrayList<MainResponse>>{
-        val response =try{
-            api4.postMainApi(Main(userid = userid))
-        } catch (e: Exception) {
-            return Resource.Error("Error")
-        }
-        return Resource.Success(response)
+    suspend fun postMainScanApi(userid: Int, scanIndex: Int): Resource<HomeResponse> {
 
-    }
-
-  */
-
-
-    //yöntem 1
-    /*
-    suspend fun postNotificationApi(error: String): Resource<NotificationsResponse>
-    {
-        val request = Notifications(error)
-        val response = api5.postNotificationApi(request)
+        val request = Home(userid,scanIndex)
+        val response = api4.postMainScanApi(request)
         try {
             when (response.error) {
                 0 -> {
@@ -204,7 +188,30 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         }
         return Resource.Success(response)
     }
-    */
+
+    suspend fun postQuoteDetailApi(userid: Int, quoteId: Int): Resource<QuoteDetailResponse> {
+
+        val request = QuoteDetail(userid,quoteId)
+        val response = api7.postQuoteDetailApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
 
     //yöntem 2
     suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>>

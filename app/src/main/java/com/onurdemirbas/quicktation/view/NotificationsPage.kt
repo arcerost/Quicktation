@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.onurdemirbas.quicktation.R
-import com.onurdemirbas.quicktation.model.MainResponse
+import com.onurdemirbas.quicktation.model.HomeResponse
 import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
-import com.onurdemirbas.quicktation.viewmodel.MainViewModel
+import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 
 @Composable
 fun NotificationsPage(navController: NavController) {
@@ -101,13 +101,13 @@ fun NotificationsPage(navController: NavController) {
 }
 
 @Composable
-fun NotificationList(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
+fun NotificationList(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
    // val postList by remember { viewModel.mainList }
    // NotificationListView(posts = postList, navController = navController)
 }
 
 @Composable
-fun NotificationListView(posts: List<MainResponse>, navController: NavController) {
+fun NotificationListView(posts: List<HomeResponse>, navController: NavController) {
   //  LazyColumn(contentPadding = PaddingValues(5.dp)) {
      //   items(posts) { post ->
             // MainRow(post =  post)

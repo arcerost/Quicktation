@@ -1,7 +1,7 @@
 package com.onurdemirbas.quicktation.model
 
-data class MainResponse(
+data class HomeResponse(
     val error: Int,
     val errorText: String,
-    val response: MainQuoteResponse
+    val response: HomeQuoteResponse
 )

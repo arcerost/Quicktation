@@ -1,6 +1,6 @@
 package com.onurdemirbas.quicktation.model
 
-data class MainQuoteResponse(
+data class HomeQuoteResponse(
     val quotations: List<Quotation>,
     val scanIndex: Int
 )

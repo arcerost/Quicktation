@@ -3,9 +3,12 @@ package com.onurdemirbas.quicktation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.remember
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.onurdemirbas.quicktation.view.*
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -48,9 +51,17 @@ class MainActivity : ComponentActivity() {
                     {
                         NotificationsPage(navController = navController)
                     }
-                    composable("quote_detail_page")
+                    composable("quote_detail_page", arguments = listOf(
+                        navArgument("userId"){
+                            type = NavType.IntType
+                        }, navArgument("id"){
+                            type = NavType.IntType
+                        }
+                    ))
                     {
-                        QuoteDetailPage(navController = navController)
+                        val id = remember { it.arguments?.getInt("id")}
+                        val userId = remember { it.arguments?.getInt("userId")}
+                        QuoteDetailPage(id = id!!,userId = userId!!,navController = navController)
                     }
                 }
         }
