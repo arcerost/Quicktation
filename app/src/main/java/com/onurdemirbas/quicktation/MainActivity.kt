@@ -51,10 +51,10 @@ class MainActivity : ComponentActivity() {
                     {
                         NotificationsPage(navController = navController)
                     }
-                    composable("quote_detail_page", arguments = listOf(
-                        navArgument("userId"){
+                    composable("quote_detail_page", arguments = listOf(navArgument("id"){
                             type = NavType.IntType
-                        }, navArgument("id"){
+                        },
+                        navArgument("userId"){
                             type = NavType.IntType
                         }
                     ))
@@ -62,6 +62,14 @@ class MainActivity : ComponentActivity() {
                         val id = remember { it.arguments?.getInt("id")}
                         val userId = remember { it.arguments?.getInt("userId")}
                         QuoteDetailPage(id = id!!,userId = userId!!,navController = navController)
+                    }
+                    composable("my_profile_page")
+                    {
+                        MyProfilePage(navController = navController)
+                    }
+                    composable("other_profile_page")
+                    {
+                        OtherProfilePage(navController = navController)
                     }
                 }
         }

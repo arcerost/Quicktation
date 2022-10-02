@@ -55,7 +55,6 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
             }
 
         }
-
     }
 
     fun loadMainScans(userid: Int,scanIndexx: Int) {

@@ -118,7 +118,7 @@ fun HomePage(navController: NavController) {
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("my_profile_page") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -143,16 +143,16 @@ fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewMo
 @Composable
 fun PostListView(posts: List<Quotation>, navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val scanIndex by viewModel.scanIndex.collectAsState()
-    var checkState by remember { mutableStateOf(false) }
     val postList by viewModel.mainList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
+    var checkState by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val state = rememberLazyListState()
     fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
     val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
         items(posts) { post ->
-            MainRow(post = post, navController = navController)
+            MainRow(post = post, navController = navController, myId = 1)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -194,11 +194,9 @@ fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), userId: Int, quo
 }
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController) {
+fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
     val quoteId  = post.id
-    Log.d("ids","quoteid: ${quoteId.absoluteValue}")
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
-    Log.d("ids","quoteidFromVm: ${quoteIdFromVm.value}")
     val username by remember { mutableStateOf(post.username) }
     val quoteUrl by remember { mutableStateOf(post.quote_url) }
     val amILike = post.amIlike
@@ -403,7 +401,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 LaunchedEffect(Unit){
                                     while(isActive){
                                         progress = (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
-                                        delay(200) // change this to what feels smooth without impacting performance too much
+                                        delay(200)
                                     }
                                 }
                             }
@@ -420,7 +418,14 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        if(myId == userId)
+                        {
+                            navController.navigate("my_profile_page")
+                        }
+                        else
+                        {
+                            navController.navigate("other_profile_page")
+                        }
                     }
             )
         }
@@ -433,7 +438,14 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        if(myId == userId)
+                        {
+                            navController.navigate("my_profile_page")
+                        }
+                        else
+                        {
+                            navController.navigate("other_profile_page")
+                        }
                     }
             )
         }
