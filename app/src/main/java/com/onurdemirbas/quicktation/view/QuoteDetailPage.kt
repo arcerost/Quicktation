@@ -31,6 +31,7 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteDetailResponseRowList
 import com.onurdemirbas.quicktation.model.Sound
 import com.onurdemirbas.quicktation.util.Constants
+import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -38,7 +39,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun QuoteDetailPage(id: Int, userId: Int,navController: NavController) {
+fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+    viewModel.viewModelScope.launch{
+        delay(200)
+        viewModel.loadQuote(userId, id)
+    }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -53,7 +60,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController) {
             modifier = Modifier.fillMaxSize()
         )
         {
-            Post(navController = navController)
+            Post(navController = navController, userId, myId = iid.value!!)
         }
     }
 
@@ -71,11 +78,8 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.home),
@@ -141,7 +145,7 @@ fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), user
 }
 
 @Composable
-fun Post(navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
+fun Post(navController: NavController, userId: Int, myId: Int, viewModel: QuoteDetailViewModel = hiltViewModel()) {
     val soundList by viewModel.soundList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
@@ -150,12 +154,12 @@ fun Post(navController: NavController, viewModel: QuoteDetailViewModel = hiltVie
     }
     else
     {
-        PostView(posts = soundList, navController = navController)
+        PostView(posts = soundList, navController = navController, userId, myId = myId)
     }
 }
 
 @Composable
-fun PostView(posts: List<Sound>, navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
+fun PostView(posts: List<Sound>, navController: NavController, userId: Int, myId: Int, viewModel: QuoteDetailViewModel = hiltViewModel()) {
     val scanIndex by viewModel.scanIndex.collectAsState()
     val soundList by viewModel.soundList.collectAsState()
     var checkState by remember { mutableStateOf(false) }
@@ -167,10 +171,10 @@ fun PostView(posts: List<Sound>, navController: NavController, viewModel: QuoteD
     val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
         item{
-            QuoteRow(post = headerPost, navController = navController)
+            QuoteRow(post = headerPost, navController = navController, userId = userId, myId = myId)
         }
         items(posts) { post ->
-            SoundRow(sound = post, navController = navController)
+            SoundRow(sound = post, navController = navController, userId = userId, myId = myId)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -195,7 +199,7 @@ fun PostView(posts: List<Sound>, navController: NavController, viewModel: QuoteD
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                PostView(posts = soundList, navController = navController)
+                PostView(posts = soundList, navController = navController,userId, myId = myId)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -208,7 +212,7 @@ fun PostView(posts: List<Sound>, navController: NavController, viewModel: QuoteD
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetailResponseRowList, navController: NavController) {
+fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetailResponseRowList, userId: Int, myId: Int, navController: NavController) {
     val quoteId  = post.id
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
@@ -260,7 +264,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     painter = painterResource(id = R.drawable.backgroundbottombar),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillWidth
+                    contentScale = ContentScale.FillBounds
                 )
                 Column(
                     horizontalAlignment = Alignment.Start,
@@ -378,7 +382,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                 )
                             }
                             if (isPressed) {
-                                RefreshWithLikeQuote(viewModel, 1, quoteId)
+                                RefreshWithLikeQuote(viewModel, myId, quoteId)
                                 isPressed = false
                                 if(quoteId != quoteIdFromVm.value) {
                                     when (amILike) {
@@ -453,7 +457,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
 
 
 @Composable
-fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, navController: NavController) {
+fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, userId: Int, myId: Int,navController: NavController) {
     val soundId  = sound.id
     val soundIdFromVm = viewModel.soundIdx.collectAsState()
     val username by remember { mutableStateOf(sound.username) }
@@ -571,8 +575,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, na
                                     modifier = Modifier.size(21.dp, 20.dp))
                             }
                             if (isPressed) {
-                                Log.d("check","pressed")
-                                RefreshWithLikeSound(viewModel, 1, soundId)
+                                RefreshWithLikeSound(viewModel, myId, soundId)
                                 isPressed = false
                                 if(soundId != soundIdFromVm.value) {
                                     when (amILike) {

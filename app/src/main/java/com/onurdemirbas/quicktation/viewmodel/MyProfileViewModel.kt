@@ -21,11 +21,7 @@ class MyProfileViewModel@Inject constructor(private val repository: QuicktationR
     var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
-
-    init {
-        loadQuotes(1,4)
-    }
-    private fun loadQuotes(userid: Int, myUserId: Int) {
+    fun loadQuotes(userid: Int, myUserId: Int) {
         viewModelScope.launch {
             when (val result = repository.postMyProfileApi(userid,myUserId)) {
                 is Resource.Success -> {

@@ -123,7 +123,7 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 15.dp)
                 ) {
-                    Text(text = "Şifremi Unuttum", fontSize = 25.sp, fontFamily = nunitoFontFamily)
+                    Text(text = "Şifremi Unuttum", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
                 }
             }
         }
@@ -255,9 +255,6 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                                     delay(1000)
                                     errorMessage = viewModel.errorMessage
                                     if (errorMessage.value.isEmpty()) {
-                                        Toast.makeText(context, "EEEEE oldu", Toast.LENGTH_LONG)
-                                            .show()
-                                        println("Başarılı Doğrulama")
                                         openDialog2.value = !openDialog2.value
                                     } else {
                                         Toast.makeText(

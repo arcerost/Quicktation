@@ -2,9 +2,10 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -30,15 +33,24 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
+import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.util.Constants
+import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
+import com.onurdemirbas.quicktation.viewmodel.OtherProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun OtherProfilePage(navController: NavController) {
+fun OtherProfilePage(navController: NavController, userId: Int, viewModel: OtherProfileViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+    viewModel.viewModelScope.launch{
+        delay(200)
+        viewModel.loadQuotes(userId,iid.value!!)
+    }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -125,12 +137,12 @@ fun OtherProfilePage(navController: NavController) {
 
 
 @Composable
-fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
+fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel(), myId: Int) {
+    val openDialog = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     val isPressed = remember { mutableStateOf(false) }
     if(isPressed.value)
     {
-        Log.d("tag","1")
         FollowerPage(navController = navController)
     }
     if(user.value.amIfollow ==0)
@@ -148,7 +160,7 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
                         contentDescription = null,
                         modifier = Modifier
                             .clickable() {
-                                //options
+                                openDialog.value = !openDialog.value
                             }
                             .size(52.dp, 12.dp))
                 }
@@ -217,7 +229,7 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
                         contentDescription = null,
                         modifier = Modifier
                             .clickable() {
-                                //options
+                                openDialog.value = !openDialog.value
                             }
                             .size(52.dp, 12.dp))
                 }
@@ -271,12 +283,70 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
             }
         }
     }
+    if(openDialog.value)
+    {
+        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .size(750.dp, 310.dp)
+                .windowInsetsPadding(WindowInsets.ime))
+            {
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                    Spacer(modifier = Modifier.padding(20.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.report), contentDescription = "report", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Şikayet Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.text), contentDescription = "text", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Mesaj Gönder", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.follow), contentDescription = "follow", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Takip Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.unfollow), contentDescription = "unfollow", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Takipten Çıkar", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
 
 @Composable
-fun OtherProfilePostList(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel()) {
+fun OtherProfilePostList(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel()) {
     val postList by viewModel.posts.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
@@ -291,7 +361,7 @@ fun OtherProfilePostList(navController: NavController, viewModel: MyProfileViewM
 
 
 @Composable
-fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavController ,viewModel: MyProfileViewModel = hiltViewModel()) {
+fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavController ,viewModel: OtherProfileViewModel = hiltViewModel()) {
     val scanIndex by viewModel.scanIndex.collectAsState()
     var checkState by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -327,7 +397,7 @@ fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: Nav
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                ProfilePostListView(posts = postList, navController = navController)
+                OtherProfilePostListView(posts = postList, navController = navController)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -340,7 +410,7 @@ fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: Nav
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun OtherProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController) {
+fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController) {
     val quoteId  = post.id
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
@@ -392,7 +462,7 @@ fun OtherProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: 
                     painter = painterResource(id = R.drawable.backgroundbottombar),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillWidth
+                    contentScale = ContentScale.FillBounds
                 )
                 Column(
                     horizontalAlignment = Alignment.Start,
@@ -509,7 +579,7 @@ fun OtherProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: 
                                 )
                             }
                             if (isPressed) {
-                                ProfileRefreshWithLikeQuote(viewModel, 1, quoteId)
+                                OtherProfileRefreshWithLikeQuote(viewModel, 1, quoteId)
                                 isPressed = false
                                 if(quoteId != quoteIdFromVm.value) {
                                     when (amILike) {
@@ -580,4 +650,11 @@ fun OtherProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: 
         }
     }
     Spacer(Modifier.padding(bottom = 15.dp))
+}
+
+@Composable
+fun OtherProfileRefreshWithLikeQuote(viewModel: OtherProfileViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
+    viewModel.viewModelScope.launch {
+        viewModel.amILikeFun(userId,quoteId)
+        delay(200) }
 }

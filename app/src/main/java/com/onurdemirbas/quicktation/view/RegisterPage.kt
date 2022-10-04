@@ -185,7 +185,7 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
             },colors = ButtonDefaults.buttonColors(backgroundColor = Color.White, contentColor = Color.Black), shape = RoundedCornerShape(15.dp), modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp, vertical = 15.dp)) {
-                Text(text = "Kayıt Ol", fontSize = 25.sp, fontFamily = nunitoFontFamily)
+                Text(text = "Kayıt Ol", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
             }
         }
     }

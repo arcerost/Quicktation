@@ -43,7 +43,7 @@ fun OpenPage(navController: NavController) {
                         navController.navigate("login_page")
                     },
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(color = 0xFFD9DD23),
+                        backgroundColor = Color(0xCC0FB050),
                         contentColor = Color.Black
                     ),
                     shape = RoundedCornerShape(15.dp),
@@ -51,7 +51,7 @@ fun OpenPage(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp)
                 ) {
-                    Text("Giriş Yap", fontSize = 25.sp, fontFamily = nunitoFontFamily)
+                    Text("Giriş Yap", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
                 }
                 Button(
                     onClick = {
@@ -66,7 +66,7 @@ fun OpenPage(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 15.dp)
                 ) {
-                    Text("Kayıt Ol", fontSize = 25.sp, fontFamily = nunitoFontFamily)
+                    Text("Kayıt Ol", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
                 }
             }
         }

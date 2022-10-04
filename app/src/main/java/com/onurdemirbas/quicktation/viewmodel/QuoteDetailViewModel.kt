@@ -23,11 +23,7 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
     var soundIdx = MutableStateFlow(-1)
     var isDeletedSound = MutableStateFlow(-1)
     var likeCountSound = MutableStateFlow(-1)
-
-    init {
-        loadQuote(1,1)
-    }
-    private fun loadQuote(userId: Int, quoteId: Int)
+    fun loadQuote(userId: Int, quoteId: Int)
     {
         viewModelScope.launch {
             when (val result = repository.postQuoteDetailApi(userId, quoteId)) {

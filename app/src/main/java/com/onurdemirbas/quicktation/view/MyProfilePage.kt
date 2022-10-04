@@ -2,9 +2,10 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -30,7 +33,9 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
+import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.util.Constants
+import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -38,7 +43,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun MyProfilePage(navController: NavController) {
+fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+    viewModel.viewModelScope.launch{
+        delay(200)
+        viewModel.loadQuotes(iid.value!!,iid.value!!)
+    }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -48,7 +59,7 @@ fun MyProfilePage(navController: NavController) {
         modifier = Modifier.fillMaxSize()
     )
         {
-            ProfileRow(navController = navController, myId = 1)
+            ProfileRow(navController = navController, myId = iid.value!!)
         }
 
     //BottomBar
@@ -121,6 +132,7 @@ fun MyProfilePage(navController: NavController) {
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
+    val openDialog2 = remember { mutableStateOf(false) }
     val isPressed = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
@@ -139,8 +151,8 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 Image(painter = painterResource(id = R.drawable.options),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable() {
-                            //options
+                        .clickable {
+                            openDialog2.value = !openDialog2.value
                         }
                         .size(52.dp, 12.dp))
             }
@@ -190,20 +202,49 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 Text(text = "${user.value.likeCount}", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
-            ProfilePostList(navController = navController)
+            ProfilePostList(navController = navController,myId)
         }
     }
     if(isPressed.value)
     {
-        Log.d("tag","2")
         FollowerPage(navController = navController)
-        Log.d("tag","3")
+    }
+
+    if(openDialog2.value)
+    {
+        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog2.value = !openDialog2.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .size(750.dp, 220.dp)
+                .windowInsetsPadding(WindowInsets.ime))
+            {
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Profilimi düzenle", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                    }
+                }
+            }
+        }
     }
 }
 
 
 @Composable
-fun ProfilePostList(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel()) {
+fun ProfilePostList(navController: NavController, myId: Int, viewModel: MyProfileViewModel = hiltViewModel()) {
     val postList by viewModel.posts.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
@@ -212,14 +253,14 @@ fun ProfilePostList(navController: NavController, viewModel: MyProfileViewModel 
     }
     else
     {
-        ProfilePostListView(posts = postList, navController = navController)
+        ProfilePostListView(posts = postList, navController = navController,myId)
     }
 }
 
 
 
 @Composable
-fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavController ,viewModel: MyProfileViewModel = hiltViewModel()) {
+fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavController, myId: Int ,viewModel: MyProfileViewModel = hiltViewModel()) {
     val scanIndex by viewModel.scanIndex.collectAsState()
     var checkState by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -230,7 +271,7 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
     val postList by viewModel.posts.collectAsState()
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
         items(posts) { post ->
-            ProfileQuoteRow(post = post, navController = navController)
+            ProfileQuoteRow(post = post, navController = navController, myId = myId)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -255,7 +296,7 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                ProfilePostListView(posts = postList, navController = navController)
+                ProfilePostListView(posts = postList, navController = navController,myId)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -269,8 +310,8 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController) {
-    Log.d("tag","40")
+fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController, myId: Int) {
+    val openDialog = remember { mutableStateOf(false) }
     val quoteId  = post.id
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
@@ -389,7 +430,10 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                                 contentDescription = "more button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+
+                                        openDialog.value = !openDialog.value
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             Image(painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
@@ -439,7 +483,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                                 )
                             }
                             if (isPressed) {
-                                ProfileRefreshWithLikeQuote(viewModel, 1, quoteId)
+                                ProfileRefreshWithLikeQuote(viewModel, myId, quoteId)
                                 isPressed = false
                                 if(quoteId != quoteIdFromVm.value) {
                                     when (amILike) {
@@ -510,6 +554,34 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
         }
     }
     Spacer(Modifier.padding(bottom = 15.dp))
+
+
+    if(openDialog.value)
+    {
+        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(201, 114, 12, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .size(750.dp, 100.dp)
+                .windowInsetsPadding(WindowInsets.ime))
+            {
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(180.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Gönderiyi Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                    }
+                }
+            }
+        }
+    }
 }
 
 

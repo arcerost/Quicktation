@@ -31,3 +31,11 @@ val Typography = Typography(
 val nunitoFontFamily = FontFamily(Font(R.font.nunito_bold,FontWeight.Normal))
 
 val openSansFontFamily = FontFamily(Font(R.font.opensans_regular,FontWeight.Normal))
+
+val openSansBold = FontFamily(Font(R.font.opensans_bold,FontWeight.Normal))
+
+
+
+val Quickgraphy = Typography(
+    body1 = TextStyle()
+)

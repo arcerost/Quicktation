@@ -141,7 +141,7 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Yellow,
+                    backgroundColor = Color(0xFF0FB050),
                     contentColor = Color.Black
                 ),
                 shape = RoundedCornerShape(15.dp),
@@ -149,7 +149,7 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 15.dp)
             ) {
-                Text(text = "Giriş yap", fontSize = 25.sp, fontFamily = nunitoFontFamily)
+                Text(text = "Giriş yap", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
             }
         }
     }

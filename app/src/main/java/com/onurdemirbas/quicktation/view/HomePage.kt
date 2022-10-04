@@ -443,7 +443,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         if (myId == userId) {
                             navController.navigate("my_profile_page")
                         } else {
-                            navController.navigate("other_profile_page")
+                            navController.navigate("other_profile_page/$userId")
                         }
                     }
             )
@@ -460,7 +460,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         if (myId == userId) {
                             navController.navigate("my_profile_page")
                         } else {
-                            navController.navigate("other_profile_page")
+                            navController.navigate("other_profile_page/$userId")
                         }
                     }
             )

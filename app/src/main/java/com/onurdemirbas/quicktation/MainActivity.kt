@@ -51,7 +51,8 @@ class MainActivity : ComponentActivity() {
                     {
                         NotificationsPage(navController = navController)
                     }
-                    composable("quote_detail_page", arguments = listOf(navArgument("id"){
+                    composable("quote_detail_page/{id}/{userId}", arguments = listOf(
+                        navArgument("id"){
                             type = NavType.IntType
                         },
                         navArgument("userId"){
@@ -67,9 +68,14 @@ class MainActivity : ComponentActivity() {
                     {
                         MyProfilePage(navController = navController)
                     }
-                    composable("other_profile_page")
+                    composable("other_profile_page/{userId}", arguments = listOf(
+                        navArgument("userId"){
+                            type = NavType.IntType
+                        }
+                    ))
                     {
-                        OtherProfilePage(navController = navController)
+                        val userId = remember { it.arguments?.getInt("userId")}
+                        OtherProfilePage(navController = navController, userId = userId!!)
                     }
                     composable("follower_page")
                     {
