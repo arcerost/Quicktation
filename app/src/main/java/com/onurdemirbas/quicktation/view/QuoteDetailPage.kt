@@ -28,11 +28,9 @@ import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
-import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.model.QuoteDetailResponseRowList
 import com.onurdemirbas.quicktation.model.Sound
 import com.onurdemirbas.quicktation.util.Constants
-import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -73,8 +71,11 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.home),
@@ -133,6 +134,13 @@ fun RefreshWithLikeQuote(viewModel: QuoteDetailViewModel = hiltViewModel(), user
 }
 
 @Composable
+fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), userId: Int, quotesound_id: Int) {
+    viewModel.viewModelScope.launch {
+        viewModel.amILikeSound(userId,quotesound_id)
+        delay(200) }
+}
+
+@Composable
 fun Post(navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
     val soundList by viewModel.soundList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
@@ -162,7 +170,7 @@ fun PostView(posts: List<Sound>, navController: NavController, viewModel: QuoteD
             QuoteRow(post = headerPost, navController = navController)
         }
         items(posts) { post ->
-            SoundRow(post = post, navController = navController)
+            SoundRow(sound = post, navController = navController)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -249,7 +257,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     .fillMaxWidth(), contentAlignment = Alignment.TopStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.background),
+                    painter = painterResource(id = R.drawable.backgroundbottombar),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.FillWidth
@@ -445,16 +453,16 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
 
 
 @Composable
-fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: Sound, navController: NavController) {
-    val soundId  = post.id
-    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
-    val username by remember { mutableStateOf(post.username) }
-    val soundURL = post.soundURL
-    val amILike = post.amIlike
-    val amILikeFromVm = viewModel.isDeleted.collectAsState()
-    val likeCount = post.likeCount
-    val likeCountFromVm = viewModel.likeCount.collectAsState()
-    val userPhoto by remember { mutableStateOf(post.userphoto) }
+fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, navController: NavController) {
+    val soundId  = sound.id
+    val soundIdFromVm = viewModel.soundIdx.collectAsState()
+    val username by remember { mutableStateOf(sound.username) }
+    val soundURL = sound.soundURL
+    val amILike = sound.amIlike
+    val amILikeFromVm = viewModel.isDeletedSound.collectAsState()
+    val likeCount = sound.likeCount
+    val likeCountFromVm = viewModel.likeCountSound.collectAsState()
+    val userPhoto by remember { mutableStateOf(sound.userphoto) }
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
     val url = Constants.BASE_URL +soundURL
@@ -484,10 +492,10 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: Sound, nav
             Box(modifier = Modifier
                 .defaultMinSize(343.dp, 90.dp)
                 .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
-                Image(painter = painterResource(id = R.drawable.background), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillWidth)
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillWidth)
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End,modifier = Modifier.fillMaxWidth() ){
-                        Text(text = if(soundId != quoteIdFromVm.value)
+                        Text(text = if(soundId != soundIdFromVm.value)
                         {
                             "$likeCount BEĞENME"
                         }
@@ -534,7 +542,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: Sound, nav
                                     isPressed = true
                                 }, modifier = Modifier.size(21.dp, 20.dp)) {
                                 Icon(painter = painterResource(id = R.drawable.like), contentDescription = "like", tint =
-                                if(soundId != quoteIdFromVm.value) {
+                                if(soundId != soundIdFromVm.value) {
                                     when (amILike) {
                                         1 -> {
                                             Color(0xFFD9DD23)
@@ -564,9 +572,9 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: Sound, nav
                             }
                             if (isPressed) {
                                 Log.d("check","pressed")
-                                RefreshWithLikeQuote(viewModel, 1, soundId)
+                                RefreshWithLikeSound(viewModel, 1, soundId)
                                 isPressed = false
-                                if(soundId != quoteIdFromVm.value) {
+                                if(soundId != soundIdFromVm.value) {
                                     when (amILike) {
                                         1 -> {
                                             Color(0xFFD9DD23)

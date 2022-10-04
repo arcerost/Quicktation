@@ -12,9 +12,9 @@
         android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/quicktationlogoyellow"
+        android:icon="@drawable/quicktationlogo"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/quicktationlogoyellow"
+        android:roundIcon="@drawable/quicktationlogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Quicktaion"
         tools:targetApi="31">

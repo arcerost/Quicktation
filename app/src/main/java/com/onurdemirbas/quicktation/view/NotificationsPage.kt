@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,9 +57,12 @@ fun NotificationsPage(navController: NavController) {
         }
     }
     //BottomBar
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .fillMaxWidth(), contentAlignment = Alignment.BottomStart) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
+    )
+    {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,34 +70,52 @@ fun NotificationsPage(navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.homeblack),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
+                        .clickable(
+                            interactionSource,
+                            indication = null
+                        ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.notifications),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable(interactionSource,indication = null){}
+                        .clickable(
+                            interactionSource,
+                            indication = null
+                        ) { navController.navigate("notifications_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
+                        .clickable(
+                            interactionSource,
+                            indication = null
+                        ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
+                        .clickable(
+                            interactionSource,
+                            indication = null
+                        ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable(interactionSource,indication = null){navController.navigate("home_page")}
+                        .clickable(
+                            interactionSource,
+                            indication = null
+                        ) { navController.navigate("my_profile_page") }
                         .size(28.dp, 31.dp))
             }
         }

@@ -20,6 +20,10 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
     var soundList = MutableStateFlow<List<Sound>>(listOf())
+    var soundIdx = MutableStateFlow(-1)
+    var isDeletedSound = MutableStateFlow(-1)
+    var likeCountSound = MutableStateFlow(-1)
+
     init {
         loadQuote(1,1)
     }
@@ -51,6 +55,24 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
                     quoteIdx.value = result.data.response.quoteId
                 }
                 is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                    println(errorMessage.value)
+                }
+            }
+        }
+    }
+
+    fun amILikeSound(userId: Int, quotesound_id: Int)
+    {
+        viewModelScope.launch {
+            when(val result = repository.postLikeSoundApi(userId, quotesound_id))
+            {
+                is Resource.Success ->{
+                    isDeletedSound.value = result.data!!.response.isDeleted
+                    likeCountSound.value = result.data.response.likeCount
+                    soundIdx.value = result.data.response.quotesound_id
+                }
+                is Resource.Error ->{
                     errorMessage.value = result.message!!
                     println(errorMessage.value)
                 }

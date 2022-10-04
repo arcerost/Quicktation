@@ -9,7 +9,7 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @ActivityScoped
-class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi, private val api8: MyProfileApi) {
+class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi, private val api8: MyProfileApi, private val api9: LikeSoundApi, private val api10: FollowerApi) {
     private lateinit var hatametni: String
     private lateinit var loginError: String
     suspend fun postRegisterApi(email: String, password: String, namesurname: String): Resource<RegisterResponse> {
@@ -238,6 +238,53 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         return Resource.Success(response)
     }
 
+
+    suspend fun postLikeSoundApi(userId: Int, quotesound_id: Int): Resource<LikeSoundResponse> {
+
+        val request = LikeQuoteSound(userId,quotesound_id)
+        val response = api9.postLikeSoundApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+
+    suspend fun postFollowerApi(userId: Int, toUserId: Int, action: String): Resource<FollowResponse> {
+
+        val request = Follower(userId,toUserId,action)
+        val response = api10.postFollowerApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
 
     //yöntem 2
     suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>>

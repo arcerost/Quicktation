@@ -2,6 +2,7 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -70,8 +71,11 @@ fun OtherProfilePage(navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.home),
@@ -112,7 +116,7 @@ fun OtherProfilePage(navController: NavController) {
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("my_profile_page") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -123,6 +127,12 @@ fun OtherProfilePage(navController: NavController) {
 @Composable
 fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
     val user = viewModel.userInfo.collectAsState()
+    val isPressed = remember { mutableStateOf(false) }
+    if(isPressed.value)
+    {
+        Log.d("tag","1")
+        FollowerPage(navController = navController)
+    }
     if(user.value.amIfollow ==0)
     {
         Box(modifier = Modifier.fillMaxSize()){
@@ -174,8 +184,8 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Takipçiler", fontSize = 16.sp)
-                    Text("Takip Edilen", fontSize = 16.sp)
+                    Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
                     Text(text = "Beğeniler", fontSize = 16.sp)
                 }
                 Row(
@@ -183,12 +193,12 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "${user.value.followerCount}", fontSize = 16.sp)
-                    Text(text = "${user.value.followCount}", fontSize = 16.sp)
-                    Text(text = "${user.value.likeCount}", fontSize = 16.sp)
+                    Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text(text = "${user.value.likeCount}")
                 }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
-                ProfilePostList(navController = navController)
+                OtherProfilePostList(navController = navController)
             }
         }
     }
@@ -243,21 +253,21 @@ fun OtherProfileRow(navController: NavController, viewModel: MyProfileViewModel 
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Takipçiler", fontSize = 16.sp)
-                    Text("Takip Edilen", fontSize = 16.sp)
-                    Text(text = "Beğeniler", fontSize = 16.sp)
+                    Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text(text = "Beğeniler", fontSize = 16.sp, modifier = Modifier.clickable {  })
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "${user.value.followerCount}", fontSize = 16.sp)
-                    Text(text = "${user.value.followCount}", fontSize = 16.sp)
-                    Text(text = "${user.value.likeCount}", fontSize = 16.sp)
+                    Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text(text = "${user.value.likeCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
                 }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
-                ProfilePostList(navController = navController)
+                OtherProfilePostList(navController = navController)
             }
         }
     }
@@ -379,7 +389,7 @@ fun OtherProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: 
                     .fillMaxWidth(), contentAlignment = Alignment.TopStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.background),
+                    painter = painterResource(id = R.drawable.backgroundbottombar),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.FillWidth

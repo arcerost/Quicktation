@@ -17,7 +17,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: HomeApi, api5: NotificationsApi, api6: LikeApi, api7: QuoteDetailApi, api8: MyProfileApi) = QuicktationRepo(api,api2,api3,api4,api5,api6,api7,api8)
+    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: HomeApi, api5: NotificationsApi, api6: LikeApi, api7: QuoteDetailApi, api8: MyProfileApi, api9: LikeSoundApi, api10: FollowerApi) = QuicktationRepo(api,api2,api3,api4,api5,api6,api7,api8,api9,api10)
 
 
     @Singleton
@@ -96,5 +96,25 @@ object AppModule {
             .baseUrl(BASE_URL)
             .build()
             .create(MyProfileApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideQuicktationLikeSoundApi(): LikeSoundApi{
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(LikeSoundApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideQuicktationFollowerApi(): FollowerApi{
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(FollowerApi::class.java)
     }
 }

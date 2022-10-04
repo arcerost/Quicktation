@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.onurdemirbas.quicktation.repository.QuicktationRepo
+import com.onurdemirbas.quicktation.util.StoreUserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -12,6 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(private val repository: QuicktationRepo) : ViewModel(){
     var errorMessage = mutableStateOf("")
+    var id = mutableStateOf(-1)
     fun beLogin(
         email: String,
         password: String,
@@ -27,14 +29,13 @@ class LoginViewModel @Inject constructor(private val repository: QuicktationRepo
             }
             else if (result.data!!.error == 0)
             {
-                navController.navigate("home_page")
+                id.value = result.data.response
             }
-            /*
-            if(result.data!!.error ==1)
+            else if(result.data.error ==1)
             {
                 errorMessage.value = result.message!!
             }
-             */
+
         }
     }
 }

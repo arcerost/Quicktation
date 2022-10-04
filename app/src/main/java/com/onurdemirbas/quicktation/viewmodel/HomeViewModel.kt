@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,16 +17,12 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
     var mainList = MutableStateFlow<List<Quotation>>(listOf())
+
     var likeCount = MutableStateFlow(-1)
     var isDeleted = MutableStateFlow(-1)
     var quoteIdx = MutableStateFlow(-1)
 
-    init {
-        loadMains(1)
-    }
-
-
-    private fun loadMains(userid: Int) {
+    fun loadMains(userid: Int) {
         viewModelScope.launch {
             when (val result = repository.postMainApi(userid)) {
                 is Resource.Success -> {
@@ -35,39 +32,39 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
-                    println(errorMessage.value)
                 }
             }
         }
     }
     fun amILike(userid: Int, quoteId: Int) {
         viewModelScope.launch {
-            when (val result = repository.postLikeApi(userid, quoteId)) {
-                is Resource.Success -> {
-                    isDeleted.value = result.data!!.response.isDeleted
-                    likeCount.value = result.data.response.likeCount
-                    quoteIdx.value = result.data.response.quoteId
+                when (val result = repository.postLikeApi(userid, quoteId)) {
+                    is Resource.Success -> {
+                        isDeleted.value = result.data!!.response.isDeleted
+                        likeCount.value = result.data.response.likeCount
+                        quoteIdx.value = result.data.response.quoteId
+                        mainList.value[quoteId].likeCount = isDeleted.value
+                        mainList.value[quoteId].amIlike = likeCount.value
+                    }
+                    is Resource.Error -> {
+                        errorMessage.value = result.message!!
+                    }
                 }
-                is Resource.Error -> {
-                    errorMessage.value = result.message!!
-                    println(errorMessage.value)
-                }
-            }
-
         }
     }
 
     fun loadMainScans(userid: Int,scanIndexx: Int) {
         viewModelScope.launch {
-            when (val result = repository.postMainScanApi(userid,scanIndexx)) {
-                is Resource.Success -> {
-                    mainList.value += result.data!!.response.quotations
-                    scanIndex.value = result.data.response.scanIndex
-                    errorMessage.value = ""
-                }
-                is Resource.Error -> {
-                    errorMessage.value = result.message!!
-                    println(errorMessage.value)
+            withContext(coroutineContext){
+                when (val result = repository.postMainScanApi(userid,scanIndexx)) {
+                    is Resource.Success -> {
+                        mainList.value += result.data!!.response.quotations
+                        scanIndex.value = result.data.response.scanIndex
+                        errorMessage.value = ""
+                    }
+                    is Resource.Error -> {
+                        errorMessage.value = result.message!!
+                    }
                 }
             }
         }

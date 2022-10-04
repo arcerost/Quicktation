@@ -2,6 +2,7 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -51,9 +52,12 @@ fun MyProfilePage(navController: NavController) {
         }
 
     //BottomBar
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .fillMaxWidth(), contentAlignment = Alignment.BottomStart) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
+    )
+    {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,8 +65,11 @@ fun MyProfilePage(navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.homeblack),
@@ -114,6 +121,7 @@ fun MyProfilePage(navController: NavController) {
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
+    val isPressed = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -168,8 +176,8 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler", fontSize = 16.sp)
-                Text("Takip Edilen", fontSize = 16.sp)
+                Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
                 Text(text = "Beğeniler", fontSize = 16.sp)
             }
             Row(
@@ -177,83 +185,19 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "${user.value.followerCount}", fontSize = 16.sp)
-                Text(text = "${user.value.followCount}", fontSize = 16.sp)
+                Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
                 Text(text = "${user.value.likeCount}", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             ProfilePostList(navController = navController)
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Spacer(Modifier.padding(top = 25.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.padding(start = 25.dp))
-                Image(painter = painterResource(id = R.drawable.options),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable() {
-                            //options
-                        }
-                        .size(52.dp, 12.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.padding(start = 100.dp))
-                Text(
-                    text = user.value.namesurname,
-                    modifier = Modifier.defaultMinSize(165.dp, 30.dp),
-                    fontSize = 20.sp
-                )
-                if (user.value.photo == null || user.value.photo == "") {
-                    Image(
-                        painter = painterResource(id = R.drawable.pp),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                } else {
-                    val painter = rememberImagePainter(
-                        data = Constants.BASE_URL + user.value.photo,
-                        builder = {})
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                }
-            }
-            Spacer(Modifier.padding(top = 15.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Takipçiler", fontSize = 16.sp)
-                Text("Takip Edilen", fontSize = 16.sp)
-                Text(text = "Beğeniler", fontSize = 16.sp)
-            }
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "${user.value.followerCount}", fontSize = 16.sp)
-                Text(text = "${user.value.followCount}", fontSize = 16.sp)
-                Text(text = "${user.value.likeCount}", fontSize = 16.sp)
-            }
-            Spacer(modifier = Modifier.padding(top = 25.dp))
-            OtherProfilePostList(navController = navController)
-        }
+    if(isPressed.value)
+    {
+        Log.d("tag","2")
+        FollowerPage(navController = navController)
+        Log.d("tag","3")
     }
 }
 
@@ -326,6 +270,7 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController) {
+    Log.d("tag","40")
     val quoteId  = post.id
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
@@ -374,7 +319,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     .fillMaxWidth(), contentAlignment = Alignment.TopStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.background),
+                    painter = painterResource(id = R.drawable.backgroundbottombar),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.FillWidth

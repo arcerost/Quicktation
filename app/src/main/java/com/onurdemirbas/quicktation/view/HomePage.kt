@@ -2,7 +2,6 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -38,13 +37,19 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants.BASE_URL
+import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
-import kotlin.math.absoluteValue
 
 
 @Composable
-fun HomePage(navController: NavController) {
+fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+    viewModel.viewModelScope.launch{
+        delay(200)
+        viewModel.loadMains(iid.value!!)
+    }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -59,7 +64,7 @@ fun HomePage(navController: NavController) {
             modifier = Modifier.fillMaxSize()
         )
         {
-            PostList(navController = navController)
+            PostList(navController = navController, myId = iid.value!!)
         }
     }
     //BottomBar
@@ -76,8 +81,11 @@ fun HomePage(navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.home),
@@ -127,7 +135,7 @@ fun HomePage(navController: NavController) {
 
 
 @Composable
-fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
     val postList by viewModel.mainList.collectAsState()
     val errorMessage by remember { viewModel.errorMessage }
     val context = LocalContext.current
@@ -136,23 +144,25 @@ fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewMo
     }
     else
     {
-        PostListView(posts = postList, navController = navController)
+        PostListView(posts = postList, navController = navController, myId)
     }
 }
 
 @Composable
-fun PostListView(posts: List<Quotation>, navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
+    val context= LocalContext.current
     val scanIndex by viewModel.scanIndex.collectAsState()
-    val postList by viewModel.mainList.collectAsState()
+    val postList by viewModel.mainList.collectAsState()    //cause postlist getting new values with scanindex
     val errorMessage by remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     val state = rememberLazyListState()
     fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
     val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts) { post ->
-            MainRow(post = post, navController = navController, myId = 1)
+        items(posts, key = { quote  ->
+            quote.id
+        }) { post ->
+            MainRow(post = post, navController = navController, myId = myId)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -164,7 +174,7 @@ fun PostListView(posts: List<Quotation>, navController: NavController, viewModel
                     else {
                         viewModel.viewModelScope.launch {
                             async {
-                                viewModel.loadMainScans(1, scanIndex)
+                                viewModel.loadMainScans(myId, scanIndex)
                             }.await()
                             checkState = !checkState
                         }
@@ -177,7 +187,7 @@ fun PostListView(posts: List<Quotation>, navController: NavController, viewModel
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                PostListView(posts = postList, navController = navController)
+                PostListView(posts = postList, navController = navController, myId)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -188,24 +198,26 @@ fun PostListView(posts: List<Quotation>, navController: NavController, viewModel
 }
 
 @Composable
-fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
-    viewModel.amILike(userId,quoteId)
-    viewModel.viewModelScope.launch { delay(200) }
+fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int, navController: NavController) {
+    viewModel.viewModelScope.launch {
+        viewModel.amILike(myId,quoteId)
+        //delay(200)
+    }
 }
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
     val quoteId  = post.id
     val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
-    val username by remember { mutableStateOf(post.username) }
-    val quoteUrl by remember { mutableStateOf(post.quote_url) }
+    val username = post.username
+    val quoteUrl = post.quote_url
     val amILike = post.amIlike
     val amILikeFromVm = viewModel.isDeleted.collectAsState()
     val likeCount = post.likeCount
     val likeCountFromVm = viewModel.likeCount.collectAsState()
-    val quoteText by remember { mutableStateOf(post.quote_text) }
-    val userPhoto by remember { mutableStateOf(post.userphoto) }
-    val userId by remember { mutableStateOf(post.userId) }
+    val quoteText = post.quote_text
+    val userPhoto = post.userphoto
+    val userId = post.userId
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
     val url = BASE_URL+quoteUrl
@@ -246,10 +258,10 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .fillMaxWidth(), contentAlignment = Alignment.TopStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.background),
+                    painter = painterResource(id = R.drawable.backgroundrow),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillWidth
+                    contentScale = ContentScale.FillBounds
                 )
                 Column(
                     horizontalAlignment = Alignment.Start,
@@ -289,6 +301,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         {
                             "${likeCountFromVm.value} BEĞENME"
                         }
+//                        Text(text =  "$likeCount BEĞENME"
                         , color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp)
                                 .clickable {})
@@ -334,6 +347,17 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
                                     tint =
+//                                    when (amILike) {
+//                                            1 -> {
+//                                                Color(0xFFD9DD23)
+//                                            }
+//                                            0 -> {
+//                                                Color.White
+//                                            }
+//                                            else -> {
+//                                                Color.Black
+//                                            }
+//                                        },
                                     if(quoteId != quoteIdFromVm.value) {
                                         when (amILike) {
                                             1 -> {
@@ -366,9 +390,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 )
                         }
                             if (isPressed) {
-                                RefreshWithLike(viewModel, 1, quoteId)
+                                RefreshWithLike(viewModel, quoteId, myId,navController)
                                 isPressed = false
-                                if(quoteId != quoteIdFromVm.value) {
+                                if (quoteId != quoteIdFromVm.value) {
                                     when (amILike) {
                                         1 -> {
                                             Color(0xFFD9DD23)
@@ -379,10 +403,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                         else -> {
                                             Color.Black
                                         }
-                                    }
-                                }
-                                else
-                                {
+                                   }
+                                } else {
                                     when (amILikeFromVm.value) {
                                         0 -> {
                                             Color(0xFFD9DD23)
@@ -418,12 +440,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        if(myId == userId)
-                        {
+                        if (myId == userId) {
                             navController.navigate("my_profile_page")
-                        }
-                        else
-                        {
+                        } else {
                             navController.navigate("other_profile_page")
                         }
                     }
@@ -438,12 +457,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        if(myId == userId)
-                        {
+                        if (myId == userId) {
                             navController.navigate("my_profile_page")
-                        }
-                        else
-                        {
+                        } else {
                             navController.navigate("other_profile_page")
                         }
                     }

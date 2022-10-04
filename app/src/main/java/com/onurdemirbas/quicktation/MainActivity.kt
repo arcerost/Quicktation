@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "home_page")
+                NavHost(navController = navController, startDestination = "open_page")
                 {
                     composable("open_page")
                     {
@@ -70,6 +70,10 @@ class MainActivity : ComponentActivity() {
                     composable("other_profile_page")
                     {
                         OtherProfilePage(navController = navController)
+                    }
+                    composable("follower_page")
+                    {
+                        FollowerPage(navController = navController)
                     }
                 }
         }

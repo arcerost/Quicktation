@@ -23,7 +23,7 @@ class MyProfileViewModel@Inject constructor(private val repository: QuicktationR
     var scanIndex = MutableStateFlow(0)
 
     init {
-        loadQuotes(4,1)
+        loadQuotes(1,4)
     }
     private fun loadQuotes(userid: Int, myUserId: Int) {
         viewModelScope.launch {
