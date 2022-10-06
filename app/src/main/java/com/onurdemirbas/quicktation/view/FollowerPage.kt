@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -20,10 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,29 +34,31 @@ import com.onurdemirbas.quicktation.model.Follow
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.FollowerViewModel
-import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
-fun FollowerPage(navController: NavController) {
-    Log.d("tag","4")
-    val interactionSource =  MutableInteractionSource()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String, photo:Any?,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+    Log.d("tte","from follower page; userId: $userId, toUserId: $toUserId, action: $action")
+    viewModel.viewModelScope.launch{
+        viewModel.loadFollowers(userId,toUserId,action)
     }
+    val interactionSource =  MutableInteractionSource()
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     )
     {
-        FollowerProfileRow(navController)
+        FollowerProfileRow(navController,userId, toUserId,photo,namesurname,likeCount,followCount,followerCount,viewModel)
     }
-
     //BottomBar
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .fillMaxWidth(), contentAlignment = Alignment.BottomStart) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
+    )
+    {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,8 +66,11 @@ fun FollowerPage(navController: NavController) {
                 0xFFC1C1C1
             )
         ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+            }
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(painter = painterResource(id = R.drawable.homeblack),
@@ -102,7 +105,7 @@ fun FollowerPage(navController: NavController) {
                             indication = null
                         ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile),
+                Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
                     modifier = Modifier
                         .clickable(
@@ -119,9 +122,13 @@ fun FollowerPage(navController: NavController) {
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FollowerProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel()) {
-    val user = viewModel.userInfo.collectAsState()
-    Box(modifier = Modifier.fillMaxSize()) {
+fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: Any?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+    Log.d("tte","$userId  ,$toUserId")
+    val isPressed = remember { mutableStateOf(false) }
+    val isPressed2 = remember { mutableStateOf(false) }
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .wrapContentSize(), contentAlignment = Alignment.Center) {
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
@@ -137,7 +144,7 @@ fun FollowerProfileRow(navController: NavController, viewModel: MyProfileViewMod
                 Image(painter = painterResource(id = R.drawable.options),
                     contentDescription = null,
                     modifier = Modifier
-                        .clickable() {
+                        .clickable {
                             //options
                         }
                         .size(52.dp, 12.dp))
@@ -149,12 +156,12 @@ fun FollowerProfileRow(navController: NavController, viewModel: MyProfileViewMod
             ) {
                 Spacer(modifier = Modifier.padding(start = 90.dp))
                 Text(
-                    text = user.value.namesurname,
+                    text = namesurname,
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.padding(start = 35.dp))
-                if (user.value.photo == null || user.value.photo == "") {
+                if (photo == null || photo == "") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
                         contentDescription = null,
@@ -163,7 +170,7 @@ fun FollowerProfileRow(navController: NavController, viewModel: MyProfileViewMod
                     )
                 } else {
                     val painter = rememberImagePainter(
-                        data = Constants.BASE_URL + user.value.photo,
+                        data = Constants.BASE_URL + photo,
                         builder = {})
                     Image(
                         painter = painter,
@@ -180,22 +187,32 @@ fun FollowerProfileRow(navController: NavController, viewModel: MyProfileViewMod
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                Text(text = "Beğeniler", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
+                Text(text = "Beğeniler", fontSize = 16.sp)
             }
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                Text(text = "${user.value.likeCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                Text(text = "$followerCount", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text(text = "$followCount", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
+                Text(text = "$likeCount", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             FollowerList(navController = navController)
         }
+    }
+    if(isPressed.value)
+    {
+        FollowerPage(navController = navController, userId,toUserId,"followers",photo,namesurname,likeCount,followCount,followerCount,viewModel)
+        isPressed.value=false
+    }
+    if(isPressed2.value)
+    {
+        FollowerPage(navController = navController, userId,toUserId,"follows",photo, namesurname, likeCount, followCount, followerCount, viewModel)
+        isPressed2.value=false
     }
 }
 
@@ -255,7 +272,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController,  viewMod
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                FollowerListView(posts = posts, navController = navController)
+                FollowerListView(posts = followList, navController = navController)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -276,8 +293,7 @@ fun FollowerList(navController: NavController, post: Follow, viewModel: Follower
     val colorx = remember { mutableStateOf(Color.Yellow) }
     var color = Color.Transparent
     Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize()
+        .fillMaxSize()
         .padding(start = 20.dp, end = 20.dp, top = 20.dp), contentAlignment = Alignment.Center) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             if(userPhoto == null || userPhoto == "") {

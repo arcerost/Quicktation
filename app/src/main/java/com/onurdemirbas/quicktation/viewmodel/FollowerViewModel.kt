@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.Follow
+import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
+import com.onurdemirbas.quicktation.model.UserInfo
 import com.onurdemirbas.quicktation.repository.QuicktationRepo
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,10 +18,6 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     var followerList = MutableStateFlow<List<Follow>>(listOf())
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
-
-    init {
-        loadFollowers(1,4,"followers")
-    }
     fun loadFollowers(userId: Int, toUserId: Int, action: String) {
         viewModelScope.launch {
             when(val result = repository.postFollowerApi(userId, toUserId, action))

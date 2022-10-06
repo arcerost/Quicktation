@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoilApi::class)
+
 package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
@@ -44,12 +46,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun OtherProfilePage(navController: NavController, userId: Int, viewModel: OtherProfileViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewModel: OtherProfileViewModel = hiltViewModel()) {
     viewModel.viewModelScope.launch{
-        delay(200)
-        viewModel.loadQuotes(userId,iid.value!!)
+        viewModel.loadQuotes(userId,myId)
     }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -65,7 +64,7 @@ fun OtherProfilePage(navController: NavController, userId: Int, viewModel: Other
             modifier = Modifier.fillMaxSize()
         )
         {
-            OtherProfileRow(navController = navController, myId = 1)
+            OtherProfileRow(navController = navController, userId = userId, myId = myId)
         }
     }
 
@@ -137,13 +136,18 @@ fun OtherProfilePage(navController: NavController, userId: Int, viewModel: Other
 
 
 @Composable
-fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel(), myId: Int) {
+fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel(), userId: Int,myId: Int) {
     val openDialog = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     val isPressed = remember { mutableStateOf(false) }
+    val isPressed2 = remember { mutableStateOf(false) }
     if(isPressed.value)
     {
-        FollowerPage(navController = navController)
+        FollowerPage(navController = navController, myId, user.value.id,"followers",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
+    }
+    if(isPressed2.value)
+    {
+        FollowerPage(navController = navController, myId, user.value.id,"follows",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
     }
     if(user.value.amIfollow ==0)
     {
@@ -197,7 +201,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
                     Text(text = "Beğeniler", fontSize = 16.sp)
                 }
                 Row(
@@ -206,7 +210,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
                     Text(text = "${user.value.likeCount}")
                 }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
@@ -228,7 +232,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     Image(painter = painterResource(id = R.drawable.options),
                         contentDescription = null,
                         modifier = Modifier
-                            .clickable() {
+                            .clickable {
                                 openDialog.value = !openDialog.value
                             }
                             .size(52.dp, 12.dp))
@@ -265,18 +269,18 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                    Text(text = "Beğeniler", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
+                    Text(text = "Beğeniler", fontSize = 16.sp)
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
-                    Text(text = "${user.value.likeCount}", fontSize = 16.sp, modifier = Modifier.clickable {  })
+                    Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                    Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
+                    Text(text = "${user.value.likeCount}", fontSize = 16.sp)
                 }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
                 OtherProfilePostList(navController = navController)

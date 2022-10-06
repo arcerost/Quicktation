@@ -2,6 +2,7 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -128,13 +129,21 @@ fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = h
     }
 }
 
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
     val openDialog2 = remember { mutableStateOf(false) }
     val isPressed = remember { mutableStateOf(false) }
+    val isPressed2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
+    if(isPressed.value)
+    {
+        FollowerPage(navController = navController, myId,user.value.id,"followers",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
+    }
+    if(isPressed2.value)
+    {
+        FollowerPage(navController = navController, myId,user.value.id,"follows",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             verticalArrangement = Arrangement.Top,
@@ -189,7 +198,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
                 Text(text = "Beğeniler", fontSize = 16.sp)
             }
             Row(
@@ -198,18 +207,13 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
+                Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
                 Text(text = "${user.value.likeCount}", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             ProfilePostList(navController = navController,myId)
         }
     }
-    if(isPressed.value)
-    {
-        FollowerPage(navController = navController)
-    }
-
     if(openDialog2.value)
     {
         Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog2.value = !openDialog2.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {

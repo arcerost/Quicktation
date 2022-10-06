@@ -2,6 +2,7 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -292,7 +293,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Spacer(modifier = Modifier.padding(start=0.dp))
                         Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start = 60.dp))
+                        Spacer(modifier = Modifier.padding(start = 50.dp))
                         Text(text = if(quoteId != quoteIdFromVm.value)
                         {
                             "$likeCount BEĞENME"
@@ -441,9 +442,11 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
+                            Log.d("idtest","myId: $myId, userId: $userId")
                             navController.navigate("my_profile_page")
                         } else {
-                            navController.navigate("other_profile_page/$userId")
+                            Log.d("idtest","myId: $myId, userId: $userId")
+                            navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
             )
@@ -460,7 +463,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         if (myId == userId) {
                             navController.navigate("my_profile_page")
                         } else {
-                            navController.navigate("other_profile_page/$userId")
+                            navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
             )
