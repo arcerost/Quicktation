@@ -286,9 +286,9 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         return Resource.Success(response)
     }
 
-    suspend fun postEditProfileApi(userId: Int,namesurname: String, userPhoto: Any): Resource<EditProfileResponse>
+    suspend fun postEditProfileApi(userId: Int,namesurname: String, userPhoto: String?): Resource<EditProfileResponse>
     {
-        val request = EditProfile(userId,namesurname, userPhoto)
+        val request = EditProfile(userId,namesurname, userPhoto!!)
         val response = api11.postEditProfileApi(request)
         try {
             when (response.error) {

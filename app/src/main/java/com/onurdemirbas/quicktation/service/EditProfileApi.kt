@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface EditProfileApi {
     @Headers("Content-Type:application/json")
-    @POST("/userfollows")
+    @POST("/editprofile")
     suspend fun postEditProfileApi(@Body request: EditProfile): EditProfileResponse
 }

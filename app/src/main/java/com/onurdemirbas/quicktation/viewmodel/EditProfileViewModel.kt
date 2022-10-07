@@ -1,6 +1,7 @@
 package com.onurdemirbas.quicktation.viewmodel
 
-import androidx.compose.runtime.MutableState
+
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ class EditProfileViewModel@Inject constructor(private val repository: Quicktatio
     var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
     fun loadEdit(userId: Int, namesurname: String, userPhoto: String)
     {
+        Log.d("from vm :      mle","myId: $userId, username: ${namesurname}, userPhoto: $userPhoto")
         viewModelScope.launch {
             when(val result = repository.postEditProfileApi(userId, namesurname, userPhoto))
             {

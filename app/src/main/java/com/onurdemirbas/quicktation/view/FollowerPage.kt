@@ -105,7 +105,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("messages_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,

@@ -10,5 +10,5 @@ data class Quotation(
     val stat: Int,
     val userId: Int,
     val username: String,
-    val userphoto: String
+    val userphoto: String?
 )

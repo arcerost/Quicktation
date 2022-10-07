@@ -32,7 +32,6 @@ class MyProfileViewModel@Inject constructor(private val repository: QuicktationR
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
-                    println(errorMessage.value)
                 }
             }
         }

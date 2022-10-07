@@ -144,6 +144,10 @@ class MainActivity : ComponentActivity() {
                     val userId = remember { it.arguments?.getInt("userId")}
                     EditProfilePage(navController = navController,userId!!)
                 }
+                composable("messages_page")
+                {
+                    MessagesPage(navController = navController)
+                }
             }
         }
     }
