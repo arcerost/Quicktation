@@ -37,6 +37,10 @@ class MainActivity : ComponentActivity() {
                 {
                     OpenPage(navController)
                 }
+                composable("messages_page")
+                {
+                    MessagesPage(navController = navController)
+                }
                 composable("register_page")
                 {
                     //register_page codes
@@ -143,10 +147,6 @@ class MainActivity : ComponentActivity() {
                 {
                     val userId = remember { it.arguments?.getInt("userId")}
                     EditProfilePage(navController = navController,userId!!)
-                }
-                composable("messages_page")
-                {
-                    MessagesPage(navController = navController)
                 }
             }
         }

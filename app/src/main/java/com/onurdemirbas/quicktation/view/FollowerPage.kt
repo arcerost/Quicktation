@@ -198,10 +198,10 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Takipçiler\n        $followerCount", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$userId/$toUserId/followers/$photo/$namesurname/$likeCount/$followCount/$followerCount")
+                    navController.navigate("follower_page/$userId/$toUserId/followers/$photo/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 })
                 Text("Takip Edilenler\n            $followCount", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$userId/$toUserId/follows/$photo/$namesurname/$likeCount/$followCount/$followerCount")
+                    navController.navigate("follower_page/$userId/$toUserId/follows/$photo/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 })
                 Text(text = "Beğeniler\n       $likeCount", fontSize = 16.sp)
             }

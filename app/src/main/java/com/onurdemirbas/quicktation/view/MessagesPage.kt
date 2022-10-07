@@ -54,9 +54,10 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
             modifier = Modifier.fillMaxSize()
         )
         {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Spacer(modifier = Modifier.padding(top = 20.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.padding(start = 10.dp))
                 Text(text = userName, fontFamily = openSansFontFamily, fontSize = 20.sp)
-                Spacer(modifier = Modifier.padding(20.dp))
                 if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
@@ -77,7 +78,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                     )
                 }
             }
-            Spacer(modifier = Modifier.padding(top = 20.dp))
+            Spacer(modifier = Modifier.padding(top = 40.dp))
             MessageRow(userPhoto,userName)
         }
     }
@@ -153,10 +154,10 @@ fun MessageRow(userPhoto: String?, userName: String) {
     Box(
         modifier = Modifier
             .defaultMinSize(315.dp, 50.dp)
-            .fillMaxWidth(), contentAlignment = Alignment.TopStart
+            .fillMaxWidth(), contentAlignment = Alignment.TopCenter
     ) {
         Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Start) {
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
                 if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
@@ -176,10 +177,17 @@ fun MessageRow(userPhoto: String?, userName: String) {
                             .size(44.dp, 44.dp)
                     )
                 }
-                Spacer(modifier = Modifier.padding(start = 15.dp))
-                Text(text = userName+"\n"+ Text(text = "last message",fontSize = 13.sp, fontFamily = openSansFontFamily), fontFamily = openSansBold, fontSize = 20.sp)
-                Spacer(modifier = Modifier.padding(start = 20.dp))
+                Box(modifier = Modifier
+                    .wrapContentSize()
+                    .clickable { }, contentAlignment = Alignment.Center) {
+                    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.wrapContentSize()) {
+                        Text(text = "userNamssse", fontFamily = openSansBold, fontSize = 18.sp)
+                        Text(text = "message", fontFamily = openSansFontFamily, fontSize = 13.sp)
+                    }
+                }
+                Spacer(modifier = Modifier.padding(horizontal = 20.dp))
                 Text(text = "1g once")
+                Spacer(modifier = Modifier.padding(end = 5.dp))
             }
         }
     }
