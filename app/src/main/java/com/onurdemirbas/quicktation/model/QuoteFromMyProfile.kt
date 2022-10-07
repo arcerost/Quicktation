@@ -10,5 +10,5 @@ data class QuoteFromMyProfile(
     val stat: Int,
     val userId: Int,
     val username: String,
-    val userphoto: Any
+    val userphoto: String?
 )

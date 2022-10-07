@@ -5,6 +5,6 @@ data class Follow(
     val id: Int,
     val toUserId: Int,
     val userId: Int,
-    val userPhoto: Any,
+    val userPhoto: String?,
     val username: String
 )

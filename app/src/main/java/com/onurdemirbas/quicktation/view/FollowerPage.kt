@@ -1,8 +1,9 @@
 package com.onurdemirbas.quicktation.view
 
-import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -11,10 +12,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -31,6 +31,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Follow
+import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.FollowerViewModel
@@ -38,19 +39,20 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
-fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String, photo:Any?,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, viewModel: FollowerViewModel = hiltViewModel()) {
-    Log.d("tte","from follower page; userId: $userId, toUserId: $toUserId, action: $action")
+fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String, photo:String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
     viewModel.viewModelScope.launch{
         viewModel.loadFollowers(userId,toUserId,action)
     }
     val interactionSource =  MutableInteractionSource()
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    }
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     )
     {
-        FollowerProfileRow(navController,userId, toUserId,photo,namesurname,likeCount,followCount,followerCount,viewModel)
+        FollowerProfileRow(navController,userId, toUserId,photo,namesurname,likeCount,followCount,followerCount,amIFollow,viewModel)
     }
     //BottomBar
     Box(
@@ -122,10 +124,11 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: Any?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, viewModel: FollowerViewModel = hiltViewModel()) {
-    Log.d("tte","$userId  ,$toUserId")
-    val isPressed = remember { mutableStateOf(false) }
-    val isPressed2 = remember { mutableStateOf(false) }
+fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: String?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+    val openDialog = remember { mutableStateOf(false) }
+    val openDialog2 = remember { mutableStateOf(false) }
+    val check = remember { mutableStateOf(false) }
+    val check2 = remember { mutableStateOf(false) }
     Box(modifier = Modifier
         .fillMaxSize()
         .wrapContentSize(), contentAlignment = Alignment.Center) {
@@ -145,7 +148,14 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                     contentDescription = null,
                     modifier = Modifier
                         .clickable {
-                            //options
+                            if(userId==toUserId)
+                            {
+                                openDialog2.value = !openDialog2.value
+                            }
+                            else
+                            {
+                                openDialog.value = !openDialog.value
+                            }
                         }
                         .size(52.dp, 12.dp))
             }
@@ -154,14 +164,14 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.padding(start = 90.dp))
+                Spacer(modifier = Modifier.padding(start = 100.dp))
                 Text(
                     text = namesurname,
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
-                Spacer(modifier = Modifier.padding(start = 35.dp))
-                if (photo == null || photo == "") {
+                Spacer(modifier = Modifier.padding(start = 15.dp))
+                if (photo == null || photo == ""|| photo.isEmpty() || photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
                         contentDescription = null,
@@ -187,38 +197,129 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
-                Text(text = "Beğeniler", fontSize = 16.sp)
-            }
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "$followerCount", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text(text = "$followCount", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
-                Text(text = "$likeCount", fontSize = 16.sp)
+                Text(text = "Takipçiler\n        $followerCount", fontSize = 16.sp, modifier = Modifier.clickable {
+                    navController.navigate("follower_page/$userId/$toUserId/followers/$photo/$namesurname/$likeCount/$followCount/$followerCount")
+                })
+                Text("Takip Edilenler\n            $followCount", fontSize = 16.sp, modifier = Modifier.clickable {
+                    navController.navigate("follower_page/$userId/$toUserId/follows/$photo/$namesurname/$likeCount/$followCount/$followerCount")
+                })
+                Text(text = "Beğeniler\n       $likeCount", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
-            FollowerList(navController = navController)
+            FollowerList(navController = navController, toUserId, userId)
         }
     }
-    if(isPressed.value)
+    if(openDialog2.value)
     {
-        FollowerPage(navController = navController, userId,toUserId,"followers",photo,namesurname,likeCount,followCount,followerCount,viewModel)
-        isPressed.value=false
+        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog2.value = !openDialog2.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .size(750.dp, 220.dp)
+                //.wrapContentSize()
+                .windowInsetsPadding(WindowInsets.ime))
+            {
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {
+
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    Button(onClick = {
+                        navController.navigate("edit_profile_page/$userId")
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Profilimi düzenle", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                    }
+                }
+            }
+        }
     }
-    if(isPressed2.value)
+    if(openDialog.value)
     {
-        FollowerPage(navController = navController, userId,toUserId,"follows",photo, namesurname, likeCount, followCount, followerCount, viewModel)
-        isPressed2.value=false
+        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .size(750.dp, 310.dp)
+                .windowInsetsPadding(WindowInsets.ime))
+            {
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                    Spacer(modifier = Modifier.padding(20.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.report), contentDescription = "report", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Şikayet Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        {
+                            Image(painter = painterResource(id = R.drawable.text), contentDescription = "text", modifier = Modifier.size(17.dp,17.dp))
+                            Spacer(Modifier.padding(start = 25.dp))
+                            Text(text = "Mesaj Gönder", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    if(amIFollow ==0)
+                    {
+                        check.value = !check.value
+                    }
+                    else
+                    {
+                        check2.value = !check2.value
+                    }
+                    if(check.value){
+                        check.value = !check.value
+                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                            {
+                                Image(painter = painterResource(id = R.drawable.follow), contentDescription = "follow", modifier = Modifier.size(17.dp,17.dp))
+                                Spacer(Modifier.padding(start = 25.dp))
+                                Text(text = "Takip Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            }
+                        }
+                    }
+                    if(check2.value){
+                        check2.value = !check2.value
+                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                            {
+                                Image(painter = painterResource(id = R.drawable.unfollow), contentDescription = "unfollow", modifier = Modifier.size(17.dp,17.dp))
+                                Spacer(Modifier.padding(start = 25.dp))
+                                Text(text = "Takipten Çıkar", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 
 @Composable
-fun FollowerList(navController: NavController, viewModel: FollowerViewModel = hiltViewModel()) {
+fun FollowerList(navController: NavController, userId: Int, myId: Int, viewModel: FollowerViewModel = hiltViewModel()) {
     val followerList by viewModel.followerList.collectAsState()
     val errorMessage by remember{viewModel.errorMessage}
     val context = LocalContext.current
@@ -227,13 +328,13 @@ fun FollowerList(navController: NavController, viewModel: FollowerViewModel = hi
     }
     else
     {
-        FollowerListView(posts = followerList, navController = navController)
+        FollowerListView(posts = followerList, navController = navController, userId, myId)
     }
 }
 
 
 @Composable
-fun FollowerListView(posts: List<Follow>, navController: NavController,  viewModel: FollowerViewModel= hiltViewModel()) {
+fun FollowerListView(posts: List<Follow>, navController: NavController, userId: Int, myId: Int,  viewModel: FollowerViewModel= hiltViewModel()) {
     val context = LocalContext.current
     val scanIndex by viewModel.scanIndex.collectAsState()
     var checkState by remember { mutableStateOf(false) }
@@ -249,7 +350,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController,  viewMod
         state = state
     ) {
         items(posts) { post ->
-            FollowerList(post = post, navController = navController)
+            FollowerList(post = post, navController = navController, userId = userId, myId = myId)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -272,7 +373,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController,  viewMod
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                FollowerListView(posts = followList, navController = navController)
+                FollowerListView(posts = followList, navController = navController, userId, myId)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -286,7 +387,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController,  viewMod
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FollowerList(navController: NavController, post: Follow, viewModel: FollowerViewModel = hiltViewModel()) {
+fun FollowerList(navController: NavController, post: Follow, userId: Int, myId: Int) {
     val userName = post.username
     val userPhoto = post.userPhoto
     val amIFollow = post.amIFollow
@@ -296,7 +397,7 @@ fun FollowerList(navController: NavController, post: Follow, viewModel: Follower
         .fillMaxSize()
         .padding(start = 20.dp, end = 20.dp, top = 20.dp), contentAlignment = Alignment.Center) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            if(userPhoto == null || userPhoto == "") {
+            if (userPhoto == null || userPhoto == ""|| userPhoto.isEmpty() || userPhoto == "null") {
                 Image(
                     painter = painterResource(id = R.drawable.pp),
                     contentDescription = null,
@@ -304,7 +405,11 @@ fun FollowerList(navController: NavController, post: Follow, viewModel: Follower
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
                         .clickable {
-                            //profile page
+                            if (myId == userId) {
+                                navController.navigate("my_profile_page")
+                            } else {
+                                navController.navigate("other_profile_page/$userId/$myId")
+                            }
                         }
                 )
             }
@@ -317,7 +422,11 @@ fun FollowerList(navController: NavController, post: Follow, viewModel: Follower
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
                         .clickable {
-                            //profile page
+                            if (myId == userId) {
+                                navController.navigate("my_profile_page")
+                            } else {
+                                navController.navigate("other_profile_page/$userId/$myId")
+                            }
                         }
                 )
             }
@@ -338,17 +447,16 @@ fun FollowerList(navController: NavController, post: Follow, viewModel: Follower
                 color = Color.White
             }
             Button(onClick = { }, modifier = Modifier.size(120.dp,30.dp), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(backgroundColor = colorx.value)) {
-                if(amIFollow==0)
-                {
-                    Text(text = "Takibi bırak", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
-                }
-                else if(amIFollow==1)
-                {
-                    Text(text = "Takip et", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
-                }
-                else
-                {
-                    Text(text = "Error.", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
+                when (amIFollow) {
+                    1 -> {
+                        Text(text = "Takibi bırak", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
+                    }
+                    0 -> {
+                        Text(text = "Takip et", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
+                    }
+                    else -> {
+                        Text(text = "Error.", color = color, fontSize = 12.sp, fontFamily = openSansFontFamily, modifier = Modifier.defaultMinSize(45.dp,16.dp))
+                    }
                 }
             }
         }

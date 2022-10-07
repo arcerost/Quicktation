@@ -8,5 +8,5 @@ data class Sound(
     val soundURL: String,
     val userId: Int,
     val username: String,
-    val userphoto: Any
+    val userphoto: String?
 )

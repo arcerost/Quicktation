@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 {
                     MyProfilePage(navController = navController)
                 }
-                composable("follower_page/{userId}/{toUserId}/{action}", arguments = listOf(
+                composable("follower_page/{userId}/{toUserId}/{action}/{photo}/{namesurname}/{likeCount}/{followCount}/{followerCount}/{amIFollow}", arguments = listOf(
                     navArgument("userId") {
                         type = NavType.IntType
                     },
@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
                         type = NavType.StringType
                     },
                     navArgument("photo"){
-                        type = NavType.inferFromValueType("")
+                        type = NavType.StringType
                     },
                     navArgument("namesurname"){
                         type = NavType.StringType
@@ -106,28 +106,21 @@ class MainActivity : ComponentActivity() {
                     navArgument("followerCount"){
                         type = NavType.IntType
                     },
-
+                    navArgument("amIFollow"){
+                        type = NavType.IntType
+                    }
                 ))
                 {
                     val userId = remember { it.arguments?.getInt("userId") }
                     val toUserId = remember { it.arguments?.getInt("toUserId") }
                     val action = remember { it.arguments?.getString("action") }
-                    val photo = remember {
-                        it.arguments?.get("photo")
-                    }
-                    val namesurname = remember {
-                        it.arguments?.getString("namesurname")
-                    }
-                    val likeCount = remember{
-                        it.arguments?.getInt("likeCount")
-                    }
-                    val followCount = remember {
-                        it.arguments?.getInt("followCount")
-                    }
-                    val followerCount = remember {
-                        it.arguments?.getInt("followerCount")
-                    }
-                    FollowerPage(navController = navController, userId = userId!!, toUserId =  toUserId!!, action =  action!!,photo,namesurname!!,likeCount!!,followCount!!,followerCount!!)
+                    val photo = remember { it.arguments?.getString("photo") }
+                    val namesurname = remember { it.arguments?.getString("namesurname") }
+                    val likeCount = remember{ it.arguments?.getInt("likeCount") }
+                    val followCount = remember { it.arguments?.getInt("followCount") }
+                    val followerCount = remember { it.arguments?.getInt("followerCount") }
+                    val amIFollow = remember { it.arguments?.getInt("amIFollow")}
+                    FollowerPage(navController = navController, userId = userId!!, toUserId =  toUserId!!, action =  action!!,photo?:"",namesurname!!,likeCount!!,followCount!!,followerCount!!, amIFollow!!)
                 }
                 composable("other_profile_page/{userId}/{myId}", arguments = listOf(
                     navArgument("userId") {
@@ -141,6 +134,15 @@ class MainActivity : ComponentActivity() {
                     val userId = remember { it.arguments?.getInt("userId") }
                     val myId = remember { it.arguments?.getInt("myId")}
                     OtherProfilePage(navController = navController, userId = userId!!, myId = myId!!)
+                }
+                composable("edit_profile_page/{userId}", arguments = listOf(
+                    navArgument("userId"){
+                        type = NavType.IntType
+                    }
+                ))
+                {
+                    val userId = remember { it.arguments?.getInt("userId")}
+                    EditProfilePage(navController = navController,userId!!)
                 }
             }
         }

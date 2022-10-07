@@ -1,8 +1,9 @@
+
+
 package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -133,17 +134,7 @@ fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = h
 @Composable
 fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
     val openDialog2 = remember { mutableStateOf(false) }
-    val isPressed = remember { mutableStateOf(false) }
-    val isPressed2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
-    if(isPressed.value)
-    {
-        FollowerPage(navController = navController, myId,user.value.id,"followers",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
-    }
-    if(isPressed2.value)
-    {
-        FollowerPage(navController = navController, myId,user.value.id,"follows",user.value.photo,user.value.namesurname,user.value.likeCount,user.value.followCount,user.value.followerCount)
-    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             verticalArrangement = Arrangement.Top,
@@ -172,7 +163,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
-                if (user.value.photo == null || user.value.photo == "") {
+                if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
                         contentDescription = null,
@@ -197,18 +188,13 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text("Takip Edilenler", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
-                Text(text = "Beğeniler", fontSize = 16.sp)
-            }
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed.value = true })
-                Text(text = "${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable { isPressed2.value = true })
-                Text(text = "${user.value.likeCount}", fontSize = 16.sp)
+                Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {
+                    navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                })
+                Text("Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {
+                    navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                })
+                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             ProfilePostList(navController = navController,myId)
@@ -228,17 +214,22 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                     )
                 )
                 .size(750.dp, 220.dp)
+                //.wrapContentSize()
                 .windowInsetsPadding(WindowInsets.ime))
             {
                 Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
                     Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
                     Spacer(modifier = Modifier.padding(5.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                    Button(onClick = {
+
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
                     }
                     Spacer(modifier = Modifier.padding(10.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Text(text = "Profilimi düzenle", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                    Button(onClick = {
+                        navController.navigate("edit_profile_page/$myId")
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Profilimi düzenle", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
                     }
                 }
             }
@@ -357,7 +348,9 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
         .wrapContentSize(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
-            .clickable {}) {
+            .clickable {
+                navController.navigate("quote_detail_page/$quoteId/$myId")
+            }) {
             Box(
                 modifier = Modifier
                     .defaultMinSize(343.dp, 140.dp)
@@ -408,8 +401,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             "${likeCountFromVm.value} BEĞENME"
                         }
                             , color = Color.White, modifier = Modifier
-                                .padding(top = 15.dp)
-                                .clickable {})
+                                .padding(top = 15.dp))
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -539,7 +531,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        navController.navigate("my_profile_page")
                     }
             )
         }
@@ -552,7 +544,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        navController.navigate("my_profile_page")
                     }
             )
         }
@@ -580,7 +572,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
                     Spacer(modifier = Modifier.padding(5.dp))
                     Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(180.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Text(text = "Gönderiyi Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black,)
+                        Text(text = "Gönderiyi Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
                     }
                 }
             }

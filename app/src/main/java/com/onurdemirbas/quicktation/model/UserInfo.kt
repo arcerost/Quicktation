@@ -10,5 +10,5 @@ data class UserInfo(
     val likeCount: Int,
     val namesurname: String,
     val password: String,
-    val photo: Any
+    val photo: String?
 )

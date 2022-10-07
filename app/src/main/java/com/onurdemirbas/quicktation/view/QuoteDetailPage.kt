@@ -258,8 +258,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
         .fillMaxWidth()
         .wrapContentSize(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp)
-            .clickable {}) {
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
             Box(
                 modifier = Modifier
                     .defaultMinSize(343.dp, 140.dp)
@@ -310,8 +309,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                             "${likeCountFromVm.value} BEĞENME"
                         }
                             , color = Color.White, modifier = Modifier
-                                .padding(top = 15.dp)
-                                .clickable {})
+                                .padding(top = 15.dp))
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -431,7 +429,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                 }
             }
         }
-        if(userPhoto == null || userPhoto == "") {
+        if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
@@ -439,7 +437,11 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        if (myId == userId) {
+                            navController.navigate("my_profile_page")
+                        } else {
+                            navController.navigate("other_profile_page/$userId/$myId")
+                        }
                     }
             )
         }
@@ -452,7 +454,11 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        if (myId == userId) {
+                            navController.navigate("my_profile_page")
+                        } else {
+                            navController.navigate("other_profile_page/$userId/$myId")
+                        }
                     }
             )
         }
@@ -496,12 +502,11 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
         .fillMaxWidth()
         .wrapContentSize(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp)
-            .clickable {}) {
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp)) {
             Box(modifier = Modifier
                 .defaultMinSize(343.dp, 90.dp)
                 .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillWidth)
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillBounds)
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End,modifier = Modifier.fillMaxWidth() ){
                         Text(text = if(soundId != soundIdFromVm.value)
@@ -513,8 +518,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                             "${likeCountFromVm.value} BEĞENME"
                         }
                             , color = Color.White, modifier = Modifier
-                                .padding(top = 15.dp, end = 15.dp)
-                                .clickable {})
+                                .padding(top = 15.dp, end = 15.dp))
                     }
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                         Spacer(modifier = Modifier.padding(15.dp))
@@ -623,7 +627,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                 }
             }
         }
-        if(userPhoto == null || userPhoto == "") {
+        if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
@@ -631,7 +635,11 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        //profile page
+                        if (myId == userId) {
+                            navController.navigate("my_profile_page")
+                        } else {
+                            navController.navigate("other_profile_page/$userId/$myId")
+                        }
                     }
             )
         }
@@ -641,7 +649,11 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                 .padding(horizontal = 10.dp)
                 .size(44.dp, 44.dp)
                 .clickable {
-                    //profile page
+                    if (myId == userId) {
+                        navController.navigate("my_profile_page")
+                    } else {
+                        navController.navigate("other_profile_page/$userId/$myId")
+                    }
                 }
             )
         }

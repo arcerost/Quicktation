@@ -2,7 +2,6 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -302,10 +301,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         {
                             "${likeCountFromVm.value} BEĞENME"
                         }
-//                        Text(text =  "$likeCount BEĞENME"
                         , color = Color.White, modifier = Modifier
-                                .padding(top = 15.dp)
-                                .clickable {})
+                                .padding(top = 15.dp))
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -442,10 +439,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            Log.d("idtest","myId: $myId, userId: $userId")
                             navController.navigate("my_profile_page")
                         } else {
-                            Log.d("idtest","myId: $myId, userId: $userId")
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
