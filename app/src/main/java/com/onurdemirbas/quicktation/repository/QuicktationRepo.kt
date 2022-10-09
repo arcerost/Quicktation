@@ -1,6 +1,5 @@
 package com.onurdemirbas.quicktation.repository
 
-import android.util.Log
 import com.onurdemirbas.quicktation.model.*
 import com.onurdemirbas.quicktation.service.*
 import com.onurdemirbas.quicktation.util.Resource
@@ -193,9 +192,7 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
     suspend fun postQuoteDetailApi(userId: Int, quoteId: Int): Resource<QuoteDetailResponse> {
 
         val request = QuoteDetail(userId,quoteId)
-        Log.d("TAGG","$request")
         val response = api7.postQuoteDetailApi(request)
-        Log.d("TAGG","$response")
         try {
             when (response.error) {
                 "0" -> {

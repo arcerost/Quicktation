@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +21,7 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
     var soundList = MutableStateFlow<List<Sound>>(listOf())
-    var soundIdx = MutableStateFlow(-1)
+    var soundIdx = MutableStateFlow(-2)
     var isDeletedSound = MutableStateFlow(-1)
     var likeCountSound = MutableStateFlow(-1)
     fun loadQuote(userId: Int, quoteId: Int)
@@ -29,8 +30,9 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
             when (val result = repository.postQuoteDetailApi(userId, quoteId)) {
                 is Resource.Success -> {
                     head.value = result.data!!.response.quoteDetail
-                    scanIndex.value = result.data.response.scanIndex
                     soundList.value = result.data.response.soundList
+                    Log.d("soundList","${soundList.value}")
+                    scanIndex.value = result.data.response.scanIndex
                     errorMessage.value = ""
                 }
                 is Resource.Error -> {
@@ -58,10 +60,10 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
         }
     }
 
-    fun amILikeSound(userId: Int, quotesound_id: Int)
+    fun amILikeSound(myId: Int, quotesound_id: Int)
     {
         viewModelScope.launch {
-            when(val result = repository.postLikeSoundApi(userId, quotesound_id))
+            when(val result = repository.postLikeSoundApi(myId, quotesound_id))
             {
                 is Resource.Success ->{
                     isDeletedSound.value = result.data!!.response.isDeleted

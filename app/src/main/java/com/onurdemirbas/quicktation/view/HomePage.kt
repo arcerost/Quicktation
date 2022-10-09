@@ -45,10 +45,10 @@ import kotlinx.coroutines.*
 @Composable
 fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
+    val myId = StoreUserInfo(context = context).getId.collectAsState(-1)
     viewModel.viewModelScope.launch{
         delay(200)
-        viewModel.loadMains(iid.value!!)
+        viewModel.loadMains(myId.value!!)
     }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -64,7 +64,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
             modifier = Modifier.fillMaxSize()
         )
         {
-            PostList(navController = navController, myId = iid.value!!)
+            PostList(navController = navController, myId = myId.value!!)
         }
     }
     //BottomBar
@@ -126,7 +126,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/${myId.value}") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -250,12 +250,15 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
             .clickable {
-                navController.navigate("quote_detail_page/$quoteId/$userId")
+                navController.navigate("quote_detail_page/$quoteId/$myId")
             }) {
             Box(
                 modifier = Modifier
                     .defaultMinSize(343.dp, 140.dp)
-                    .fillMaxWidth(), contentAlignment = Alignment.TopStart
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate("quote_detail_page/$quoteId/$myId")
+                    }, contentAlignment = Alignment.TopStart
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.backgroundrow),
@@ -310,7 +313,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText) {
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
 
                         }
                         Spacer(modifier = Modifier.padding(10.dp))
@@ -345,17 +348,6 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
                                     tint =
-//                                    when (amILike) {
-//                                            1 -> {
-//                                                Color(0xFFD9DD23)
-//                                            }
-//                                            0 -> {
-//                                                Color.White
-//                                            }
-//                                            else -> {
-//                                                Color.Black
-//                                            }
-//                                        },
                                     if(quoteId != quoteIdFromVm.value) {
                                         when (amILike) {
                                             1 -> {
@@ -439,7 +431,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            navController.navigate("my_profile_page")
+                            navController.navigate("my_profile_page/$myId")
                         } else {
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
@@ -456,7 +448,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            navController.navigate("my_profile_page")
+                            navController.navigate("my_profile_page/$myId")
                         } else {
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
@@ -472,6 +464,8 @@ fun HashText(
     navController: NavController,
     modifier: Modifier = Modifier,
     fullText: String,
+    quoteId: Int,
+    userId: Int,
     linkTextColor: Color  = Color.Yellow,
     linkTextFontWeight: FontWeight = FontWeight.Medium,
     linkTextDecoration: TextDecoration = TextDecoration.Underline,
@@ -512,19 +506,21 @@ fun HashText(
                     start = startIndex,
                     end = endIndex
                 )
-            } else {
+            } else if(!s.startsWith("#")) {
+                startIndex = fullText.indexOf(s)
+                endIndex = startIndex + s.length
                 addStyle(
                     style = SpanStyle(
                         color = Color.White
                     ),
-                    start = endIndex,
-                    end = fullText.length
+                    start = startIndex,
+                    end = endIndex
                 )
                 addStringAnnotation(
                     tag = "sss",
-                    annotation = "",
-                    start = 0,
-                    end = 0
+                    annotation = s,
+                    start = startIndex,
+                    end = endIndex
                 )
             }
         }
@@ -537,6 +533,12 @@ fun HashText(
                 .firstOrNull()?.let { a ->
                     if (a.tag == "TAG") {
                         navController.navigate("notifications_page")
+                    }
+                }
+            annotatedString.getStringAnnotations("sss",it,it)
+                .firstOrNull()?.let { a ->
+                    if (a.tag == "sss") {
+                        navController.navigate("quote_detail_page/$quoteId/$userId")
                     }
                 }
         })

@@ -125,7 +125,7 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/$myId") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -139,190 +139,232 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
     val user = viewModel.userInfo.collectAsState()
     val check = remember { mutableStateOf(false) }
     val check2 = remember { mutableStateOf(false) }
-    if(user.value.amIfollow ==0)
-    {
-        Box(modifier = Modifier.fillMaxSize()){
-            Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
-                Spacer(Modifier.padding(top = 25.dp))
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Spacer(modifier = Modifier.padding(start = 25.dp))
-                    Image(painter = painterResource(id = R.drawable.options),
-                        contentDescription = null,
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Spacer(Modifier.padding(top = 25.dp))
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.padding(start = 25.dp))
+                IconButton(onClick = {openDialog.value = !openDialog.value }) {
+                    Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
                         modifier = Modifier
-                            .clickable {
-                                openDialog.value = !openDialog.value
-                            }
-                            .size(52.dp, 12.dp))
+                            .size(52.dp, 20.dp))
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.padding(start = 100.dp))
-                    Text(
-                        text = user.value.namesurname,
-                        modifier = Modifier.defaultMinSize(165.dp, 30.dp),
-                        fontSize = 20.sp
-                    )
-                    if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
-                        Image(
-                            painter = painterResource(id = R.drawable.pp),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(75.dp, 75.dp)
-                        )
-                    } else {
-                        val painter = rememberImagePainter(
-                            data = Constants.BASE_URL + user.value.photo,
-                            builder = {})
-                        Image(
-                            painter = painter,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(75.dp, 75.dp)
-                        )
-                    }
-                }
-                Spacer(Modifier.padding(top = 15.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                    Text("Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                    Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
-                }
-                Spacer(modifier = Modifier.padding(top = 25.dp))
-                OtherProfilePostList(navController = navController, userId, myId)
             }
-        }
-    }
-    else if(user.value.amIfollow==1)
-    {
-        Box(modifier = Modifier.fillMaxSize()){
-            Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
-                Spacer(Modifier.padding(top = 25.dp))
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Spacer(modifier = Modifier.padding(start = 25.dp))
-                    Image(painter = painterResource(id = R.drawable.options),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable {
-                                openDialog.value = !openDialog.value
-                            }
-                            .size(52.dp, 12.dp))
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.padding(start = 100.dp))
-                    Text(
-                        text = user.value.namesurname,
-                        modifier = Modifier.defaultMinSize(165.dp, 30.dp),
-                        fontSize = 20.sp
-                    )
-                    if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
-                        Image(
-                            painter = painterResource(id = R.drawable.pp),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(75.dp, 75.dp)
-                        )
-                    } else {
-                        val painter = rememberImagePainter(
-                            data = Constants.BASE_URL + user.value.photo,
-                            builder = {})
-                        Image(
-                            painter = painter,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(75.dp, 75.dp)
-                        )
-                    }
-                }
-                Spacer(Modifier.padding(top = 15.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                    Text("Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                    Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
-                }
-                Spacer(modifier = Modifier.padding(top = 25.dp))
-                OtherProfilePostList(navController = navController, userId, myId)
-            }
-        }
-    }
-    if(openDialog.value)
-    {
-        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(
-                    color = Color(4, 108, 122, 204),
-                    shape = RoundedCornerShape(
-                        topStart = 20.dp,
-                        topEnd = 20.dp,
-                        bottomEnd = 0.dp,
-                        bottomStart = 0.dp
-                    )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.padding(start = 100.dp))
+                Text(
+                    text = user.value.namesurname,
+                    modifier = Modifier.defaultMinSize(165.dp, 30.dp),
+                    fontSize = 20.sp
                 )
-                .size(750.dp, 310.dp)
-                .windowInsetsPadding(WindowInsets.ime))
+                if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
+                    Image(
+                        painter = painterResource(id = R.drawable.pp),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                    )
+                } else {
+                    val painter = rememberImagePainter(
+                        data = Constants.BASE_URL + user.value.photo,
+                        builder = {})
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                    )
+                }
+            }
+            Spacer(Modifier.padding(top = 15.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Takipçiler\n        ${user.value.followerCount}",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                    })
+                Text(
+                    "Takip Edilenler\n            ${user.value.followCount}",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                    })
+                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.padding(top = 25.dp))
+            OtherProfilePostList(navController = navController, userId, myId)
+        }
+    }
+    if (openDialog.value) {
+        Popup(
+            alignment = Alignment.BottomCenter,
+            onDismissRequest = { openDialog.value = !openDialog.value },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204),
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 0.dp,
+                            bottomStart = 0.dp
+                        )
+                    )
+                    .size(750.dp, 310.dp)
+                    .windowInsetsPadding(WindowInsets.ime)
+            )
             {
-                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                Column(
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Divider(
+                        color = Color.Black,
+                        thickness = 3.dp,
+                        modifier = Modifier.size(width = 30.dp, height = 3.dp)
+                    )
                     Spacer(modifier = Modifier.padding(20.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                    Button(
+                        onClick = { },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 45.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         {
-                            Image(painter = painterResource(id = R.drawable.report), contentDescription = "report", modifier = Modifier.size(17.dp,17.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.report),
+                                contentDescription = "report",
+                                modifier = Modifier.size(17.dp, 17.dp)
+                            )
                             Spacer(Modifier.padding(start = 25.dp))
-                            Text(text = "Şikayet Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            Text(
+                                text = "Şikayet Et",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                    Button(
+                        onClick = { },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 45.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         {
-                            Image(painter = painterResource(id = R.drawable.text), contentDescription = "text", modifier = Modifier.size(17.dp,17.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.text),
+                                contentDescription = "text",
+                                modifier = Modifier.size(17.dp, 17.dp)
+                            )
                             Spacer(Modifier.padding(start = 25.dp))
-                            Text(text = "Mesaj Gönder", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            Text(
+                                text = "Mesaj Gönder",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
-                    if(check.value){
+                    if (user.value.amIfollow == 0) {
                         check.value = !check.value
-                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                    } else {
+                        check2.value = !check2.value
+                    }
+                    if (check.value) {
+                        check.value = !check.value
+                        Button(
+                            onClick = { },
+                            border = BorderStroke(1.dp, color = Color.Black),
+                            modifier = Modifier.size(250.dp, 45.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             {
-                                Image(painter = painterResource(id = R.drawable.follow), contentDescription = "follow", modifier = Modifier.size(17.dp,17.dp))
+                                Image(
+                                    painter = painterResource(id = R.drawable.follow),
+                                    contentDescription = "follow",
+                                    modifier = Modifier.size(17.dp, 17.dp)
+                                )
                                 Spacer(Modifier.padding(start = 25.dp))
-                                Text(text = "Takip Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                                Text(
+                                    text = "Takip Et",
+                                    fontFamily = openSansBold,
+                                    fontSize = 17.sp,
+                                    color = Color.Black
+                                )
                             }
                         }
                     }
-                    if(check2.value){
+                    if (check2.value) {
                         check2.value = !check2.value
-                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        Button(
+                            onClick = { },
+                            border = BorderStroke(1.dp, color = Color.Black),
+                            modifier = Modifier.size(250.dp, 45.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             {
-                                Image(painter = painterResource(id = R.drawable.unfollow), contentDescription = "unfollow", modifier = Modifier.size(17.dp,17.dp))
+                                Image(
+                                    painter = painterResource(id = R.drawable.unfollow),
+                                    contentDescription = "unfollow",
+                                    modifier = Modifier.size(17.dp, 17.dp)
+                                )
                                 Spacer(Modifier.padding(start = 25.dp))
-                                Text(text = "Takipten Çıkar", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                                Text(
+                                    text = "Takipten Çıkar",
+                                    fontFamily = openSansBold,
+                                    fontSize = 17.sp,
+                                    color = Color.Black
+                                )
                             }
                         }
                     }
@@ -444,7 +486,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
             .clickable {
-                navController.navigate("quote_detail_page/$quoteId/$userId")
+                navController.navigate("quote_detail_page/$quoteId/$myId")
             }) {
             Box(
                 modifier = Modifier
@@ -523,7 +565,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText) {
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
 
                         }
                         Spacer(modifier = Modifier.padding(10.dp))

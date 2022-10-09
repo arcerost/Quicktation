@@ -43,8 +43,8 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
                         isDeleted.value = result.data!!.response.isDeleted
                         likeCount.value = result.data.response.likeCount
                         quoteIdx.value = result.data.response.quoteId
-                        mainList.value[quoteId].likeCount = isDeleted.value
-                        mainList.value[quoteId].amIlike = likeCount.value
+                        mainList.value[quoteId-1].likeCount = isDeleted.value
+                        mainList.value[quoteId-1].amIlike = likeCount.value
                     }
                     is Resource.Error -> {
                         errorMessage.value = result.message!!

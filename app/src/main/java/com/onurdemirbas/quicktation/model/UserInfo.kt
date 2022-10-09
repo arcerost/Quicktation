@@ -1,14 +1,14 @@
 package com.onurdemirbas.quicktation.model
 
 data class UserInfo(
-    val amIfollow: Int,
-    val createDate: String,
-    val email: String,
-    val followCount: Int,
-    val followerCount: Int,
-    val id: Int,
-    val likeCount: Int,
-    val namesurname: String,
+    var amIfollow: Int,
+    var createDate: String,
+    var email: String,
+    var followCount: Int,
+    var followerCount: Int,
+    var id: Int,
+    var likeCount: Int,
+    var namesurname: String,
     val password: String,
-    val photo: String?
+    var photo: String?
 )

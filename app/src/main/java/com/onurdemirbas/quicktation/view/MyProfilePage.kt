@@ -1,5 +1,3 @@
-
-
 package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
@@ -35,23 +33,21 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
+import com.onurdemirbas.quicktation.model.UserInfo
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = hiltViewModel()) {
+fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
-    viewModel.viewModelScope.launch{
-        delay(200)
-        viewModel.loadQuotes(iid.value!!,iid.value!!)
-    }
+    viewModel.loadQuotes(myId)
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
@@ -61,7 +57,7 @@ fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = h
         modifier = Modifier.fillMaxSize()
     )
         {
-            ProfileRow(navController = navController, myId = iid.value!!)
+            ProfileRow(navController = navController, myId = myId)
         }
 
     //BottomBar
@@ -123,7 +119,7 @@ fun MyProfilePage(navController: NavController,viewModel: MyProfileViewModel = h
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/$myId") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -148,13 +144,11 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Spacer(modifier = Modifier.padding(start = 25.dp))
-                Image(painter = painterResource(id = R.drawable.options),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable {
-                            openDialog2.value = !openDialog2.value
-                        }
-                        .size(52.dp, 12.dp))
+                IconButton(onClick = {openDialog2.value = !openDialog2.value }) {
+                    Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
+                        modifier = Modifier
+                            .size(52.dp, 20.dp))
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.padding(start = 100.dp))
@@ -409,7 +403,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText) {
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
 
                         }
                         Spacer(modifier = Modifier.padding(10.dp))
@@ -531,7 +525,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        navController.navigate("my_profile_page")
+                        navController.navigate("my_profile_page/$myId")
                     }
             )
         }
@@ -544,7 +538,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
-                        navController.navigate("my_profile_page")
+                        navController.navigate("my_profile_page/$myId")
                     }
             )
         }

@@ -24,7 +24,7 @@ import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 
 @Composable
-fun NotificationsPage(navController: NavController) {
+fun NotificationsPage(navController: NavController, myId: Int) {
     val interactionSource = MutableInteractionSource()
     val isPressed by interactionSource.collectIsPressedAsState()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -115,7 +115,7 @@ fun NotificationsPage(navController: NavController) {
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/$myId") }
                         .size(28.dp, 31.dp))
             }
         }

@@ -125,7 +125,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/${iid.value}") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -143,9 +143,9 @@ fun RefreshWithLikeQuote(viewModel: QuoteDetailViewModel = hiltViewModel(), user
 }
 
 @Composable
-fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), userId: Int, quotesound_id: Int) {
+fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), myId: Int, quotesound_id: Int) {
     viewModel.viewModelScope.launch {
-        viewModel.amILikeSound(userId,quotesound_id)
+        viewModel.amILikeSound(myId,quotesound_id)
         delay(200) }
 }
 
@@ -317,7 +317,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText) {
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
 
                         }
                         Spacer(modifier = Modifier.padding(10.dp))
@@ -344,7 +344,6 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
                                 onClick = {
-                                    Log.d("check","click")
                                     isPressed = true
                                 }, modifier = Modifier
                                     .size(21.dp, 20.dp)
@@ -438,7 +437,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            navController.navigate("my_profile_page")
+                            navController.navigate("my_profile_page/$myId")
                         } else {
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
@@ -455,7 +454,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            navController.navigate("my_profile_page")
+                            navController.navigate("my_profile_page/$myId")
                         } else {
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
@@ -493,7 +492,11 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                     it.pause()
                 }
             }
-            //onPrepared(mediaPlayer)
+//            if (mediaCheck.value) {
+//                it.start()
+//            } else if (!mediaCheck.value) {
+//                it.pause()
+//            }
         }
         prepareAsync()
     }
@@ -556,6 +559,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                                 }, modifier = Modifier.size(21.dp, 20.dp)) {
                                 Icon(painter = painterResource(id = R.drawable.like), contentDescription = "like", tint =
                                 if(soundId != soundIdFromVm.value) {
+                                    Log.d("sound","soundid: $soundId, FROMVM: ${soundIdFromVm.value}, amILike: $amILike")
                                     when (amILike) {
                                         1 -> {
                                             Color(0xFFD9DD23)
@@ -636,7 +640,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
-                            navController.navigate("my_profile_page")
+                            navController.navigate("my_profile_page/$myId")
                         } else {
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
@@ -650,7 +654,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                 .size(44.dp, 44.dp)
                 .clickable {
                     if (myId == userId) {
-                        navController.navigate("my_profile_page")
+                        navController.navigate("my_profile_page/$myId")
                     } else {
                         navController.navigate("other_profile_page/$userId/$myId")
                     }

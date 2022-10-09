@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination =
-            if(userEmail != "" && userPw !=""){
+            if(userEmail != "" && userPw !="" && userId.toString() != "-1"){
                 "home_page"
             }
                 else
@@ -64,9 +64,14 @@ class MainActivity : ComponentActivity() {
                 {
                     HomePage(navController = navController)
                 }
-                composable("notifications_page")
+                composable("notifications_page/{myId}", arguments = listOf(
+                    navArgument("myId"){
+                        type = NavType.IntType
+                    }
+                ))
                 {
-                    NotificationsPage(navController = navController)
+                    val myId = remember { it.arguments?.getInt("myId")}
+                    NotificationsPage(navController = navController, myId!!)
                 }
                 composable("quote_detail_page/{id}/{userId}", arguments = listOf(
                     navArgument("id") {
@@ -81,9 +86,14 @@ class MainActivity : ComponentActivity() {
                     val userId = remember { it.arguments?.getInt("userId") }
                     QuoteDetailPage(id = id!!, userId = userId!!, navController = navController)
                 }
-                composable("my_profile_page")
+                composable("my_profile_page/{myId}", arguments = listOf(
+                    navArgument("myId"){
+                        type = NavType.IntType
+                    }
+                ))
                 {
-                    MyProfilePage(navController = navController)
+                    val myId = remember { it.arguments?.getInt("myId")}
+                    MyProfilePage(navController = navController, myId!!)
                 }
                 composable("follower_page/{userId}/{toUserId}/{action}/{photo}/{namesurname}/{likeCount}/{followCount}/{followerCount}/{amIFollow}", arguments = listOf(
                     navArgument("userId") {

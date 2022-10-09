@@ -141,7 +141,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/$myId") }
                         .size(28.dp, 31.dp))
             }
         }

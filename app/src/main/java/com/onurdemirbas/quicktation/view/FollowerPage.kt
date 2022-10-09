@@ -113,7 +113,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page") }
+                        ) { navController.navigate("my_profile_page/$userId") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -144,20 +144,19 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Spacer(modifier = Modifier.padding(start = 25.dp))
-                Image(painter = painterResource(id = R.drawable.options),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable {
-                            if(userId==toUserId)
-                            {
-                                openDialog2.value = !openDialog2.value
-                            }
-                            else
-                            {
-                                openDialog.value = !openDialog.value
-                            }
-                        }
-                        .size(52.dp, 12.dp))
+                IconButton(onClick = {
+                    if(userId==toUserId)
+                    {
+                        openDialog2.value = !openDialog2.value
+                    }
+                    else
+                    {
+                        openDialog.value = !openDialog.value
+                    } }) {
+                    Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
+                        modifier = Modifier
+                            .size(52.dp, 20.dp))
+                }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -406,7 +405,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, myId: 
                         .size(44.dp, 44.dp)
                         .clickable {
                             if (myId == userId) {
-                                navController.navigate("my_profile_page")
+                                navController.navigate("my_profile_page/$myId")
                             } else {
                                 navController.navigate("other_profile_page/$userId/$myId")
                             }
@@ -423,7 +422,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, myId: 
                         .size(44.dp, 44.dp)
                         .clickable {
                             if (myId == userId) {
-                                navController.navigate("my_profile_page")
+                                navController.navigate("my_profile_page/$myId")
                             } else {
                                 navController.navigate("other_profile_page/$userId/$myId")
                             }
