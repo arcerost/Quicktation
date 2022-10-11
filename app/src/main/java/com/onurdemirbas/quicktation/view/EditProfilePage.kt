@@ -1,10 +1,13 @@
-@file:OptIn(ExperimentalCoilApi::class, ExperimentalPermissionsApi::class)
+@file:OptIn(ExperimentalCoilApi::class)
+@file:Suppress("DEPRECATION")
+
 package com.onurdemirbas.quicktation.view
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
-import android.util.Log
+import android.os.Build
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,12 +16,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -26,24 +32,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.EditProfileViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,56 +51,20 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
     viewModel.viewModelScope.launch {
         viewModel.loadUser(myId)
     }
+    val context = LocalContext.current
     val userInfo = viewModel.userInfo.collectAsState()
     val userNameAlr = userInfo.value.namesurname
     val userEmailAlr = userInfo.value.email
-    val userPhotoAlr = userInfo.value.photo
+    var userPhotoAlr = userInfo.value.photo
     val username = remember { mutableStateOf(TextFieldValue()) }
     val email = remember { mutableStateOf(TextFieldValue()) }
-    var userPhoto = remember { mutableStateOf("") }
+    var userPhotoForService by remember { mutableStateOf<Bitmap?>(null) }
+    val userPhoto = remember { mutableStateOf("") }
     val photoFromVm = viewModel.userphoto.collectAsState()
     val interactionSource = MutableInteractionSource()
-    val context = LocalContext.current
-    val check = remember {mutableStateOf(false)}
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val launcher2 = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? -> imageUri = uri }
-    if(check.value)
-    {
-        Popup(Alignment.Center, onDismissRequest = {check.value = !check.value}, properties = PopupProperties(focusable = true,dismissOnBackPress = true, dismissOnClickOutside = true)) {
-            val launcher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                if (isGranted) {
-                    // Permission Accepted: Do something
-                    Toast.makeText(context,"a",Toast.LENGTH_LONG).show()
-
-                } else {
-                    // Permission Denied: Do something
-                    Toast.makeText(context,"b",Toast.LENGTH_LONG).show()
-                }
-            }
-            Button(
-                onClick = {
-                    // Check permission
-                    when (PackageManager.PERMISSION_GRANTED) {
-                        ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        ) -> {
-                            // Some works that require permission
-                            Toast.makeText(context,"c",Toast.LENGTH_LONG).show()
-                        }
-                        else -> {
-                            // Asking for permission
-                            launcher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                        }
-                    }
-                }
-            ) {
-                Text(text = "Check and Request Permission")
-            }
-        }
-    }
+    val bitmap = remember { MutableStateFlow<Bitmap?>(null) }
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? -> imageUri = uri }
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,6 +82,18 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 modifier = Modifier.fillMaxSize()
             )
             {
+                imageUri?.let {
+                    if (Build.VERSION.SDK_INT < 28) {
+                        bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+                    }
+                    else {
+                        val source = ImageDecoder.createSource(context.contentResolver, it)
+                        bitmap.value = ImageDecoder.decodeBitmap(source)
+                    }
+                    bitmap.value?.let { btm ->
+                        userPhotoForService = btm
+                    }
+                }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
                 Text(text = "PROFİLİ DÜZENLE", fontSize = 18.sp, fontFamily = openSansBold)
                 Spacer(modifier = Modifier.padding(top = 15.dp))
@@ -130,43 +106,32 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 Box(contentAlignment = Alignment.Center)
                 {
                     if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
-                        Image(
-                            painter = painterResource(id = R.drawable.pp),
-                            contentDescription = "profile photo",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Box(
-                            contentAlignment = Alignment.BottomEnd,
-                            modifier = Modifier.size(120.dp)
-                        ) {
-                            Image(painter = painterResource(id = R.drawable.addphoto),
-                                contentDescription = "add photo",
-                                Modifier
-                                    .size(30.dp, 30.dp)
-                                    .clickable {
-                                        check.value = !check.value
-                                    })
+                        if(userPhotoForService == null)
+                        {
+                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp).clip(CircleShape))
                         }
-                    } else {
-                        val painter = rememberImagePainter(
-                            data = Constants.BASE_URL + userPhotoAlr,
-                            builder = {})
-                        Image(
-                            painter = painter,
-                            contentDescription = "profile photo",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Box(
-                            contentAlignment = Alignment.BottomEnd,
-                            modifier = Modifier.size(120.dp)
-                        ) {
-                            Image(painter = painterResource(id = R.drawable.addphoto),
-                                contentDescription = "add photo",
-                                Modifier
-                                    .size(30.dp, 30.dp)
-                                    .clickable { userPhoto = userPhoto })
+                        else
+                        {
+                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.FillWidth, modifier = Modifier.size(100.dp).clip(CircleShape))
+                        }
+                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
+                        {
+                            IconButton(onClick = {
+                                launcher.launch("image/*")
+                            }) {
+                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
+                            }
+                        }
+                    }
+                    else {
+                        val painter = rememberImagePainter(data = Constants.BASE_URL + userPhotoAlr, builder = {})
+                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp))
+                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(140.dp))
+                        {
+                            IconButton(onClick = {
+                            }) {
+                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
+                            }
                         }
                     }
                 }
@@ -226,7 +191,10 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 Spacer(modifier = Modifier.padding(30.dp))
                 Button(
                     onClick = {
-                        viewModel.loadEdit(myId, username.value.text, userPhoto.value)
+                        userPhotoForService?.let {
+
+                        }
+                        viewModel.loadEdit(myId, username.value.text, userPhotoForService.toString())
                         userPhoto.value = photoFromVm.value
                         viewModel.viewModelScope.launch {
                             delay(300)
@@ -312,59 +280,4 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
             }
         }
     }
-}
-
-
-@Composable
-fun Change() {
-//    fun Context.getActivity(): AppCompatActivity? {
-//        var currentContext = this
-//        while (currentContext is ContextWrapper) {
-//            if (currentContext is AppCompatActivity) {
-//                return currentContext
-//            }
-//            currentContext = currentContext.baseContext
-//        }
-//        return null
-//    }
-//    val activity = LocalContext.current as Activity //activity
-
-
-//    if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED)
-//    {
-//        if(ActivityCompat.shouldShowRequestPermissionRationale(context.getActivity()!!.parent,Manifest.permission.READ_EXTERNAL_STORAGE))
-//        {
-//            val snackBarResult = rememberScaffoldState()
-//            val x = rememberCoroutineScope()
-//            x.launch {
-//                when (snackBarResult.snackbarHostState.showSnackbar("message","do",SnackbarDuration.Indefinite))
-//                {
-//                    SnackbarResult.Dismissed -> ""
-//                    SnackbarResult.ActionPerformed -> launcher.launch("image/*")
-//                }
-//            }
-//
-//        }
-//        else
-//        {
-//            imageUri?.let {
-//                if (Build.VERSION.SDK_INT < 28) {
-//                    bitmap.value = MediaStore.Images
-//                        .Media.getBitmap(context.contentResolver, it)
-//                } else {
-//                    val source = ImageDecoder.createSource(context.contentResolver, it)
-//                    bitmap.value = ImageDecoder.decodeBitmap(source)
-//                }
-//                bitmap.value?.let { btm ->
-//                    Image(
-//                        bitmap = btm.asImageBitmap(),
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .size(400.dp)
-//                            .padding(20.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
 }

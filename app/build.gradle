@@ -95,9 +95,6 @@ dependencies {
 
     //DataStore Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"
-
-    //accompanist
-    implementation "com.google.accompanist:accompanist-permissions:0.26.5-rc"
 }
 kapt {
     correctErrorTypes = true

@@ -3,6 +3,7 @@ package com.onurdemirbas.quicktation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -15,17 +16,17 @@ import com.onurdemirbas.quicktation.view.*
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val userInfo = StoreUserInfo(this)
-        val userId = userInfo.getId
-        val userPw = userInfo.getPassword.toString()
-        val userEmail = userInfo.getEmail.toString()
         setContent {
+            val context = LocalContext.current
+            val userId = StoreUserInfo(context = context).getId.collectAsState(-1)
+            val userPw = StoreUserInfo(context).getPassword.collectAsState(initial = "")
+            val userEmail = StoreUserInfo(context).getEmail.collectAsState(initial = "")
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination =
-            if(userEmail != "" && userPw !="" && userId.toString() != "-1"){
+            if(userEmail.value != "" && userPw.value !="" && userId.value != -1){
                 "home_page"
             }
                 else
@@ -83,8 +84,8 @@ class MainActivity : ComponentActivity() {
                 ))
                 {
                     val id = remember { it.arguments?.getInt("id") }
-                    val userId = remember { it.arguments?.getInt("userId") }
-                    QuoteDetailPage(id = id!!, userId = userId!!, navController = navController)
+                    val userId1 = remember { it.arguments?.getInt("userId") }
+                    QuoteDetailPage(id = id!!, userId = userId1!!, navController = navController)
                 }
                 composable("my_profile_page/{myId}", arguments = listOf(
                     navArgument("myId"){
@@ -125,7 +126,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ))
                 {
-                    val userId = remember { it.arguments?.getInt("userId") }
+                    val userId2 = remember { it.arguments?.getInt("userId") }
                     val toUserId = remember { it.arguments?.getInt("toUserId") }
                     val action = remember { it.arguments?.getString("action") }
                     val photo = remember { it.arguments?.getString("photo") }
@@ -134,7 +135,7 @@ class MainActivity : ComponentActivity() {
                     val followCount = remember { it.arguments?.getInt("followCount") }
                     val followerCount = remember { it.arguments?.getInt("followerCount") }
                     val amIFollow = remember { it.arguments?.getInt("amIFollow")}
-                    FollowerPage(navController = navController, userId = userId!!, toUserId =  toUserId!!, action =  action!!,photo?:"",namesurname!!,likeCount!!,followCount!!,followerCount!!, amIFollow!!)
+                    FollowerPage(navController = navController, userId = userId2!!, toUserId =  toUserId!!, action =  action!!,photo?:"",namesurname!!,likeCount!!,followCount!!,followerCount!!, amIFollow!!)
                 }
                 composable("other_profile_page/{userId}/{myId}", arguments = listOf(
                     navArgument("userId") {
@@ -145,9 +146,9 @@ class MainActivity : ComponentActivity() {
                     }
                 ))
                 {
-                    val userId = remember { it.arguments?.getInt("userId") }
+                    val userId3 = remember { it.arguments?.getInt("userId") }
                     val myId = remember { it.arguments?.getInt("myId")}
-                    OtherProfilePage(navController = navController, userId = userId!!, myId = myId!!)
+                    OtherProfilePage(navController = navController, userId = userId3!!, myId = myId!!)
                 }
                 composable("edit_profile_page/{userId}", arguments = listOf(
                     navArgument("userId"){
@@ -155,8 +156,8 @@ class MainActivity : ComponentActivity() {
                     }
                 ))
                 {
-                    val userId = remember { it.arguments?.getInt("userId")}
-                    EditProfilePage(navController = navController,userId!!)
+                    val userId4 = remember { it.arguments?.getInt("userId")}
+                    EditProfilePage(navController = navController,userId4!!)
                 }
             }
         }

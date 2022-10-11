@@ -137,26 +137,21 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(Modifier.padding(top = 25.dp))
+            Spacer(Modifier.padding(top = 15.dp))
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.padding(start = 25.dp))
                 IconButton(onClick = {openDialog2.value = !openDialog2.value }) {
                     Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
                         modifier = Modifier
                             .size(52.dp, 20.dp))
                 }
+                Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.padding(start = 100.dp))
-                Text(
-                    text = user.value.namesurname,
-                    modifier = Modifier.defaultMinSize(165.dp, 30.dp),
-                    fontSize = 20.sp
-                )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+//                Spacer(modifier = Modifier.padding(start = 100.dp))
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
@@ -175,6 +170,12 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                             .size(75.dp, 75.dp)
                     )
                 }
+                Text(
+                    text = user.value.namesurname,
+                    modifier = Modifier.defaultMinSize(165.dp, 30.dp),
+                    fontSize = 20.sp
+                )
+
             }
             Spacer(Modifier.padding(top = 15.dp))
             Row(
