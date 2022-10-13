@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoilApi::class)
+@file:OptIn(ExperimentalCoilApi::class, ExperimentalComposeUiApi::class)
 @file:Suppress("DEPRECATION")
 
 package com.onurdemirbas.quicktation.view
@@ -8,6 +8,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,17 +19,23 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,9 +49,9 @@ import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.EditProfileViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 @Composable
 fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProfileViewModel = hiltViewModel()) {
@@ -55,16 +62,19 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
     val userInfo = viewModel.userInfo.collectAsState()
     val userNameAlr = userInfo.value.namesurname
     val userEmailAlr = userInfo.value.email
-    var userPhotoAlr = userInfo.value.photo
+    val userPhotoAlr = userInfo.value.photo
     val username = remember { mutableStateOf(TextFieldValue()) }
     val email = remember { mutableStateOf(TextFieldValue()) }
     var userPhotoForService by remember { mutableStateOf<Bitmap?>(null) }
-    val userPhoto = remember { mutableStateOf("") }
-    val photoFromVm = viewModel.userphoto.collectAsState()
     val interactionSource = MutableInteractionSource()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val bitmap = remember { MutableStateFlow<Bitmap?>(null) }
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? -> imageUri = uri }
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    var byteArray by remember { mutableStateOf<ByteArray?>(null) }
+    var encoded by remember { mutableStateOf<String?>(null) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,6 +102,9 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     }
                     bitmap.value?.let { btm ->
                         userPhotoForService = btm
+                        bitmap.value!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                        byteArray = byteArrayOutputStream.toByteArray()
+                        encoded = Base64.encodeToString(byteArray, Base64.DEFAULT)
                     }
                 }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
@@ -108,11 +121,15 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
                         if(userPhotoForService == null)
                         {
-                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp).clip(CircleShape))
+                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape))
                         }
                         else
                         {
-                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.FillWidth, modifier = Modifier.size(100.dp).clip(CircleShape))
+                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape))
                         }
                         Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
                         {
@@ -124,11 +141,12 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         }
                     }
                     else {
-                        val painter = rememberImagePainter(data = Constants.BASE_URL + userPhotoAlr, builder = {})
-                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp))
+                        val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhotoAlr, builder = {})
+                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp).clip(CircleShape))
                         Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(140.dp))
                         {
                             IconButton(onClick = {
+                                launcher.launch("image/*")
                             }) {
                                 Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
                             }
@@ -168,6 +186,10 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     onValueChange = {
                         username.value = it
                     },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {keyboardController?.hide()
+                            focusManager.clearFocus()}),
                     textStyle = TextStyle(fontFamily = openSansFontFamily),
                     colors = TextFieldDefaults.textFieldColors(
                         textColor = Color.Black,
@@ -191,16 +213,8 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 Spacer(modifier = Modifier.padding(30.dp))
                 Button(
                     onClick = {
-                        userPhotoForService?.let {
-
-                        }
-                        viewModel.loadEdit(myId, username.value.text, userPhotoForService.toString())
-                        userPhoto.value = photoFromVm.value
-                        viewModel.viewModelScope.launch {
-                            delay(300)
-                            Toast.makeText(context, "Değişiklikler Kaydedildi.", Toast.LENGTH_LONG)
-                                .show()
-                        }
+                        viewModel.loadEdit(myId, username.value.text, encoded?:"")
+                        Toast.makeText(context, "Değişiklikler Kaydedildi.", Toast.LENGTH_LONG).show()
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Yellow),
                     border = BorderStroke(1.dp, color = Color.Black),
@@ -237,8 +251,8 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(painter = painterResource(id = R.drawable.home),
-                    contentDescription = null,
+                Image(painter = painterResource(id = R.drawable.homeblack),
+                    contentDescription = "home",
                     modifier = Modifier
                         .clickable(
                             interactionSource,
@@ -246,15 +260,15 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
+                    contentDescription = "notifications",
                     modifier = Modifier
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
+                    contentDescription = "new post",
                     modifier = Modifier
                         .clickable(
                             interactionSource,
@@ -262,15 +276,15 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         ) { navController.navigate("home_page") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
+                    contentDescription = "messages",
                     modifier = Modifier
                         .clickable(
                             interactionSource,
                             indication = null
                         ) { navController.navigate("messages_page") }
                         .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
+                Image(painter = painterResource(id = R.drawable.profile),
+                    contentDescription = "my profile",
                     modifier = Modifier
                         .clickable(
                             interactionSource,

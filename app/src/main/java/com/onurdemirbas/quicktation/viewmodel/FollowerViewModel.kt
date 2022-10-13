@@ -18,6 +18,8 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     var followerList = MutableStateFlow<List<Follow>>(listOf())
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
+    private val x: String? = null
+    var userPhoto = MutableStateFlow(x)
     fun loadFollowers(userId: Int, toUserId: Int, action: String) {
         viewModelScope.launch {
             when(val result = repository.postFollowerApi(userId, toUserId, action))
@@ -26,6 +28,15 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
                     followerList.value = result.data!!.response.followList
                     scanIndex.value = result.data.response.scanIndex
                     errorMessage.value= ""
+                }
+                is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                }
+            }
+            when(val result = repository.postMyProfileApi(toUserId, userId))
+            {
+                is Resource.Success ->{
+                    userPhoto.value = result.data!!.response.userInfo.photo
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!

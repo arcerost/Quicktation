@@ -9,6 +9,6 @@ import retrofit2.http.POST
 interface FollowerApi {
 
     @Headers("Content-Type:application/json")
-    @POST("/userfollows")
+    @POST("userfollows")
     suspend fun postFollowerApi(@Body request: Follower): FollowResponse
 }

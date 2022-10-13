@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface LikeSoundApi {
     @Headers("Content-Type:application/json")
-    @POST("/likequotesound")
+    @POST("likequotesound")
     suspend fun postLikeSoundApi(@Body request: LikeQuoteSound): LikeSoundResponse
 }

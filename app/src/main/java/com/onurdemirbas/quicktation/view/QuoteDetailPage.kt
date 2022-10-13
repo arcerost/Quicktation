@@ -4,7 +4,6 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,11 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -101,7 +102,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/$iid") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -230,7 +231,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
     val userPhoto = post.userphoto
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
-    val url = Constants.BASE_URL +quoteUrl
+    val url = Constants.MEDIA_URL +quoteUrl
     val mediaPressed = remember { mutableStateOf(false) }
     val mediaPlayer = MediaPlayer()
     mediaPlayer.apply {
@@ -432,6 +433,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -442,13 +444,15 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
+                    .clip(CircleShape)
             )
         }
         else {
-            val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+            val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
             Image(
                 painter = painter,
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -459,6 +463,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
+                    .clip(CircleShape)
             )
         }
     }
@@ -469,17 +474,15 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
 @Composable
 fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, userId: Int, myId: Int,navController: NavController) {
     val soundId  = sound.id
-    val soundIdFromVm = viewModel.soundIdx.collectAsState()
     val username by remember { mutableStateOf(sound.username) }
     val soundURL = sound.soundURL
-    val amILike = sound.amIlike
-    val amILikeFromVm = viewModel.isDeletedSound.collectAsState()
-    val likeCount = sound.likeCount
-    val likeCountFromVm = viewModel.likeCountSound.collectAsState()
+    var amILike = sound.amIlike
+    var color: Color
+    var likeCount = sound.likeCount
     val userPhoto by remember { mutableStateOf(sound.userphoto) }
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
-    val url = Constants.BASE_URL +soundURL
+    val url = Constants.MEDIA_URL +soundURL
     val mediaPressed = remember { mutableStateOf(false) }
     val mediaPlayer = MediaPlayer()
     mediaPlayer.apply { setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build())
@@ -512,15 +515,8 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                 Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillBounds)
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End,modifier = Modifier.fillMaxWidth() ){
-                        Text(text = if(soundId != soundIdFromVm.value)
-                        {
-                            "$likeCount BEĞENME"
-                        }
-                        else
-                        {
-                            "${likeCountFromVm.value} BEĞENME"
-                        }
-                            , color = Color.White, modifier = Modifier
+                        Text(text = "$likeCount BEĞENME"
+                            ,color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp, end = 15.dp))
                     }
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
@@ -557,64 +553,36 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                             IconButton(onClick = {
                                     isPressed = true
                                 }, modifier = Modifier.size(21.dp, 20.dp)) {
-                                Icon(painter = painterResource(id = R.drawable.like), contentDescription = "like", tint =
-                                if(soundId != soundIdFromVm.value) {
-                                    Log.d("sound","soundid: $soundId, FROMVM: ${soundIdFromVm.value}, amILike: $amILike")
-                                    when (amILike) {
-                                        1 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        0 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                color = when (amILike) {
+                                    1 -> {
+                                        Color(0xFFD9DD23)
+                                    }
+                                    0 -> {
+                                        Color.White
+                                    }
+                                    else -> {
+                                        Color.Black
                                     }
                                 }
-                                else {
-                                    when (amILikeFromVm.value) {
-                                        0 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        1 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
-                                    }
-                                },
+                                Icon(painter = painterResource(id = R.drawable.like), contentDescription = "like", tint =color,
                                     modifier = Modifier.size(21.dp, 20.dp))
                             }
                             if (isPressed) {
                                 RefreshWithLikeSound(viewModel, myId, soundId)
                                 isPressed = false
-                                if(soundId != soundIdFromVm.value) {
-                                    when (amILike) {
-                                        1 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        0 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                when(amILike){
+                                    1 -> {
+                                        color = Color.White
+                                        likeCount -= 1
+                                        amILike = 0
                                     }
-                                }
-                                else
-                                {
-                                    when (amILikeFromVm.value) {
-                                        0 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        1 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                    0 -> {
+                                        color = Color(0xFFD9DD23)
+                                        likeCount += 1
+                                        amILike = 1
+                                    }
+                                    else -> {
+                                        color = Color.Black
                                     }
                                 }
                             }
@@ -635,6 +603,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -645,11 +614,12 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                             navController.navigate("other_profile_page/$userId/$myId")
                         }
                     }
+                    .clip(CircleShape)
             )
         }
         else {
-            val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
-            Image(painter = painter, contentDescription = null, modifier = Modifier
+            val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
+            Image(painter = painter, contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier
                 .padding(horizontal = 10.dp)
                 .size(44.dp, 44.dp)
                 .clickable {
@@ -659,6 +629,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                         navController.navigate("other_profile_page/$userId/$myId")
                     }
                 }
+                .clip(CircleShape)
             )
         }
     }

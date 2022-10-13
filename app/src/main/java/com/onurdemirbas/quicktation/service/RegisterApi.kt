@@ -9,6 +9,6 @@ import retrofit2.http.POST
 interface RegisterApi {
 
     @Headers("Content-Type:application/json")
-    @POST("/register")
+    @POST("register")
     suspend fun postRegisterApi(@Body request: Register): RegisterResponse
 }

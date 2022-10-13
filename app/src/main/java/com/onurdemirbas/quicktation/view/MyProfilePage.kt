@@ -2,6 +2,7 @@ package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -13,11 +14,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -33,20 +36,18 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
-import com.onurdemirbas.quicktation.model.UserInfo
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
+import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
 fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileViewModel = hiltViewModel()) {
-    val context = LocalContext.current
     viewModel.loadQuotes(myId)
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -95,7 +96,7 @@ fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileVie
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -129,20 +130,23 @@ fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileVie
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hiltViewModel(), myId: Int) {
+    val context = LocalContext.current
     val openDialog2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
+    var exit by remember { mutableStateOf(false) }
+    if(exit)
+    {
+        viewModel.viewModelScope.launch {
+            StoreUserInfo(context).saveId(-1)
+            StoreUserInfo(context).saveEmail("")
+            StoreUserInfo(context).savePassword("")
+            navController.navigate("login_page")
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.padding(top = 15.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = {openDialog2.value = !openDialog2.value }) {
                     Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
                         modifier = Modifier
@@ -151,23 +155,26 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 Spacer(modifier = Modifier.padding(end = 25.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-//                Spacer(modifier = Modifier.padding(start = 100.dp))
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
+                        contentScale = ContentScale.FillBounds,
                         contentDescription = null,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
+                            .clip(CircleShape)
                     )
                 } else {
                     val painter = rememberImagePainter(
-                        data = Constants.BASE_URL + user.value.photo,
+                        data = Constants.MEDIA_URL + user.value.photo,
                         builder = {})
                     Image(
                         painter = painter,
-                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds
+                        ,contentDescription = null,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
+                            .clip(CircleShape)
                     )
                 }
                 Text(
@@ -183,13 +190,17 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                })
-                Text("Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                })
-                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp, fontFamily = openSansFontFamily, letterSpacing = 1.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             ProfilePostList(navController = navController,myId)
@@ -216,11 +227,17 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                     Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
                     Spacer(modifier = Modifier.padding(5.dp))
                     Button(onClick = {
+                        exit=!exit
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Çıkış Yap", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {
 
                     }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
                         Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
                     }
-                    Spacer(modifier = Modifier.padding(10.dp))
+                    Spacer(modifier = Modifier.padding(5.dp))
                     Button(onClick = {
                         navController.navigate("edit_profile_page/$myId")
                     }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
@@ -301,20 +318,19 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController, myId: Int) {
+    val context = LocalContext.current
     val openDialog = remember { mutableStateOf(false) }
     val quoteId  = post.id
-    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
     val quoteUrl = post.quote_url
-    val amILike = post.amIlike
-    val amILikeFromVm = viewModel.isDeleted.collectAsState()
-    val likeCount = post.likeCount
-    val likeCountFromVm = viewModel.likeCount.collectAsState()
+    var amILike = post.amIlike
+    var likeCount = post.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
+    var color: Color
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
-    val url = Constants.BASE_URL +quoteUrl
+    val url = Constants.MEDIA_URL +quoteUrl
     val mediaPressed = remember { mutableStateOf(false) }
     val mediaPlayer = MediaPlayer()
     mediaPlayer.apply {
@@ -387,14 +403,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                         Spacer(modifier = Modifier.padding(start=0.dp))
                         Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 60.dp))
-                        Text(text = if(quoteId != quoteIdFromVm.value)
-                        {
-                            "$likeCount BEĞENME"
-                        }
-                        else
-                        {
-                            "${likeCountFromVm.value} BEĞENME"
-                        }
+                        Text(text = "$likeCount BEĞENME"
                             , color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp))
                     }
@@ -438,37 +447,21 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                                 }, modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
+                                color = when (amILike) {
+                                    1 -> {
+                                        Color(0xFFD9DD23)
+                                    }
+                                    0 -> {
+                                        Color.White
+                                    }
+                                    else -> {
+                                        Color.Black
+                                    }
+                                }
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint =
-                                    if(quoteId != quoteIdFromVm.value) {
-                                        when (amILike) {
-                                            1 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            0 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        when (amILikeFromVm.value) {
-                                            0 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            1 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    },
+                                    tint = color,
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )
@@ -476,31 +469,19 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             if (isPressed) {
                                 ProfileRefreshWithLikeQuote(viewModel, myId, quoteId)
                                 isPressed = false
-                                if(quoteId != quoteIdFromVm.value) {
-                                    when (amILike) {
-                                        1 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        0 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                when(amILike){
+                                    1 -> {
+                                        color = Color.White
+                                        likeCount -= 1
+                                        amILike = 0
                                     }
-                                }
-                                else
-                                {
-                                    when (amILikeFromVm.value) {
-                                        0 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        1 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                    0 -> {
+                                        color = Color(0xFFD9DD23)
+                                        likeCount += 1
+                                        amILike = 1
+                                    }
+                                    else -> {
+                                        color = Color.Black
                                     }
                                 }
                             }
@@ -521,9 +502,11 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
         if(userPhoto == null || userPhoto == "") {
             Image(
                 painter = painterResource(id = R.drawable.pp),
+                contentScale = ContentScale.FillBounds,
                 contentDescription = null,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
+                    .clip(CircleShape)
                     .size(44.dp, 44.dp)
                     .clickable {
                         navController.navigate("my_profile_page/$myId")
@@ -531,16 +514,18 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
             )
         }
         else {
-            val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+            val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
             Image(
                 painter = painter,
                 contentDescription = null,
-                modifier = Modifier
+                contentScale = ContentScale.FillBounds
+                ,modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
                         navController.navigate("my_profile_page/$myId")
                     }
+                    .clip(CircleShape)
             )
         }
     }
@@ -566,7 +551,10 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                 Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
                     Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
                     Spacer(modifier = Modifier.padding(5.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(180.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                    Button(onClick = {
+                                     viewModel.deleteQuote(myId,quoteId)
+                        Toast.makeText(context,"Gönderi Başarıyla Silindi.",Toast.LENGTH_LONG).show()
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(180.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
                         Text(text = "Gönderiyi Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
                     }
                 }

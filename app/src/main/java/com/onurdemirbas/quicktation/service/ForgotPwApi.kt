@@ -8,17 +8,17 @@ import retrofit2.http.POST
 interface ForgotPwApi {
 
     @Headers("Content-Type:application/json")
-    @POST("/forgotpassword")
+    @POST("forgotpassword")
         suspend fun postForgotApi(@Body request: ForgotPassword): ForgotPasswordResponse
 
 
 
     @Headers("Content-Type:application/json")
-    @POST("/checkauthcode")
+    @POST("checkauthcode")
     suspend fun postCheckApi(@Body request: CheckAuthPw): CheckAuthPwResponse
 
 
     @Headers("Content-Type:application/json")
-    @POST("/updateuserpassword")
+    @POST("updateuserpassword")
     suspend fun postUpdateApi(@Body request: UpdatePw): UpdatePwResponse
 }

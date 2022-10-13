@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.onurdemirbas.quicktation.view
 
 import android.widget.Toast
@@ -5,19 +7,25 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
@@ -47,6 +55,8 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
     val s2check = remember { mutableStateOf(false)}
     val context = LocalContext.current
     val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
 
     fun isEmailValid(email: String): Boolean {
@@ -76,22 +86,38 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
         Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
             TextField(value = name.value, onValueChange ={
                 name.value = it
-            }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
+            },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()
+                        focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent,  unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "İsim Soyisim", color= Color.White, fontFamily = openSansFontFamily)
             })
             TextField(value = email.value, onValueChange ={
                 email.value = it
-            }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
+            },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()
+                        focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Email", color= Color.White, fontFamily = openSansFontFamily)
             })
             TextField(value = password.value, visualTransformation = PasswordVisualTransformation(), onValueChange ={
                 password.value = it
-            }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
+            },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()
+                        focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Şifre", color= Color.White, fontFamily = openSansFontFamily)
             })
             TextField(value = password2.value, visualTransformation = PasswordVisualTransformation(), onValueChange ={
                 password2.value = it
-            }, colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
+            },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()
+                        focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Şifre (Tekrar)", color= Color.White, fontFamily = openSansFontFamily)
             })
             Spacer(modifier = Modifier.size(25.dp))
@@ -136,7 +162,6 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                                 delay(600)
                                                 val errorMessage = viewModel.errorMessage
                                                 if (errorMessage.value.isEmpty()) {
-                                                    println("Başarılı Giriş")
                                                 } else {
                                                     Toast.makeText(
                                                         context,

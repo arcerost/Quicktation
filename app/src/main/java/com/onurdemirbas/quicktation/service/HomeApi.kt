@@ -9,10 +9,10 @@ import retrofit2.http.POST
 interface HomeApi {
 
     @Headers("Content-Type:application/json")
-    @POST("/homepageitems")
+    @POST("homepageitems")
     suspend fun postMainApi(@Body request: Home): HomeResponse //: MainResponse
 
     @Headers("Content-Type:application/json")
-    @POST("/homepageitems")
+    @POST("homepageitems")
     suspend fun postMainScanApi(@Body request: Home): HomeResponse //: MainResponse
 }

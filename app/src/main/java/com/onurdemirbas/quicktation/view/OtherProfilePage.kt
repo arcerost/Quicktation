@@ -15,15 +15,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -36,6 +39,7 @@ import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
+import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.OtherProfileViewModel
 import kotlinx.coroutines.async
@@ -101,7 +105,7 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -136,57 +140,51 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
 @Composable
 fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel(), userId: Int,myId: Int) {
     val openDialog = remember { mutableStateOf(false) }
+    var reportDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var reason by remember { mutableStateOf("") }
     val user = viewModel.userInfo.collectAsState()
     val check = remember { mutableStateOf(false) }
     val check2 = remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Spacer(Modifier.padding(top = 25.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.padding(start = 25.dp))
+        Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
+            Spacer(Modifier.padding(top = 15.dp))
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = {openDialog.value = !openDialog.value }) {
                     Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
                         modifier = Modifier
                             .size(52.dp, 20.dp))
                 }
+                Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.padding(start = 100.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
+                    Image(
+                        painter = painterResource(id = R.drawable.pp),
+                        contentScale = ContentScale.FillBounds,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    val painter = rememberImagePainter(
+                        data = Constants.MEDIA_URL + user.value.photo,
+                        builder = {})
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                            .clip(CircleShape)
+                    )
+                }
                 Text(
                     text = user.value.namesurname,
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
-                if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
-                    Image(
-                        painter = painterResource(id = R.drawable.pp),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                } else {
-                    val painter = rememberImagePainter(
-                        data = Constants.BASE_URL + user.value.photo,
-                        builder = {})
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                }
             }
             Spacer(Modifier.padding(top = 15.dp))
             Row(
@@ -194,22 +192,61 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Takipçiler\n        ${user.value.followerCount}",
-                    fontSize = 16.sp,
-                    modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                Text(
-                    "Takip Edilenler\n            ${user.value.followCount}",
-                    fontSize = 16.sp,
-                    modifier = Modifier.clickable {
-                        navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.photo}/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                    })
-                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp)
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp, fontFamily = openSansFontFamily, letterSpacing = 1.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             OtherProfilePostList(navController = navController, userId, myId)
+        }
+    }
+    if(reportDialog)
+    {
+        openDialog.value = !openDialog.value
+        Popup(alignment = Alignment.Center, onDismissRequest = {reportDialog = !reportDialog}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 20.dp,
+                        bottomStart = 20.dp
+                    )
+                )
+                .size(400.dp, 300.dp)
+                .windowInsetsPadding(WindowInsets.ime)) {
+                Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    OutlinedTextField(value = reason, modifier = Modifier.size(250.dp, 150.dp), onValueChange = {
+                        reason = it}, textStyle = TextStyle(fontFamily = openSansFontFamily, fontSize = 15.sp, color = Color.Black),colors = TextFieldDefaults.outlinedTextFieldColors(
+                        textColor = Color.Black,
+                        backgroundColor = Color.White,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+                        disabledBorderColor = Color.Black
+                    ),
+                        shape = RoundedCornerShape(15.dp,15.dp,15.dp,15.dp),
+                        placeholder = {
+                            Text(text = "Report reason", fontSize = 13.sp, fontFamily = openSansBold)
+                        })
+                    Spacer(modifier = Modifier.padding(top= 20.dp))
+                    Button(onClick = {
+                        viewModel.reportUser(myId,userId,reason)
+                        Toast.makeText(context,"Raporlama Başarıyla İletildi",Toast.LENGTH_LONG).show()
+                        reportDialog = !reportDialog
+                    }, colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Send Report", fontFamily = openSansBold, fontSize = 13.sp, color = Color.Black)
+                    }
+                }
+            }
         }
     }
     if (openDialog.value) {
@@ -223,7 +260,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
             )
         ) {
             Box(
-                contentAlignment = Alignment.Center, modifier = Modifier
+                contentAlignment = Alignment.TopCenter, modifier = Modifier
                     .background(
                         color = Color(4, 108, 122, 204),
                         shape = RoundedCornerShape(
@@ -238,9 +275,10 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
             )
             {
                 Column(
-                    verticalArrangement = Arrangement.Bottom,
+                    verticalArrangement = Arrangement.SpaceAround,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Spacer(modifier = Modifier.padding(top = 25.dp))
                     Divider(
                         color = Color.Black,
                         thickness = 3.dp,
@@ -248,7 +286,9 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     )
                     Spacer(modifier = Modifier.padding(20.dp))
                     Button(
-                        onClick = { },
+                        onClick = {
+                                  reportDialog = !reportDialog
+                        },
                         border = BorderStroke(1.dp, color = Color.Black),
                         modifier = Modifier.size(250.dp, 45.dp),
                         shape = RoundedCornerShape(20.dp),
@@ -309,9 +349,21 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                         check2.value = !check2.value
                     }
                     if (check.value) {
-                        check.value = !check.value
+                        check.value =!check.value
                         Button(
-                            onClick = { },
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    viewModel.followUnFollowUser(myId,userId)
+                                    val amI = viewModel.amIFollow
+                                    delay(200)
+                                    when(amI.value){
+                                        1 -> {
+                                            Toast.makeText(context,"Takip Edildi.",Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                                check2.value = !check2.value
+                            },
                             border = BorderStroke(1.dp, color = Color.Black),
                             modifier = Modifier.size(250.dp, 45.dp),
                             shape = RoundedCornerShape(20.dp),
@@ -339,9 +391,25 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                         }
                     }
                     if (check2.value) {
-                        check2.value = !check2.value
+                        check2.value =!check2.value
                         Button(
-                            onClick = { },
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    viewModel.followUnFollowUser(myId,userId)
+                                    delay(200)
+                                    val amI = viewModel.amIFollow
+                                    when(amI.value){
+                                        0 -> {
+                                            Toast.makeText(
+                                                context,
+                                                "Takipten Çıkarıldı.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                                check.value = !check.value
+                            },
                             border = BorderStroke(1.dp, color = Color.Black),
                             modifier = Modifier.size(250.dp, 45.dp),
                             shape = RoundedCornerShape(20.dp),
@@ -443,20 +511,26 @@ fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: Nav
 @Composable
 fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, userId: Int,  myId: Int, navController: NavController) {
     val quoteId = post.id
-    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
     val quoteUrl = post.quote_url
-    val amILike = post.amIlike
-    val amILikeFromVm = viewModel.isDeleted.collectAsState()
-    val likeCount = post.likeCount
-    val likeCountFromVm = viewModel.likeCount.collectAsState()
+    var amILike = post.amIlike
+    var color: Color
+    var likeCount = post.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
-    val url = Constants.BASE_URL + quoteUrl
+    val url = Constants.MEDIA_URL + quoteUrl
     val mediaPressed = remember { mutableStateOf(false) }
     val mediaPlayer = MediaPlayer()
+    val context = LocalContext.current
+    var check by remember { mutableStateOf(false) }
+    if(check)
+    {
+
+    }
+
+
     mediaPlayer.apply {
         setAudioAttributes(
             AudioAttributes.Builder()
@@ -551,11 +625,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                         )
                         Spacer(modifier = Modifier.padding(start = 60.dp))
                         Text(
-                            text = if (quoteId != quoteIdFromVm.value) {
-                                "$likeCount BEĞENME"
-                            } else {
-                                "${likeCountFromVm.value} BEĞENME"
-                            }, color = Color.White, modifier = Modifier
+                            text = "$likeCount BEĞENME", color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp)
                         )
                     }
@@ -588,7 +658,9 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                                 contentDescription = "share button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+                                        check = !check
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
                                 onClick = {
@@ -596,35 +668,21 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                                 }, modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
+                                color = when (amILike) {
+                                    1 -> {
+                                        Color(0xFFD9DD23)
+                                    }
+                                    0 -> {
+                                        Color.White
+                                    }
+                                    else -> {
+                                        Color.Black
+                                    }
+                                }
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint =
-                                    if (quoteId != quoteIdFromVm.value) {
-                                        when (amILike) {
-                                            1 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            0 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    } else {
-                                        when (amILikeFromVm.value) {
-                                            0 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            1 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    },
+                                    tint = color,
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )
@@ -632,29 +690,19 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                             if (isPressed) {
                                 OtherProfileRefreshWithLikeQuote(viewModel, 1, quoteId)
                                 isPressed = false
-                                if (quoteId != quoteIdFromVm.value) {
-                                    when (amILike) {
-                                        1 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        0 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                when(amILike){
+                                    1 -> {
+                                        color = Color.White
+                                        likeCount -= 1
+                                        amILike = 0
                                     }
-                                } else {
-                                    when (amILikeFromVm.value) {
-                                        0 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        1 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                    0 -> {
+                                        color = Color(0xFFD9DD23)
+                                        likeCount += 1
+                                        amILike = 1
+                                    }
+                                    else -> {
+                                        color = Color.Black
                                     }
                                 }
                             }
@@ -676,24 +724,28 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
                         navController.navigate("other_profile_page/$userId/$myId")
                     }
+                    .clip(CircleShape)
             )
         } else {
-            val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+            val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
             Image(
                 painter = painter,
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
                         navController.navigate("other_profile_page/$userId/$myId")
                     }
+                    .clip(CircleShape)
             )
         }
     }

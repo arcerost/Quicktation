@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.view
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -11,11 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -39,11 +42,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
-fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String, photo:String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
     viewModel.viewModelScope.launch{
         viewModel.loadFollowers(userId,toUserId,action)
     }
     val interactionSource =  MutableInteractionSource()
+    val photo = viewModel.userPhoto.collectAsState(initial = "").value?:""
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
     }
     Column(
@@ -52,7 +56,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
         modifier = Modifier.fillMaxSize()
     )
     {
-        FollowerProfileRow(navController,userId, toUserId,photo,namesurname,likeCount,followCount,followerCount,amIFollow,viewModel)
+        FollowerProfileRow(navController,userId, toUserId,photo,namesurname,likeCount,followCount,followerCount,amIFollow, action ,viewModel)
     }
     //BottomBar
     Box(
@@ -89,7 +93,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/$userId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -124,7 +128,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: String?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: String?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, amIFollow: Int, action: String, viewModel: FollowerViewModel = hiltViewModel()) {
     val openDialog = remember { mutableStateOf(false) }
     val openDialog2 = remember { mutableStateOf(false) }
     val check = remember { mutableStateOf(false) }
@@ -137,13 +141,8 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(Modifier.padding(top = 25.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.padding(start = 25.dp))
+            Spacer(Modifier.padding(top = 15.dp))
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = {
                     if(userId==toUserId)
                     {
@@ -157,38 +156,36 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                         modifier = Modifier
                             .size(52.dp, 20.dp))
                 }
+                Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.padding(start = 100.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                if (photo == null || photo == ""|| photo.isEmpty() || photo == "null") {
+                    Image(
+                        painter = painterResource(id = R.drawable.pp),
+                        contentDescription = null,
+                        contentScale  = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    val painter = rememberImagePainter(
+                        data = Constants.MEDIA_URL + photo,
+                        builder = {})
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale  = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .size(75.dp, 75.dp)
+                            .clip(CircleShape)
+                    )
+                }
                 Text(
                     text = namesurname,
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
-                Spacer(modifier = Modifier.padding(start = 15.dp))
-                if (photo == null || photo == ""|| photo.isEmpty() || photo == "null") {
-                    Image(
-                        painter = painterResource(id = R.drawable.pp),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                } else {
-                    val painter = rememberImagePainter(
-                        data = Constants.BASE_URL + photo,
-                        builder = {})
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(75.dp, 75.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.padding(end = 15.dp))
             }
             Spacer(Modifier.padding(top = 15.dp))
             Row(
@@ -196,16 +193,20 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Takipçiler\n        $followerCount", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$userId/$toUserId/followers/$photo/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
-                })
-                Text("Takip Edilenler\n            $followCount", fontSize = 16.sp, modifier = Modifier.clickable {
-                    navController.navigate("follower_page/$userId/$toUserId/follows/$photo/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
-                })
-                Text(text = "Beğeniler\n       $likeCount", fontSize = 16.sp)
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$userId/$toUserId/followers/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takipçiler\n        $followerCount", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                TextButton(onClick = {
+                    navController.navigate("follower_page/$userId/$toUserId/follows/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
+                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Text(text = "Takip Edilenler\n            $followCount", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                }
+                Text(text = "Beğeniler\n       $likeCount", fontSize = 16.sp, fontFamily = openSansFontFamily, letterSpacing = 1.sp)
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
-            FollowerList(navController = navController, toUserId, userId)
+            FollowerList(navController = navController, toUserId, userId, action)
         }
     }
     if(openDialog2.value)
@@ -318,7 +319,7 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
 
 
 @Composable
-fun FollowerList(navController: NavController, userId: Int, myId: Int, viewModel: FollowerViewModel = hiltViewModel()) {
+fun FollowerList(navController: NavController, userId: Int, myId: Int, action: String, viewModel: FollowerViewModel = hiltViewModel()) {
     val followerList by viewModel.followerList.collectAsState()
     val errorMessage by remember{viewModel.errorMessage}
     val context = LocalContext.current
@@ -327,13 +328,13 @@ fun FollowerList(navController: NavController, userId: Int, myId: Int, viewModel
     }
     else
     {
-        FollowerListView(posts = followerList, navController = navController, userId, myId)
+        FollowerListView(posts = followerList, navController = navController, userId, myId, action = action)
     }
 }
 
 
 @Composable
-fun FollowerListView(posts: List<Follow>, navController: NavController, userId: Int, myId: Int,  viewModel: FollowerViewModel= hiltViewModel()) {
+fun FollowerListView(posts: List<Follow>, navController: NavController, userId: Int, myId: Int, action: String,  viewModel: FollowerViewModel= hiltViewModel()) {
     val context = LocalContext.current
     val scanIndex by viewModel.scanIndex.collectAsState()
     var checkState by remember { mutableStateOf(false) }
@@ -349,7 +350,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController, userId: 
         state = state
     ) {
         items(posts) { post ->
-            FollowerList(post = post, navController = navController, userId = userId, myId = myId)
+            FollowerList(post = post, navController = navController, userId = userId, myId = myId, action = action)
         }
         item {
             LaunchedEffect(endOfListReached) {
@@ -372,7 +373,7 @@ fun FollowerListView(posts: List<Follow>, navController: NavController, userId: 
         if(endOfListReached)
         {
             if(scanIndex>0) {
-                FollowerListView(posts = followList, navController = navController, userId, myId)
+                FollowerListView(posts = followList, navController = navController, userId, myId, action)
                 if (errorMessage.isNotEmpty()) {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -386,8 +387,11 @@ fun FollowerListView(posts: List<Follow>, navController: NavController, userId: 
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
-fun FollowerList(navController: NavController, post: Follow, userId: Int, myId: Int) {
+fun FollowerList(navController: NavController, post: Follow, userId: Int, action: String, myId: Int) {
     val userName = post.username
+    Log.d("fw","$userName")
+    val toUserId = post.toUserId
+    val userIdFromRow = post.userId
     val userPhoto = post.userPhoto
     val amIFollow = post.amIFollow
     val colorx = remember { mutableStateOf(Color.Yellow) }
@@ -400,40 +404,80 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, myId: 
                 Image(
                     painter = painterResource(id = R.drawable.pp),
                     contentDescription = null,
+                    contentScale  = ContentScale.FillBounds,
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
                         .clickable {
-                            if (myId == userId) {
-                                navController.navigate("my_profile_page/$myId")
-                            } else {
-                                navController.navigate("other_profile_page/$userId/$myId")
+                            if (action == "follows") {
+                                if (myId == toUserId) {
+                                    navController.navigate("my_profile_page/$myId")
+                                } else {
+                                    navController.navigate("other_profile_page/$toUserId/$myId")
+                                }
+                            } else if (action == "followers") {
+                                if (myId == userIdFromRow) {
+                                    navController.navigate("my_profile_page/$myId")
+                                } else {
+                                    navController.navigate("other_profile_page/$userIdFromRow/$myId")
+                                }
                             }
                         }
+                        .clip(CircleShape)
                 )
             }
             else {
-                val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+                val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
                 Image(
                     painter = painter,
                     contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
                         .clickable {
-                            if (myId == userId) {
-                                navController.navigate("my_profile_page/$myId")
-                            } else {
-                                navController.navigate("other_profile_page/$userId/$myId")
+                            if(action == "follows")
+                            {
+                                if (myId == toUserId) {
+                                    navController.navigate("my_profile_page/$myId")
+                                } else {
+                                    navController.navigate("other_profile_page/$toUserId/$myId")
+                                }
+                            }
+                            else if(action == "followers")
+                            {
+                                if (myId == userIdFromRow) {
+                                    navController.navigate("my_profile_page/$myId")
+                                } else {
+                                    navController.navigate("other_profile_page/$userIdFromRow/$myId")
+                                }
                             }
                         }
+                        .clip(CircleShape)
                 )
             }
             Text(
                 text = userName,
-                modifier = Modifier.defaultMinSize(80.dp, 30.dp),
+                modifier = Modifier.defaultMinSize(80.dp, 30.dp).clickable {
+                    if(action == "follows")
+                    {
+                        if (myId == toUserId) {
+                            navController.navigate("my_profile_page/$myId")
+                        } else {
+                            navController.navigate("other_profile_page/$toUserId/$myId")
+                        }
+                    }
+                    else if(action == "followers")
+                    {
+                        if (myId == userIdFromRow) {
+                            navController.navigate("my_profile_page/$myId")
+                        } else {
+                            navController.navigate("other_profile_page/$userIdFromRow/$myId")
+                        }
+                    }
+                },
                 fontSize = 16.sp,
-                fontFamily = openSansFontFamily
+                fontFamily = openSansFontFamily,
             )
             if(amIFollow==0)
             {

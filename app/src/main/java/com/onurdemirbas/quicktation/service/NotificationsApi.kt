@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface NotificationsApi {
     @Headers("Content-Type:application/json")
-    @POST("/notification")
+    @POST("notification")
     suspend fun postNotificationApi(@Body request: Notifications): ArrayList<NotificationsResponse>
 }

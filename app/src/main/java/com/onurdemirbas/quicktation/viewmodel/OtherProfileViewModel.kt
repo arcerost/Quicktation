@@ -16,8 +16,6 @@ import javax.inject.Inject
 
 class OtherProfileViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
     var likeCount = MutableStateFlow(-1)
-    var isDeleted = MutableStateFlow(-1)
-    var quoteIdx = MutableStateFlow(-1)
     var posts = MutableStateFlow<List<QuoteFromMyProfile>>(listOf())
     var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
     var errorMessage = mutableStateOf("")
@@ -33,7 +31,6 @@ class OtherProfileViewModel@Inject constructor(private val repository: Quicktati
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
-                    println(errorMessage.value)
                 }
             }
         }
@@ -42,16 +39,45 @@ class OtherProfileViewModel@Inject constructor(private val repository: Quicktati
         viewModelScope.launch {
             when (val result = repository.postLikeApi(userid, quoteId)) {
                 is Resource.Success -> {
-                    isDeleted.value = result.data!!.response.isDeleted
-                    likeCount.value = result.data.response.likeCount
-                    quoteIdx.value = result.data.response.quoteId
+                    likeCount.value = result.data!!.response.likeCount
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
-                    println(errorMessage.value)
                 }
             }
 
+        }
+    }
+
+    //REPORT USER
+    var response = mutableStateOf("")
+    fun reportUser(userid: Int, toUserId: Int, reason: String)
+    {
+        viewModelScope.launch {
+            when(val result = repository.postReportUserApi(userid,toUserId, reason)){
+                is Resource.Success -> {
+                    response.value = result.data!!.error
+                }
+                is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                }
+            }
+        }
+    }
+
+    //Follow-Unfollow User
+    val amIFollow = MutableStateFlow(-1)
+    fun followUnFollowUser(userid: Int, toUserId: Int)
+    {
+        viewModelScope.launch {
+            when(val result = repository.postFollowUnfollowUserApi(userid,toUserId)){
+                is Resource.Success -> {
+                    amIFollow.value = result.data!!.response.amIfollow
+                }
+                is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                }
+            }
         }
     }
 }

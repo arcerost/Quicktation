@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface LikeApi {
     @Headers("Content-Type:application/json")
-    @POST("/likequote")
+    @POST("likequote")
     suspend fun postLikeApi(@Body request: Like): LikeResponse
 }

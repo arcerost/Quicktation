@@ -1,9 +1,13 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.onurdemirbas.quicktation.view
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.Slider
@@ -12,19 +16,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -36,7 +51,7 @@ import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
-import com.onurdemirbas.quicktation.util.Constants.BASE_URL
+import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
 import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
@@ -64,6 +79,11 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
             modifier = Modifier.fillMaxSize()
         )
         {
+            SearchBar(hint = "Ara...", modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)) {
+                viewModel.searchMainList(it)
+            }
             PostList(navController = navController, myId = myId.value!!)
         }
     }
@@ -102,7 +122,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/${myId.value}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -201,6 +221,7 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
 fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int, navController: NavController) {
     viewModel.viewModelScope.launch {
         viewModel.amILike(myId,quoteId)
+        Log.d("chill","amILike: myId: $myId, quoteId: $quoteId")
         //delay(200)
     }
 }
@@ -208,21 +229,19 @@ fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, my
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
     val quoteId  = post.id
-    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
     val quoteUrl = post.quote_url
-    val amILike = post.amIlike
-    val amILikeFromVm = viewModel.isDeleted.collectAsState()
-    val likeCount = post.likeCount
-    val likeCountFromVm = viewModel.likeCount.collectAsState()
+    var amILike = post.amIlike
+    var likeCount = post.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
-    val url = BASE_URL+quoteUrl
+    val url = MEDIA_URL+quoteUrl
     val mediaPressed = remember { mutableStateOf(false)}
     val mediaPlayer = MediaPlayer()
+    var color: Color
     mediaPlayer.apply {
         setAudioAttributes(
             AudioAttributes.Builder()
@@ -234,19 +253,18 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
         setOnPreparedListener {
             fun onPrepared(player: MediaPlayer) {
                 if (mediaCheck.value) {
-                    it.start()
+                    player.start()
                 } else if (!mediaCheck.value) {
-                    it.pause()
+                    player.pause()
                 }
             }
-            //onPrepared(mediaPlayer)
+            onPrepared(mediaPlayer)
         }
         prepareAsync()
     }
     var progress by remember { mutableStateOf(0f) }
     Box(modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(), contentAlignment = Alignment.TopStart) {
+        .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
             .padding(start = 20.dp, end = 20.dp, top = 20.dp)
             .clickable {
@@ -293,18 +311,10 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             )
                         }
                         Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
-                        Spacer(modifier = Modifier.padding(start=0.dp))
                         Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 50.dp))
-                        Text(text = if(quoteId != quoteIdFromVm.value)
-                        {
-                            "$likeCount BEĞENME"
-                        }
-                            else
-                        {
-                            "${likeCountFromVm.value} BEĞENME"
-                        }
-                        , color = Color.White, modifier = Modifier
+                        Text(text = "$likeCount BEĞENME"
+                        ,color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp))
                     }
                     Column(
@@ -336,7 +346,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 contentDescription = "share button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
                                 onClick = {
@@ -344,74 +356,49 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 }, modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
+                                color = when (amILike) {
+                                    1 -> {
+                                        Color(0xFFD9DD23)
+                                    }
+                                    0 -> {
+                                        Color.White
+                                    }
+                                    else -> {
+                                        Color.Black
+                                    }
+                                }
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint =
-                                    if(quoteId != quoteIdFromVm.value) {
-                                        when (amILike) {
-                                            1 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            0 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        when (amILikeFromVm.value) {
-                                            0 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            1 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    },
+                                    tint = color,
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )
                         }
                             if (isPressed) {
                                 RefreshWithLike(viewModel, quoteId, myId,navController)
-                                isPressed = false
-                                if (quoteId != quoteIdFromVm.value) {
-                                    when (amILike) {
-                                        1 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        0 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
-                                   }
-                                } else {
-                                    when (amILikeFromVm.value) {
-                                        0 -> {
-                                            Color(0xFFD9DD23)
-                                        }
-                                        1 -> {
-                                            Color.White
-                                        }
-                                        else -> {
-                                            Color.Black
-                                        }
+                                when(amILike){
+                                    1 -> {
+                                        color = Color.White
+                                        likeCount -= 1
+                                        amILike = 0
+                                    }
+                                    0 -> {
+                                        color = Color(0xFFD9DD23)
+                                        likeCount += 1
+                                        amILike = 1
+                                    }
+                                    else -> {
+                                        color = Color.Black
                                     }
                                 }
+                                isPressed = false
                             }
                             if(mediaPressed.value)
                             {
                                 LaunchedEffect(Unit){
                                     while(isActive){
+                                        Log.d("media","mediaPlayer:  ${mediaPlayer.currentPosition}, duration: ${mediaPlayer.duration}")
                                         progress = (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
                                         delay(200)
                                     }
@@ -439,7 +426,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
             )
         }
         else {
-            val painter = rememberImagePainter(data = BASE_URL + userPhoto, builder = {})
+            val painter = rememberImagePainter(data = MEDIA_URL + userPhoto, builder = {})
             Image(
                 painter = painter,
                 contentDescription = null,
@@ -473,7 +460,7 @@ fun HashText(
     onClick: () -> Unit,
 ) {
     var startIndex: Int
-    var endIndex = 0
+    var endIndex: Int
     val annotatedString = buildAnnotatedString {
         append(fullText)
         addStyle(
@@ -532,7 +519,7 @@ fun HashText(
             annotatedString.getStringAnnotations("TAG", it, it)
                 .firstOrNull()?.let { a ->
                     if (a.tag == "TAG") {
-                        navController.navigate("notifications_page")
+                        navController.navigate("home_page")
                     }
                 }
             annotatedString.getStringAnnotations("sss",it,it)
@@ -542,4 +529,33 @@ fun HashText(
                     }
                 }
         })
+}
+
+@Composable
+fun SearchBar(modifier: Modifier = Modifier, hint: String = "", onSearch: (String) -> Unit = {}) {
+    var text by remember { mutableStateOf("") }
+    var isHintDisplayed by remember { mutableStateOf(hint != "") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    Box(modifier = modifier) {
+        BasicTextField(value = text, onValueChange = {
+            text = it
+            onSearch(it)
+        }, maxLines = 1, singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {keyboardController?.hide()
+                    focusManager.clearFocus()})
+            ,textStyle = TextStyle(color = Color.Black), modifier = Modifier
+            .fillMaxWidth()
+            .shadow(5.dp, CircleShape)
+            .background(Color.White, CircleShape)
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .onFocusChanged {
+                isHintDisplayed = it.isFocused != true && text.isEmpty()
+            })
+        if(isHintDisplayed) {
+            Text(text = hint, color = Color.LightGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
+        }
+    }
 }

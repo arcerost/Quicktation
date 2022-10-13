@@ -10,6 +10,6 @@ interface MyProfileApi {
 
 
     @Headers("Content-Type:application/json")
-    @POST("/profiledetail")
+    @POST("profiledetail")
     suspend fun postMyProfileApi(@Body request: ProfileDetail) : MyProfileResponse
 }

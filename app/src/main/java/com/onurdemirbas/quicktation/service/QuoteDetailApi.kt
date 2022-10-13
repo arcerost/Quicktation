@@ -8,6 +8,6 @@ import retrofit2.http.POST
 
 interface QuoteDetailApi {
     @Headers("Content-Type:application/json")
-    @POST("/quotationdetail")
+    @POST("quotationdetail")
     suspend fun postQuoteDetailApi(@Body request: QuoteDetail): QuoteDetailResponse
 }

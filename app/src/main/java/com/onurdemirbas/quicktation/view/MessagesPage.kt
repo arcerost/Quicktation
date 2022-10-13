@@ -6,12 +6,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -35,10 +37,11 @@ import kotlinx.coroutines.launch
 fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val myId = StoreUserInfo(context = context).getId.collectAsState(-1)
+    var userName = ""
     viewModel.viewModelScope.launch {
         viewModel.loadQuotes(myId.value!!)
+        userName = viewModel.userInfo.value.namesurname
     }
-    val userName = viewModel.userInfo.value.namesurname
     val userPhoto = viewModel.userInfo.value.photo
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -61,20 +64,24 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                 if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
+                        contentScale = ContentScale.FillBounds,
                         contentDescription = null,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(75.dp, 75.dp)
+                            .clip(CircleShape)
                     )
                 }
                 else {
-                    val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+                    val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
                     Image(
                         painter = painter,
+                        contentScale = ContentScale.FillBounds,
                         contentDescription = null,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(75.dp, 75.dp)
+                            .clip(CircleShape)
                     )
                 }
             }
@@ -117,7 +124,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page") }
+                        ) { navController.navigate("notifications_page/${myId.value}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -141,7 +148,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page/$myId") }
+                        ) { navController.navigate("my_profile_page/${myId.value}") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -161,27 +168,31 @@ fun MessageRow(userPhoto: String?, userName: String) {
                 if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
-                        contentDescription = null,
+                        contentDescription = "c",
+                        contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(44.dp, 44.dp)
+                            .clip(CircleShape)
                     )
                 }
                 else {
-                    val painter = rememberImagePainter(data = Constants.BASE_URL + userPhoto, builder = {})
+                    val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
                     Image(
                         painter = painter,
-                        contentDescription = null,
+                        contentDescription = "user photo",
+                        contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(44.dp, 44.dp)
+                            .clip(CircleShape)
                     )
                 }
                 Box(modifier = Modifier
                     .wrapContentSize()
                     .clickable { }, contentAlignment = Alignment.Center) {
                     Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.wrapContentSize()) {
-                        Text(text = "userNamssse", fontFamily = openSansBold, fontSize = 18.sp)
+                        Text(text = "username", fontFamily = openSansBold, fontSize = 18.sp)
                         Text(text = "message", fontFamily = openSansFontFamily, fontSize = 13.sp)
                     }
                 }

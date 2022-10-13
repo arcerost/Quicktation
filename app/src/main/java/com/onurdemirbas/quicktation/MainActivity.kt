@@ -96,7 +96,7 @@ class MainActivity: ComponentActivity() {
                     val myId = remember { it.arguments?.getInt("myId")}
                     MyProfilePage(navController = navController, myId!!)
                 }
-                composable("follower_page/{userId}/{toUserId}/{action}/{photo}/{namesurname}/{likeCount}/{followCount}/{followerCount}/{amIFollow}", arguments = listOf(
+                composable("follower_page/{userId}/{toUserId}/{action}/{namesurname}/{likeCount}/{followCount}/{followerCount}/{amIFollow}", arguments = listOf(
                     navArgument("userId") {
                         type = NavType.IntType
                     },
@@ -104,9 +104,6 @@ class MainActivity: ComponentActivity() {
                         type = NavType.IntType
                     },
                     navArgument("action") {
-                        type = NavType.StringType
-                    },
-                    navArgument("photo"){
                         type = NavType.StringType
                     },
                     navArgument("namesurname"){
@@ -129,13 +126,12 @@ class MainActivity: ComponentActivity() {
                     val userId2 = remember { it.arguments?.getInt("userId") }
                     val toUserId = remember { it.arguments?.getInt("toUserId") }
                     val action = remember { it.arguments?.getString("action") }
-                    val photo = remember { it.arguments?.getString("photo") }
                     val namesurname = remember { it.arguments?.getString("namesurname") }
                     val likeCount = remember{ it.arguments?.getInt("likeCount") }
                     val followCount = remember { it.arguments?.getInt("followCount") }
                     val followerCount = remember { it.arguments?.getInt("followerCount") }
                     val amIFollow = remember { it.arguments?.getInt("amIFollow")}
-                    FollowerPage(navController = navController, userId = userId2!!, toUserId =  toUserId!!, action =  action!!,photo?:"",namesurname!!,likeCount!!,followCount!!,followerCount!!, amIFollow!!)
+                    FollowerPage(navController = navController, userId = userId2!!, toUserId =  toUserId!!, action =  action!!,namesurname!!,likeCount!!,followCount!!,followerCount!!, amIFollow!!)
                 }
                 composable("other_profile_page/{userId}/{myId}", arguments = listOf(
                     navArgument("userId") {

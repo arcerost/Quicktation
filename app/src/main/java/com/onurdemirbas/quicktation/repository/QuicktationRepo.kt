@@ -8,7 +8,7 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @ActivityScoped
-class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi, private val api8: MyProfileApi, private val api9: LikeSoundApi, private val api10: FollowerApi, private val api11: EditProfileApi) {
+class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi, private val api8: MyProfileApi, private val api9: LikeSoundApi, private val api10: FollowerApi, private val api11: EditProfileApi, private val api12: ReportUserApi, private val api13: DeleteQuoteApi, private val api14: FollowUnfollowUserApi) {
     private lateinit var hatametni: String
     private lateinit var loginError: String
     suspend fun postRegisterApi(email: String, password: String, namesurname: String): Resource<RegisterResponse> {
@@ -307,13 +307,83 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
     }
 
 
+    suspend fun postReportUserApi(userId: Int, toUserId: Int, reason: String): Resource<ReportUserResponse> {
+
+        val request = ReportUser(userId, toUserId, reason)
+        val response = api12.postReportUserApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postDeleteQuoteApi(userId: Int, quoteId: Int): Resource<DeleteQuoteResponse> {
+
+        val request = DeleteQuote(userId, quoteId)
+        val response = api13.postDeleteQuoteApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postFollowUnfollowUserApi(userId: Int, toUserId: Int): Resource<FollowUnFollowUserResponse> {
+
+        val request = FollowUnFollowUser(userId, toUserId)
+        val response = api14.postFollowUnfollowUserApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+
     //yöntem 2
     suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>>
     {
         val response = try{
             api5.postNotificationApi(Notifications(error))
         }catch (e:Exception) {
-            return Resource.Error("erör")
+            return Resource.Error("error")
         }
         return Resource.Success(response)
     }
