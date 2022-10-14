@@ -2,7 +2,6 @@ package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -33,16 +32,17 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.onurdemirbas.quicktation.R
+import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
-import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -115,7 +115,7 @@ fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileVie
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${myId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile),
                     contentDescription = null,
@@ -137,12 +137,13 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
     val openDialog2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     var exit by remember { mutableStateOf(false) }
+    val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
+    val userDao = db.UserDao()
     if(exit)
     {
         viewModel.viewModelScope.launch {
-            StoreUserInfo(context).saveId(-1)
-            StoreUserInfo(context).saveEmail("")
-            StoreUserInfo(context).savePassword("")
+            val userDb = userDao.getUser()
+            userDao.delete(userDb)
             navController.navigate("login_page")
         }
     }
@@ -161,7 +162,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         contentDescription = null,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
@@ -517,7 +518,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
         if(userPhoto == null || userPhoto == "") {
             Image(
                 painter = painterResource(id = R.drawable.pp),
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 contentDescription = null,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
@@ -533,7 +534,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
             Image(
                 painter = painter,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds
+                contentScale = ContentScale.Crop
                 ,modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)

@@ -3,34 +3,47 @@ package com.onurdemirbas.quicktation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.onurdemirbas.quicktation.util.StoreUserInfo
+import androidx.room.Room
+import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.view.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
-    lateinit var userId: State<Int?>
-    private lateinit var userPw: State<String?>
-    private lateinit var userEmail: State<String?>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val context = LocalContext.current
-            userId = StoreUserInfo(context).getId.collectAsState(-1)
-            userPw = StoreUserInfo(context).getPassword.collectAsState(initial = "")
-            userEmail = StoreUserInfo(context).getEmail.collectAsState(initial = "")
+            val db: UserDatabase = Room.databaseBuilder(this, UserDatabase::class.java,"UserInfo")
+                .fallbackToDestructiveMigration()
+                .build()
+            val userDao = db.UserDao()
+            var userId: Int?
+            var userEmail: String?
+            var userPw: String?
+            runBlocking {
+                if(userDao.anyData() ==0)
+                {
+                    userEmail = ""
+                    userId = null
+                    userPw = ""
+                }
+                else
+                {
+                    userId = userDao.getUser().userId
+                    userEmail = userDao.getUser().userPassword
+                    userPw = userDao.getUser().userPassword
+                }
+            }
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination =
-            if(userEmail.value != "" && userPw.value !="" && userId.value != -1){
+            if(userEmail != "" && userPw !="" && userId != null){
                 "home_page"
             }
                 else
@@ -42,9 +55,14 @@ class MainActivity: ComponentActivity() {
                 {
                     OpenPage(navController)
                 }
-                composable("messages_page")
+                composable("messages_page/{myId}", arguments = listOf(
+                    navArgument("myId"){
+                        type = NavType.IntType
+                    }
+                ))
                 {
-                    MessagesPage(navController = navController)
+                    val myId = remember { it.arguments?.getInt("myId")}
+                    MessagesPage(navController = navController, myId!!)
                 }
                 composable("register_page")
                 {

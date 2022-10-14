@@ -46,15 +46,16 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.onurdemirbas.quicktation.R
+import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
-import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
 
@@ -62,10 +63,15 @@ import kotlinx.coroutines.*
 @Composable
 fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val myId = StoreUserInfo(context = context).getId.collectAsState(-1)
+    val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
+    val userDao = db.UserDao()
+    val id: Int
+    runBlocking {
+        id = userDao.getUser().userId!!
+    }
     viewModel.viewModelScope.launch{
         delay(200)
-        viewModel.loadMains(myId.value!!)
+        viewModel.loadMains(id)
     }
     val interactionSource =  MutableInteractionSource()
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
@@ -86,7 +92,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                 .padding(16.dp)) {
                 viewModel.searchMainList(it)
             }
-            PostList(navController = navController, myId = myId.value!!)
+            PostList(navController = navController, myId = id)
         }
     }
     //BottomBar
@@ -124,7 +130,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page/${myId.value}") }
+                        ) { navController.navigate("notifications_page/${id}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -140,7 +146,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${id}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
@@ -148,7 +154,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page/${myId.value}") }
+                        ) { navController.navigate("my_profile_page/${id}") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -273,7 +279,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     painter = painterResource(id = R.drawable.backgroundrow),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.Crop
                 )
                 Column(
                     horizontalAlignment = Alignment.Start,

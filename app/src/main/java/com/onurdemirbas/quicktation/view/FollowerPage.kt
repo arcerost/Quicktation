@@ -1,6 +1,5 @@
 package com.onurdemirbas.quicktation.view
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -23,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -30,16 +30,20 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.onurdemirbas.quicktation.R
+import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.Follow
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.FollowerViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
@@ -109,7 +113,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${userId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
@@ -130,40 +134,70 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
 @Composable
 fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int, photo: String?, namesurname: String, likeCount: Int, followCount: Int, followerCount: Int, amIFollow: Int, action: String, viewModel: FollowerViewModel = hiltViewModel()) {
     val openDialog = remember { mutableStateOf(false) }
+    var reportDialog by remember { mutableStateOf(false) }
+    var reason by remember { mutableStateOf("") }
     val openDialog2 = remember { mutableStateOf(false) }
     val check = remember { mutableStateOf(false) }
     val check2 = remember { mutableStateOf(false) }
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .wrapContentSize(), contentAlignment = Alignment.Center) {
+    var exit by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val db: UserDatabase =
+        Room.databaseBuilder(context, UserDatabase::class.java, "UserInfo").build()
+    val userDao = db.UserDao()
+    val myId: Int
+    runBlocking {
+        myId = userDao.getUser().userId!!
+    }
+    if(exit)
+    {
+        viewModel.viewModelScope.launch {
+            val userDb = userDao.getUser()
+            userDao.delete(userDb)
+            navController.navigate("login_page")
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(), contentAlignment = Alignment.Center
+    ) {
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.fillMaxSize()
         ) {
             Spacer(Modifier.padding(top = 15.dp))
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 IconButton(onClick = {
-                    if(userId==toUserId)
-                    {
+                    if (userId == toUserId) {
                         openDialog2.value = !openDialog2.value
-                    }
-                    else
-                    {
+                    } else {
                         openDialog.value = !openDialog.value
-                    } }) {
-                    Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
+                    }
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.options),
+                        contentDescription = "options",
                         modifier = Modifier
-                            .size(52.dp, 20.dp))
+                            .size(52.dp, 20.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-                if (photo == null || photo == ""|| photo.isEmpty() || photo == "null") {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (photo == null || photo == "" || photo.isEmpty() || photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
                         contentDescription = null,
-                        contentScale  = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
                             .clip(CircleShape)
@@ -175,7 +209,7 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                     Image(
                         painter = painter,
                         contentDescription = null,
-                        contentScale  = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
                             .clip(CircleShape)
@@ -196,118 +230,372 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 TextButton(onClick = {
                     navController.navigate("follower_page/$userId/$toUserId/followers/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(text = "Takipçiler\n        $followerCount", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                    Text(
+                        text = "Takipçiler\n        $followerCount",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily
+                    )
                 }
                 TextButton(onClick = {
                     navController.navigate("follower_page/$userId/$toUserId/follows/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(text = "Takip Edilenler\n            $followCount", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                    Text(
+                        text = "Takip Edilenler\n            $followCount",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily
+                    )
                 }
-                Text(text = "Beğeniler\n       $likeCount", fontSize = 16.sp, fontFamily = openSansFontFamily, letterSpacing = 1.sp)
+                Text(
+                    text = "Beğeniler\n       $likeCount",
+                    fontSize = 16.sp,
+                    fontFamily = openSansFontFamily,
+                    letterSpacing = 1.sp
+                )
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             FollowerList(navController = navController, toUserId, userId, action)
         }
     }
-    if(openDialog2.value)
-    {
-        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog2.value = !openDialog2.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(
-                    color = Color(4, 108, 122, 204),
-                    shape = RoundedCornerShape(
-                        topStart = 20.dp,
-                        topEnd = 20.dp,
-                        bottomEnd = 0.dp,
-                        bottomStart = 0.dp
+    if (reportDialog) {
+        Popup(
+            alignment = Alignment.Center,
+            onDismissRequest = { reportDialog = !reportDialog },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204),
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 20.dp,
+                            bottomStart = 20.dp
+                        )
                     )
-                )
-                .size(750.dp, 220.dp)
-                //.wrapContentSize()
-                .windowInsetsPadding(WindowInsets.ime))
-            {
-                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
-                    Spacer(modifier = Modifier.padding(5.dp))
+                    .size(400.dp, 300.dp)
+                    .windowInsetsPadding(WindowInsets.ime)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(value = reason,
+                        modifier = Modifier.size(250.dp, 150.dp),
+                        onValueChange = {
+                            reason = it
+                        },
+                        textStyle = TextStyle(
+                            fontFamily = openSansFontFamily,
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        ),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            textColor = Color.Black,
+                            backgroundColor = Color.White,
+                            focusedBorderColor = Color.Black,
+                            unfocusedBorderColor = Color.Black,
+                            disabledBorderColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(15.dp, 15.dp, 15.dp, 15.dp),
+                        placeholder = {
+                            Text(
+                                text = "Report reason",
+                                fontSize = 13.sp,
+                                fontFamily = openSansBold
+                            )
+                        })
+                    Spacer(modifier = Modifier.padding(top = 20.dp))
                     Button(onClick = {
-
-                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Text(text = "Hesabımı Sil", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
-                    }
-                    Spacer(modifier = Modifier.padding(10.dp))
-                    Button(onClick = {
-                        navController.navigate("edit_profile_page/$userId")
-                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Text(text = "Profilimi düzenle", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                        viewModel.reportUser(myId, toUserId, reason)
+                        Toast.makeText(context, "Raporlama Başarıyla İletildi", Toast.LENGTH_LONG)
+                            .show()
+                        reportDialog = !reportDialog
+                    }, colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(
+                            text = "Send Report",
+                            fontFamily = openSansBold,
+                            fontSize = 13.sp,
+                            color = Color.Black
+                        )
                     }
                 }
             }
         }
     }
-    if(openDialog.value)
-    {
-        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(
-                    color = Color(4, 108, 122, 204),
-                    shape = RoundedCornerShape(
-                        topStart = 20.dp,
-                        topEnd = 20.dp,
-                        bottomEnd = 0.dp,
-                        bottomStart = 0.dp
+    if (openDialog2.value) {
+        Popup(
+            alignment = Alignment.BottomCenter,
+            onDismissRequest = { openDialog2.value = !openDialog2.value },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204),
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 0.dp,
+                            bottomStart = 0.dp
+                        )
                     )
-                )
-                .size(750.dp, 310.dp)
-                .windowInsetsPadding(WindowInsets.ime))
+                    .size(750.dp, 220.dp)
+                    //.wrapContentSize()
+                    .windowInsetsPadding(WindowInsets.ime)
+            )
             {
-                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                Column(
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Divider(
+                        color = Color.Black,
+                        thickness = 3.dp,
+                        modifier = Modifier.size(width = 30.dp, height = 3.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(onClick = {
+                        exit=!exit
+                    }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = "Çıkış Yap", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Button(
+                        onClick = {
+
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 50.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Text(
+                            text = "Hesabımı Sil",
+                            fontFamily = openSansBold,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    Button(
+                        onClick = {
+                            navController.navigate("edit_profile_page/$userId")
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 50.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Text(
+                            text = "Profilimi düzenle",
+                            fontFamily = openSansBold,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+        }
+    }
+    if (openDialog.value) {
+        Popup(
+            alignment = Alignment.BottomCenter,
+            onDismissRequest = { openDialog.value = !openDialog.value },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204),
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 0.dp,
+                            bottomStart = 0.dp
+                        )
+                    )
+                    .size(750.dp, 310.dp)
+                    .windowInsetsPadding(WindowInsets.ime)
+            )
+            {
+                Column(
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Divider(
+                        color = Color.Black,
+                        thickness = 3.dp,
+                        modifier = Modifier.size(width = 30.dp, height = 3.dp)
+                    )
                     Spacer(modifier = Modifier.padding(20.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                    Button(
+                        onClick = {
+                            openDialog.value = !openDialog.value
+                            reportDialog = !reportDialog
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 45.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         {
-                            Image(painter = painterResource(id = R.drawable.report), contentDescription = "report", modifier = Modifier.size(17.dp,17.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.report),
+                                contentDescription = "report",
+                                modifier = Modifier.size(17.dp, 17.dp)
+                            )
                             Spacer(Modifier.padding(start = 25.dp))
-                            Text(text = "Şikayet Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            Text(
+                                text = "Şikayet Et",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
-                    Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                    Button(
+                        onClick = { },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 45.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         {
-                            Image(painter = painterResource(id = R.drawable.text), contentDescription = "text", modifier = Modifier.size(17.dp,17.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.text),
+                                contentDescription = "text",
+                                modifier = Modifier.size(17.dp, 17.dp)
+                            )
                             Spacer(Modifier.padding(start = 25.dp))
-                            Text(text = "Mesaj Gönder", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                            Text(
+                                text = "Mesaj Gönder",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
-                    if(amIFollow ==0)
-                    {
+                    if (amIFollow == 0) {
                         check.value = !check.value
-                    }
-                    else
-                    {
+                    } else {
                         check2.value = !check2.value
                     }
-                    if(check.value){
+                    if (check.value) {
                         check.value = !check.value
-                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                         Button(
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    viewModel.followUnFollowUser(myId, toUserId)
+                                    val amI = viewModel.amIFollow
+                                    delay(200)
+                                    when (amI.value) {
+                                        1 -> {
+                                            openDialog.value = !openDialog.value
+                                            check2.value = !check2.value
+                                            Toast.makeText(
+                                                context,
+                                                "Takip Edildi.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            },
+                            border = BorderStroke(1.dp, color = Color.Black),
+                            modifier = Modifier.size(250.dp, 45.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             {
-                                Image(painter = painterResource(id = R.drawable.follow), contentDescription = "follow", modifier = Modifier.size(17.dp,17.dp))
+                                Image(
+                                    painter = painterResource(id = R.drawable.follow),
+                                    contentDescription = "follow",
+                                    modifier = Modifier.size(17.dp, 17.dp)
+                                )
                                 Spacer(Modifier.padding(start = 25.dp))
-                                Text(text = "Takip Et", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                                Text(
+                                    text = "Takip Et",
+                                    fontFamily = openSansBold,
+                                    fontSize = 17.sp,
+                                    color = Color.Black
+                                )
                             }
                         }
                     }
-                    if(check2.value){
+                    if (check2.value) {
                         check2.value = !check2.value
-                        Button(onClick = {  }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,45.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth())
+                        Button(
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    viewModel.followUnFollowUser(myId, toUserId)
+                                    delay(200)
+                                    val amI = viewModel.amIFollow
+                                    when (amI.value) {
+                                        0 -> {
+                                            openDialog.value = !openDialog.value
+                                            check.value = !check.value
+                                            Toast.makeText(
+                                                context,
+                                                "Takipten Çıkarıldı.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            },
+                            border = BorderStroke(1.dp, color = Color.Black),
+                            modifier = Modifier.size(250.dp, 45.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             {
-                                Image(painter = painterResource(id = R.drawable.unfollow), contentDescription = "unfollow", modifier = Modifier.size(17.dp,17.dp))
+                                Image(
+                                    painter = painterResource(id = R.drawable.unfollow),
+                                    contentDescription = "unfollow",
+                                    modifier = Modifier.size(17.dp, 17.dp)
+                                )
                                 Spacer(Modifier.padding(start = 25.dp))
-                                Text(text = "Takipten Çıkar", fontFamily = openSansBold, fontSize = 17.sp, color = Color.Black)
+                                Text(
+                                    text = "Takipten Çıkar",
+                                    fontFamily = openSansBold,
+                                    fontSize = 17.sp,
+                                    color = Color.Black
+                                )
                             }
                         }
                     }
@@ -389,7 +677,6 @@ fun FollowerListView(posts: List<Follow>, navController: NavController, userId: 
 @Composable
 fun FollowerList(navController: NavController, post: Follow, userId: Int, action: String, myId: Int) {
     val userName = post.username
-    Log.d("fw","$userName")
     val toUserId = post.toUserId
     val userIdFromRow = post.userId
     val userPhoto = post.userPhoto
@@ -404,7 +691,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
                 Image(
                     painter = painterResource(id = R.drawable.pp),
                     contentDescription = null,
-                    contentScale  = ContentScale.FillBounds,
+                    contentScale  = ContentScale.Crop,
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
@@ -431,7 +718,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)

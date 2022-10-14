@@ -121,13 +121,13 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
                         if(userPhotoForService == null)
                         {
-                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier
+                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier
                                 .size(100.dp)
                                 .clip(CircleShape))
                         }
                         else
                         {
-                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier
+                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier
                                 .size(100.dp)
                                 .clip(CircleShape))
                         }
@@ -142,7 +142,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     }
                     else {
                         val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhotoAlr, builder = {})
-                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.FillBounds, modifier = Modifier.size(100.dp).clip(CircleShape))
+                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier.size(100.dp).clip(CircleShape))
                         Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(140.dp))
                         {
                             IconButton(onClick = {
@@ -281,7 +281,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${myId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile),
                     contentDescription = "my profile",

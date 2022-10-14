@@ -45,10 +45,7 @@ import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.OtherProfileViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 @Composable
 fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewModel: OtherProfileViewModel = hiltViewModel()) {
@@ -124,7 +121,7 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${myId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
@@ -142,18 +139,28 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
 
 @Composable
 fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewModel = hiltViewModel(), userId: Int,myId: Int) {
-    val openDialog = remember { mutableStateOf(false) }
+    var openDialog by remember { mutableStateOf(false) }
     var reportDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var reason by remember { mutableStateOf("") }
     val user = viewModel.userInfo.collectAsState()
+    val amIFollow = user.value.amIfollow
     val check = remember { mutableStateOf(false) }
     val check2 = remember { mutableStateOf(false) }
+    var reComposeCheck by remember { mutableStateOf(false) }
+    if(reComposeCheck)
+    {
+        val key = remember { mutableStateOf("yourKey")}
+        key(key.value) {
+            OtherProfileRow(navController, viewModel, userId, myId)
+        }
+
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.padding(top = 15.dp))
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = {openDialog.value = !openDialog.value }) {
+                IconButton(onClick = {openDialog = !openDialog }) {
                     Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
                         modifier = Modifier
                             .size(52.dp, 20.dp))
@@ -164,7 +171,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         contentDescription = null,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
@@ -177,7 +184,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     Image(
                         painter = painter,
                         contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
                             .clip(CircleShape)
@@ -213,7 +220,6 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
     }
     if(reportDialog)
     {
-        openDialog.value = !openDialog.value
         Popup(alignment = Alignment.Center, onDismissRequest = {reportDialog = !reportDialog}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier
                 .background(
@@ -252,10 +258,10 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
             }
         }
     }
-    if (openDialog.value) {
+    if (openDialog) {
         Popup(
             alignment = Alignment.BottomCenter,
-            onDismissRequest = { openDialog.value = !openDialog.value },
+            onDismissRequest = { openDialog = !openDialog },
             properties = PopupProperties(
                 focusable = true,
                 dismissOnBackPress = true,
@@ -290,7 +296,8 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     Spacer(modifier = Modifier.padding(20.dp))
                     Button(
                         onClick = {
-                                  reportDialog = !reportDialog
+                            openDialog = !openDialog
+                            reportDialog = !reportDialog
                         },
                         border = BorderStroke(1.dp, color = Color.Black),
                         modifier = Modifier.size(250.dp, 45.dp),
@@ -346,13 +353,13 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                         }
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
-                    if (user.value.amIfollow == 0) {
+                    if (amIFollow == 0) {
                         check.value = !check.value
                     } else {
                         check2.value = !check2.value
                     }
                     if (check.value) {
-                        check.value =!check.value
+                        check.value = !check.value
                         Button(
                             onClick = {
                                 viewModel.viewModelScope.launch {
@@ -361,11 +368,12 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                                     delay(200)
                                     when(amI.value){
                                         1 -> {
+                                            openDialog = !openDialog
+                                            check2.value = !check2.value
                                             Toast.makeText(context,"Takip Edildi.",Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }
-                                check2.value = !check2.value
                             },
                             border = BorderStroke(1.dp, color = Color.Black),
                             modifier = Modifier.size(250.dp, 45.dp),
@@ -394,7 +402,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                         }
                     }
                     if (check2.value) {
-                        check2.value =!check2.value
+                        check2.value = !check2.value
                         Button(
                             onClick = {
                                 viewModel.viewModelScope.launch {
@@ -403,6 +411,8 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                                     val amI = viewModel.amIFollow
                                     when(amI.value){
                                         0 -> {
+                                            openDialog = !openDialog
+                                            check.value = !check.value
                                             Toast.makeText(
                                                 context,
                                                 "Takipten Çıkarıldı.",
@@ -411,7 +421,6 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                                         }
                                     }
                                 }
-                                check.value = !check.value
                             },
                             border = BorderStroke(1.dp, color = Color.Black),
                             modifier = Modifier.size(250.dp, 45.dp),
@@ -484,10 +493,10 @@ fun OtherProfilePostListView(posts: List<QuoteFromMyProfile>, navController: Nav
 //                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
                     }
                     else {
-                        viewModel.viewModelScope.launch {
-                            async {
+                        runBlocking {
+                            launch {
                                 // viewModel.loadMainScans(1, scanIndex)
-                            }.await()
+                            }
                             checkState = !checkState
                         }
                     }
@@ -729,7 +738,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -743,7 +752,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
             Image(
                 painter = painter,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)

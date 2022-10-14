@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
 
 package com.onurdemirbas.quicktation.view
 
@@ -13,7 +13,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -36,31 +35,35 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.room.Room
 import com.onurdemirbas.quicktation.R
+import com.onurdemirbas.quicktation.database.UserDatabase
+import com.onurdemirbas.quicktation.database.UserInfo
 import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
-import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.LoginViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import java.security.MessageDigest
 
+
+fun md5(input: String): String {
+    val md = MessageDigest.getInstance("MD5")
+    return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
+}
+
+
 @Composable
 fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewModel()) {
-
-    fun md5(input: String): String {
-        val md = MessageDigest.getInstance("MD5")
-        return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
-    }
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("com.onurdemirbas.quicktation",1)
-    val scope = rememberCoroutineScope()
-    val dataStore = StoreUserInfo(context)
     val email = remember { mutableStateOf(TextFieldValue()) }
     val password = remember { mutableStateOf(TextFieldValue()) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val db: UserDatabase = Room.databaseBuilder(context,UserDatabase::class.java,"UserInfo").build()
+    val userDao = db.UserDao()
+
     Surface {
         Box(contentAlignment = Alignment.Center) {
             Image(
@@ -143,14 +146,8 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                         val errorMessage = viewModel.errorMessage
                         val id = viewModel.id.value
                         if (errorMessage.value.isEmpty()) {
-                            sharedPreferences.edit().putInt("id",id)
-                            sharedPreferences.edit().putString("email",email.value.text)
-                            sharedPreferences.edit().putString("password",password.value.text)
-                            scope.launch {
-                                dataStore.saveId(id = id)
-                                dataStore.saveEmail(email = email.value.text)
-                                dataStore.savePassword(password = md5(password.value.text))
-                            }
+                            val user = UserInfo(id,email.value.text,password.value.text)
+                            userDao.insert(user)
                             navController.navigate("home_page")
                         } else {
                             Toast.makeText(

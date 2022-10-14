@@ -44,4 +44,35 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
             }
         }
     }
+    //REPORT USER
+    var response = mutableStateOf("")
+    fun reportUser(userid: Int, toUserId: Int, reason: String)
+    {
+        viewModelScope.launch {
+            when(val result = repository.postReportUserApi(userid,toUserId, reason)){
+                is Resource.Success -> {
+                    response.value = result.data!!.error
+                }
+                is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                }
+            }
+        }
+    }
+
+    //Follow-Unfollow User
+    val amIFollow = MutableStateFlow(-1)
+    fun followUnFollowUser(userid: Int, toUserId: Int)
+    {
+        viewModelScope.launch {
+            when(val result = repository.postFollowUnfollowUserApi(userid,toUserId)){
+                is Resource.Success -> {
+                    amIFollow.value = result.data!!.response.amIfollow
+                }
+                is Resource.Error -> {
+                    errorMessage.value = result.message!!
+                }
+            }
+        }
+    }
 }

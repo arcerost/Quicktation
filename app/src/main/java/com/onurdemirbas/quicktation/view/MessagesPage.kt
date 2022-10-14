@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,7 +20,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -29,18 +27,18 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
-import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.MessagesViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
-fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val myId = StoreUserInfo(context = context).getId.collectAsState(-1)
+fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesViewModel = hiltViewModel()) {
     var userName = ""
-    viewModel.viewModelScope.launch {
-        viewModel.loadQuotes(myId.value!!)
-        userName = viewModel.userInfo.value.namesurname
+    viewModel.loadQuotes(myId)
+    runBlocking {
+        launch {
+            userName = viewModel.userInfo.value.namesurname
+        }
     }
     val userPhoto = viewModel.userInfo.value.photo
     val interactionSource =  MutableInteractionSource()
@@ -64,7 +62,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                 if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         contentDescription = null,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
@@ -76,7 +74,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                     val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
                     Image(
                         painter = painter,
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         contentDescription = null,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
@@ -124,7 +122,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page/${myId.value}") }
+                        ) { navController.navigate("notifications_page/${myId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -140,7 +138,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${myId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
@@ -148,7 +146,7 @@ fun MessagesPage(navController: NavController, viewModel: MessagesViewModel = hi
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page/${myId.value}") }
+                        ) { navController.navigate("my_profile_page/${myId}") }
                         .size(28.dp, 31.dp))
             }
         }
@@ -169,7 +167,7 @@ fun MessageRow(userPhoto: String?, userName: String) {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
                         contentDescription = "c",
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(44.dp, 44.dp)
@@ -181,7 +179,7 @@ fun MessageRow(userPhoto: String?, userName: String) {
                     Image(
                         painter = painter,
                         contentDescription = "user photo",
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
                             .size(44.dp, 44.dp)

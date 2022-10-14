@@ -4,7 +4,6 @@ package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -38,7 +37,6 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteDetailResponseRowList
 import com.onurdemirbas.quicktation.model.Sound
 import com.onurdemirbas.quicktation.util.Constants
-import com.onurdemirbas.quicktation.util.StoreUserInfo
 import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -47,8 +45,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val iid = StoreUserInfo(context = context).getId.collectAsState(-1)
     viewModel.viewModelScope.launch{
         delay(200)
         viewModel.loadQuote(userId, id)
@@ -67,7 +63,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
             modifier = Modifier.fillMaxSize()
         )
         {
-            Post(navController = navController, userId, myId = iid.value!!)
+            Post(navController = navController, userId, myId = userId)
         }
     }
 
@@ -106,7 +102,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("notifications_page/$iid") }
+                        ) { navController.navigate("notifications_page/$userId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.add_black),
                     contentDescription = null,
@@ -122,7 +118,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("messages_page") }
+                        ) { navController.navigate("messages_page/${userId}") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.profile_black),
                     contentDescription = null,
@@ -130,7 +126,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("my_profile_page/${iid.value}") }
+                        ) { navController.navigate("my_profile_page/$userId") }
                         .size(28.dp, 31.dp))
             }
         }
