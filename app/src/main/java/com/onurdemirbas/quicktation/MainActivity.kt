@@ -3,6 +3,7 @@ package com.onurdemirbas.quicktation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -17,13 +18,16 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
+    lateinit var userId: State<Int?>
+    private lateinit var userPw: State<String?>
+    private lateinit var userEmail: State<String?>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val context = LocalContext.current
-            val userId = StoreUserInfo(context = context).getId.collectAsState(-1)
-            val userPw = StoreUserInfo(context).getPassword.collectAsState(initial = "")
-            val userEmail = StoreUserInfo(context).getEmail.collectAsState(initial = "")
+            userId = StoreUserInfo(context).getId.collectAsState(-1)
+            userPw = StoreUserInfo(context).getPassword.collectAsState(initial = "")
+            userEmail = StoreUserInfo(context).getEmail.collectAsState(initial = "")
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination =
             if(userEmail.value != "" && userPw.value !="" && userId.value != -1){

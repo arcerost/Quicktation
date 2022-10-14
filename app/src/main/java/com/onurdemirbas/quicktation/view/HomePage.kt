@@ -2,9 +2,8 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,11 +42,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
@@ -221,7 +223,6 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
 fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int, navController: NavController) {
     viewModel.viewModelScope.launch {
         viewModel.amILike(myId,quoteId)
-        Log.d("chill","amILike: myId: $myId, quoteId: $quoteId")
         //delay(200)
     }
 }
@@ -237,32 +238,22 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     val userPhoto = post.userphoto
     val userId = post.userId
     var isPressed by remember { mutableStateOf(false) }
-    val mediaCheck = remember { mutableStateOf(false) }
     val url = MEDIA_URL+quoteUrl
-    val mediaPressed = remember { mutableStateOf(false)}
-    val mediaPlayer = MediaPlayer()
+    var mediaPressed by remember { mutableStateOf(false)}
+    var playPressed by remember { mutableStateOf(false) }
     var color: Color
-    mediaPlayer.apply {
-        setAudioAttributes(
-            AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .build()
-        )
-        setDataSource(url)
-        setOnPreparedListener {
-            fun onPrepared(player: MediaPlayer) {
-                if (mediaCheck.value) {
-                    player.start()
-                } else if (!mediaCheck.value) {
-                    player.pause()
-                }
-            }
-            onPrepared(mediaPlayer)
-        }
-        prepareAsync()
-    }
+    val context = LocalContext.current
     var progress by remember { mutableStateOf(0f) }
+    val mediaItem = MediaItem.fromUri(url)
+    val player = ExoPlayer.Builder(context).build()
+    player.setMediaItem(mediaItem)
+    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .build(),true)
+    LaunchedEffect(player) {
+        player.prepare()
+    }
     Box(modifier = Modifier
         .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
@@ -294,24 +285,34 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     ) {
                         Spacer(modifier = Modifier.padding(15.dp))
                         IconButton(onClick = {
-                            mediaCheck.value = !mediaCheck.value
-                            if (mediaCheck.value) {
-                                mediaPlayer.start()
-                                mediaPressed.value = !mediaPressed.value
-                            } else if (!mediaCheck.value) {
-                                mediaPlayer.pause()
-                            }
+                            playPressed = !playPressed
+                            mediaPressed = !mediaPressed
+                            player.playWhenReady
                         })
                         {
-                            Icon(
-                                painter = painterResource(id = R.drawable.play_pause),
-                                modifier = Modifier.size(10.dp, 12.dp),
-                                contentDescription = "favorite",
-                                tint = Color.White
-                            )
+                            if(playPressed)
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play_pause),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.play()
+                            }
+                            else
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.pause()
+                            }
                         }
                         Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
-                        Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
+                        Text(text = "3:21", color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 50.dp))
                         Text(text = "$likeCount BEĞENME"
                         ,color = Color.White, modifier = Modifier
@@ -347,7 +348,18 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
                                     .clickable {
-
+                                        val type = "text/plain"
+                                        val subject = "Your subject"
+                                        val shareWith = "Paylaş"
+                                        val intent = Intent(Intent.ACTION_SEND)
+                                        intent.type = type
+                                        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                        intent.putExtra(Intent.EXTRA_TEXT, url)
+                                        ContextCompat.startActivity(
+                                            context,
+                                            Intent.createChooser(intent, shareWith),
+                                            null
+                                        )
                                     })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
@@ -394,13 +406,11 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 }
                                 isPressed = false
                             }
-                            if(mediaPressed.value)
+                            if(mediaPressed)
                             {
                                 LaunchedEffect(Unit){
                                     while(isActive){
-                                        Log.d("media","mediaPlayer:  ${mediaPlayer.currentPosition}, duration: ${mediaPlayer.duration}")
-                                        progress = (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
-                                        delay(200)
+                                        progress = (player.currentPosition / player.duration).toFloat()
                                     }
                                 }
                             }
@@ -547,13 +557,13 @@ fun SearchBar(modifier: Modifier = Modifier, hint: String = "", onSearch: (Strin
                 onDone = {keyboardController?.hide()
                     focusManager.clearFocus()})
             ,textStyle = TextStyle(color = Color.Black), modifier = Modifier
-            .fillMaxWidth()
-            .shadow(5.dp, CircleShape)
-            .background(Color.White, CircleShape)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
-            .onFocusChanged {
-                isHintDisplayed = it.isFocused != true && text.isEmpty()
-            })
+                .fillMaxWidth()
+                .shadow(5.dp, CircleShape)
+                .background(Color.White, CircleShape)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .onFocusChanged {
+                    isHintDisplayed = it.isFocused != true && text.isEmpty()
+                })
         if(isHintDisplayed) {
             Text(text = hint, color = Color.LightGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
         }

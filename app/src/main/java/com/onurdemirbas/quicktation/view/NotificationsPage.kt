@@ -142,9 +142,7 @@ fun NotificationRow() {
     val colorControl = MutableInteractionSource()
     val isPressed by colorControl.collectIsPressedAsState()
     val color = if (isPressed) Color(0xFFC1C1C1) else Color(0xFF3BE360)
-    val clickable = Modifier.clickable(
-        interactionSource = colorControl,
-        indication = null){}
+    val clickable = Modifier.clickable(interactionSource = colorControl, indication = null){}
     Box(modifier = Modifier.then(clickable).wrapContentSize())
     {
         Column(

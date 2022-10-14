@@ -54,6 +54,7 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
         return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
     }
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("com.onurdemirbas.quicktation",1)
     val scope = rememberCoroutineScope()
     val dataStore = StoreUserInfo(context)
     val email = remember { mutableStateOf(TextFieldValue()) }
@@ -140,10 +141,13 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                     viewModel.viewModelScope.launch {
                         delay(600)
                         val errorMessage = viewModel.errorMessage
-                        val id = viewModel.id
+                        val id = viewModel.id.value
                         if (errorMessage.value.isEmpty()) {
+                            sharedPreferences.edit().putInt("id",id)
+                            sharedPreferences.edit().putString("email",email.value.text)
+                            sharedPreferences.edit().putString("password",password.value.text)
                             scope.launch {
-                                dataStore.saveId(id = id.value)
+                                dataStore.saveId(id = id)
                                 dataStore.saveEmail(email = email.value.text)
                                 dataStore.savePassword(password = md5(password.value.text))
                             }

@@ -2,6 +2,7 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.widget.Toast
@@ -25,11 +26,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteDetailResponseRowList
 import com.onurdemirbas.quicktation.model.Sound
@@ -230,29 +234,19 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     var isPressed by remember { mutableStateOf(false) }
-    val mediaCheck = remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val url = Constants.MEDIA_URL +quoteUrl
-    val mediaPressed = remember { mutableStateOf(false) }
-    val mediaPlayer = MediaPlayer()
-    mediaPlayer.apply {
-        setAudioAttributes(
-            AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .build()
-        )
-        setDataSource(url)
-        setOnPreparedListener {
-            fun onPrepared(player: MediaPlayer) {
-                if (mediaCheck.value) {
-                    it.start()
-                } else if (!mediaCheck.value) {
-                    it.pause()
-                }
-            }
-            //onPrepared(mediaPlayer)
-        }
-        prepareAsync()
+    var mediaPressed by remember { mutableStateOf(false)}
+    var playPressed by remember { mutableStateOf(false) }
+    val mediaItem = MediaItem.fromUri(url)
+    val player = ExoPlayer.Builder(context).build()
+    player.setMediaItem(mediaItem)
+    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .build(),true)
+    LaunchedEffect(player) {
+        player.prepare()
     }
     var progress by remember { mutableStateOf(0f) }
     Box(modifier = Modifier
@@ -281,25 +275,35 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                     ) {
                         Spacer(modifier = Modifier.padding(15.dp))
                         IconButton(onClick = {
-                            mediaCheck.value = !mediaCheck.value
-                            if (mediaCheck.value) {
-                                mediaPlayer.start()
-                                mediaPressed.value = !mediaPressed.value
-                            } else if (!mediaCheck.value) {
-                                mediaPlayer.pause()
-                            }
+                            playPressed = !playPressed
+                            mediaPressed = !mediaPressed
+                            player.playWhenReady
                         })
                         {
-                            Icon(
-                                painter = painterResource(id = R.drawable.play_pause),
-                                modifier = Modifier.size(10.dp, 12.dp),
-                                contentDescription = "favorite",
-                                tint = Color.White
-                            )
+                            if(playPressed)
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play_pause),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.play()
+                            }
+                            else
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.pause()
+                            }
                         }
                         Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Spacer(modifier = Modifier.padding(start=0.dp))
-                        Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
+                        Text(text = "3:21", color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 60.dp))
                         Text(text = if(quoteId != quoteIdFromVm.value)
                         {
@@ -341,7 +345,20 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                 contentDescription = "share button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+                                        val type = "text/plain"
+                                        val subject = "Your subject"
+                                        val shareWith = "Paylaş"
+                                        val intent = Intent(Intent.ACTION_SEND)
+                                        intent.type = type
+                                        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                        intent.putExtra(Intent.EXTRA_TEXT, url)
+                                        ContextCompat.startActivity(
+                                            context,
+                                            Intent.createChooser(intent, shareWith),
+                                            null
+                                        )
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
                                 onClick = {
@@ -415,11 +432,11 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                     }
                                 }
                             }
-                            if(mediaPressed.value)
+                            if(mediaPressed)
                             {
                                 LaunchedEffect(Unit){
                                     while(isActive){
-                                        progress = (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
+                                        progress = (player.currentPosition / player.duration).toFloat()
                                         delay(200) // change this to what feels smooth without impacting performance too much
                                     }
                                 }
@@ -482,26 +499,19 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
     val userPhoto by remember { mutableStateOf(sound.userphoto) }
     var isPressed by remember { mutableStateOf(false) }
     val mediaCheck = remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val url = Constants.MEDIA_URL +soundURL
-    val mediaPressed = remember { mutableStateOf(false) }
-    val mediaPlayer = MediaPlayer()
-    mediaPlayer.apply { setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build())
-        setDataSource(url)
-        setOnPreparedListener {
-            fun onPrepared(player: MediaPlayer) {
-                if (mediaCheck.value) {
-                    it.start()
-                } else if (!mediaCheck.value) {
-                    it.pause()
-                }
-            }
-//            if (mediaCheck.value) {
-//                it.start()
-//            } else if (!mediaCheck.value) {
-//                it.pause()
-//            }
-        }
-        prepareAsync()
+    var mediaPressed by remember { mutableStateOf(false)}
+    var playPressed by remember { mutableStateOf(false) }
+    val mediaItem = MediaItem.fromUri(url)
+    val player = ExoPlayer.Builder(context).build()
+    player.setMediaItem(mediaItem)
+    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .build(),true)
+    LaunchedEffect(player) {
+        player.prepare()
     }
     var progress by remember { mutableStateOf(0f) }
     Box(modifier = Modifier
@@ -521,20 +531,36 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                     }
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                         Spacer(modifier = Modifier.padding(15.dp))
-                        IconButton(onClick = { mediaCheck.value = !mediaCheck.value
-                            if (mediaCheck.value) {
-                                mediaPlayer.start()
-                                mediaPressed.value = !mediaPressed.value
-                            } else if (!mediaCheck.value) {
-                                mediaPlayer.pause()
-                            }
+                        IconButton(onClick = {
+                            playPressed = !playPressed
+                            mediaPressed = !mediaPressed
+                            player.playWhenReady
                         })
                         {
-                            Icon(painter = painterResource(id = R.drawable.play_pause), modifier = Modifier.size(10.dp, 12.dp), contentDescription = "favorite", tint = Color.White)
+                            if(playPressed)
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play_pause),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.play()
+                            }
+                            else
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.pause()
+                            }
                         }
                         Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(150.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Spacer(modifier = Modifier.padding(start=0.dp))
-                        Text(text = mediaPlayer.currentPosition.toString(), color = Color.White, modifier = Modifier.padding(top = 15.dp))
+                        Text(text = "3:21", color = Color.White, modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 60.dp))
 
                     }
@@ -548,7 +574,20 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                             Spacer(modifier = Modifier.padding(start = 220.dp))
                             Image(painter = painterResource(id = R.drawable.share), contentDescription = "share button", modifier = Modifier
                                 .size(21.dp, 21.dp)
-                                .clickable {})
+                                .clickable {
+                                    val type = "text/plain"
+                                    val subject = "Your subject"
+                                    val shareWith = "Paylaş"
+                                    val intent = Intent(Intent.ACTION_SEND)
+                                    intent.type = type
+                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                    intent.putExtra(Intent.EXTRA_TEXT, url)
+                                    ContextCompat.startActivity(
+                                        context,
+                                        Intent.createChooser(intent, shareWith),
+                                        null
+                                    )
+                                })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(onClick = {
                                     isPressed = true
@@ -586,11 +625,11 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                                     }
                                 }
                             }
-                            if(mediaPressed.value) {
+                            if(mediaPressed) {
                                 LaunchedEffect(Unit){
                                     while(isActive){
-                                        progress = (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
-                                        delay(200) // change this to what feels smooth without impacting performance too much
+                                        progress = (player.currentPosition / player.duration).toFloat()
+                                        delay(200)
                                     }
                                 }
                             }

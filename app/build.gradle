@@ -99,6 +99,15 @@ dependencies {
     //MediaShare
     implementation("androidx.media:media:1.6.0")
 
+    //accompanists
+    implementation "com.google.accompanist:accompanist-permissions:0.26.5-rc"
+
+    //media3 exoplayer
+    implementation 'androidx.media3:media3-ui:1.0.0-beta02'
+    implementation 'androidx.media3:media3-exoplayer:1.0.0-beta02'
+    implementation 'androidx.media3:media3-session:1.0.0-beta02'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
+
 }
 kapt {
     correctErrorTypes = true

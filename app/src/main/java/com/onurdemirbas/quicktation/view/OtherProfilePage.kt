@@ -2,8 +2,8 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.content.Intent
 import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -31,11 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
@@ -519,37 +522,19 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     var isPressed by remember { mutableStateOf(false) }
-    val mediaCheck = remember { mutableStateOf(false) }
-    val url = Constants.MEDIA_URL + quoteUrl
-    val mediaPressed = remember { mutableStateOf(false) }
-    val mediaPlayer = MediaPlayer()
     val context = LocalContext.current
-    var check by remember { mutableStateOf(false) }
-    if(check)
-    {
-
-    }
-
-
-    mediaPlayer.apply {
-        setAudioAttributes(
-            AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .build()
-        )
-        setDataSource(url)
-        setOnPreparedListener {
-            fun onPrepared(player: MediaPlayer) {
-                if (mediaCheck.value) {
-                    it.start()
-                } else if (!mediaCheck.value) {
-                    it.pause()
-                }
-            }
-            //onPrepared(mediaPlayer)
-        }
-        prepareAsync()
+    val url = Constants.MEDIA_URL +quoteUrl
+    var mediaPressed by remember { mutableStateOf(false)}
+    var playPressed by remember { mutableStateOf(false) }
+    val mediaItem = MediaItem.fromUri(url)
+    val player = ExoPlayer.Builder(context).build()
+    player.setMediaItem(mediaItem)
+    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .build(),true)
+    LaunchedEffect(player) {
+        player.prepare()
     }
     var progress by remember { mutableStateOf(0f) }
     Box(
@@ -583,21 +568,31 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                     ) {
                         Spacer(modifier = Modifier.padding(15.dp))
                         IconButton(onClick = {
-                            mediaCheck.value = !mediaCheck.value
-                            if (mediaCheck.value) {
-                                mediaPlayer.start()
-                                mediaPressed.value = !mediaPressed.value
-                            } else if (!mediaCheck.value) {
-                                mediaPlayer.pause()
-                            }
+                            playPressed = !playPressed
+                            mediaPressed = !mediaPressed
+                            player.playWhenReady
                         })
                         {
-                            Icon(
-                                painter = painterResource(id = R.drawable.play_pause),
-                                modifier = Modifier.size(10.dp, 12.dp),
-                                contentDescription = "favorite",
-                                tint = Color.White
-                            )
+                            if(playPressed)
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play_pause),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.play()
+                            }
+                            else
+                            {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.play),
+                                    modifier = Modifier.size(10.dp, 12.dp),
+                                    contentDescription = "play/pause",
+                                    tint = Color.White
+                                )
+                                player.pause()
+                            }
                         }
                         Slider(
                             value = progress,
@@ -619,7 +614,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                         )
                         Spacer(modifier = Modifier.padding(start = 0.dp))
                         Text(
-                            text = mediaPlayer.currentPosition.toString(),
+                            text = "3:21",
                             color = Color.White,
                             modifier = Modifier.padding(top = 15.dp)
                         )
@@ -659,7 +654,18 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
                                     .clickable {
-                                        check = !check
+                                        val type = "text/plain"
+                                        val subject = "Your subject"
+                                        val shareWith = "Paylaş"
+                                        val intent = Intent(Intent.ACTION_SEND)
+                                        intent.type = type
+                                        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                        intent.putExtra(Intent.EXTRA_TEXT, url)
+                                        ContextCompat.startActivity(
+                                            context,
+                                            Intent.createChooser(intent, shareWith),
+                                            null
+                                        )
                                     })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(
@@ -706,11 +712,10 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                                     }
                                 }
                             }
-                            if (mediaPressed.value) {
+                            if (mediaPressed) {
                                 LaunchedEffect(Unit) {
                                     while (isActive) {
-                                        progress =
-                                            (mediaPlayer.currentPosition / mediaPlayer.duration).toFloat()
+                                            progress = (player.currentPosition / player.duration).toFloat()
                                         delay(200) // change this to what feels smooth without impacting performance too much
                                     }
                                 }
