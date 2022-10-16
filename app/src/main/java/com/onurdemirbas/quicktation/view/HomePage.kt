@@ -3,7 +3,8 @@
 package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
-import android.media.AudioAttributes
+import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -44,13 +46,14 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.*
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.Quotation
@@ -226,12 +229,21 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
 }
 
 @Composable
-fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int, navController: NavController) {
+fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
     viewModel.viewModelScope.launch {
         viewModel.amILike(myId,quoteId)
         //delay(200)
     }
 }
+
+
+private fun getVideoDurationSeconds(player: ExoPlayer): Int {
+    val timeMs = player.duration.toInt()
+    return timeMs / 1000
+}
+
+
+
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
@@ -244,22 +256,44 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     val userPhoto = post.userphoto
     val userId = post.userId
     var isPressed by remember { mutableStateOf(false) }
-    val url = MEDIA_URL+quoteUrl
-    var mediaPressed by remember { mutableStateOf(false)}
-    var playPressed by remember { mutableStateOf(false) }
+    val url = "http://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/ateapill.ogg"
     var color: Color
     val context = LocalContext.current
-    var progress by remember { mutableStateOf(0f) }
-    val mediaItem = MediaItem.fromUri(url)
+    val playing = remember { mutableStateOf(false) }
+    var position by remember { mutableStateOf(0F) }
+    //MEDIAPLAYERSTARTED
+    var duration: Int
+    var durationForSlider by remember { mutableStateOf(0L) }
     val player = ExoPlayer.Builder(context).build()
-    player.setMediaItem(mediaItem)
+    var minute by remember { mutableStateOf(0) }
+    var seconds by remember { mutableStateOf(0) }
+    player.setMediaItem(MediaItem.fromUri(url))
     player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .build(),true)
-    LaunchedEffect(player) {
-        player.prepare()
-    }
+        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+        .setUsage(C.USAGE_MEDIA)
+        .build(),true)
+    player.prepare()
+    player.addListener(object : Player.Listener{
+        @Deprecated("Deprecated in Java")
+        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            if(playbackState == ExoPlayer.STATE_READY)
+            {
+                durationForSlider = player.duration
+                duration = getVideoDurationSeconds(player)
+                minute = duration/60
+                seconds = duration%60
+            }
+            super.onPlayerStateChanged(playWhenReady, playbackState)
+            if(playbackState == ExoPlayer.STATE_ENDED)
+            {
+                playing.value = false
+                position = 0F
+                player.seekTo(0L)
+                player.pause()
+            }
+        }
+    })
+    //MEDIAPLAYERENDED
     Box(modifier = Modifier
         .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
         Surface(shape = RoundedCornerShape(15.dp), modifier = Modifier
@@ -291,38 +325,55 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     ) {
                         Spacer(modifier = Modifier.padding(15.dp))
                         IconButton(onClick = {
-                            playPressed = !playPressed
-                            mediaPressed = !mediaPressed
-                            player.playWhenReady
-                        })
-                        {
-                            if(playPressed)
-                            {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.play_pause),
-                                    modifier = Modifier.size(10.dp, 12.dp),
-                                    contentDescription = "play/pause",
-                                    tint = Color.White
-                                )
+                            if (playing.value) {
+                                playing.value = false
+                                player.pause()
+                            } else {
+                                playing.value = true
                                 player.play()
                             }
-                            else
-                            {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.play),
-                                    modifier = Modifier.size(10.dp, 12.dp),
-                                    contentDescription = "play/pause",
-                                    tint = Color.White
-                                )
-                                player.pause()
-                            }
+                            object :
+                                CountDownTimer(durationForSlider, 100) {
+                                override fun onTick(millisUntilFinished: Long) {
+                                    position =
+                                        player.currentPosition.toFloat()
+                                    if (player.currentPosition == durationForSlider) {
+                                        playing.value = false
+                                    }
+                                }
+                                override fun onFinish() {
+                                }
+                            }.start()
+                        })
+                        {
+                            Icon(
+                                painter = painterResource(id =  if (!playing.value || player.currentPosition==durationForSlider) R.drawable.play else R.drawable.play_pause),
+                                contentDescription = "image",
+                                tint = Color.White, modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(10.dp,12.dp)
+                            )
                         }
-                        Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
-                        Text(text = "3:21", color = Color.White, modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start = 50.dp))
+                        Slider(value = position, valueRange = 0F..durationForSlider.toFloat(), onValueChange =
+                        {
+                            position = it
+                            player.seekTo(it.toLong())
+                        }
+                        ,modifier = Modifier.size(130.dp,50.dp),enabled = true, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
+                        Text(text = if(seconds > 10)
+                        {
+                            "$minute:$seconds"
+                        }
+                        else
+                        {
+                            "$minute:0$seconds"
+                        }
+                        , color = Color.White, modifier = Modifier.padding(top = 15.dp))
+                        Spacer(modifier = Modifier.padding(start=10.dp))
                         Text(text = "$likeCount BEĞENME"
                         ,color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp))
+                        Spacer(modifier = Modifier.padding(end=5.dp))
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -394,7 +445,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 )
                         }
                             if (isPressed) {
-                                RefreshWithLike(viewModel, quoteId, myId,navController)
+                                RefreshWithLike(viewModel, quoteId, myId)
                                 when(amILike){
                                     1 -> {
                                         color = Color.White
@@ -411,14 +462,6 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     }
                                 }
                                 isPressed = false
-                            }
-                            if(mediaPressed)
-                            {
-                                LaunchedEffect(Unit){
-                                    while(isActive){
-                                        progress = (player.currentPosition / player.duration).toFloat()
-                                    }
-                                }
                             }
                         }
                     }
@@ -460,6 +503,32 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
         }
     }
     Spacer(Modifier.padding(bottom = 15.dp))
+
+
+
+    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
+    DisposableEffect(lifecycleOwner) {
+        val lifecycle = lifecycleOwner.lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                }
+                Lifecycle.Event.ON_DESTROY -> {
+                    player.run {
+                        stop()
+                        release()
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
 }
 
 @Composable
