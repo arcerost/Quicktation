@@ -4,18 +4,13 @@ package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material.Slider
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -53,7 +48,10 @@ import androidx.navigation.NavController
 import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.Quotation
@@ -73,7 +71,6 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         id = userDao.getUser().userId!!
     }
     viewModel.viewModelScope.launch{
-        delay(200)
         viewModel.loadMains(id)
     }
     val interactionSource =  MutableInteractionSource()
@@ -168,7 +165,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
 @Composable
 fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
     val postList by viewModel.mainList.collectAsState()
-    val errorMessage by remember { viewModel.errorMessage }
+    val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -178,44 +175,36 @@ fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         PostListView(posts = postList, navController = navController, myId)
     }
 }
-
 @Composable
 fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
     val context= LocalContext.current
-    val scanIndex by viewModel.scanIndex.collectAsState()
+    val scanIndex = viewModel.scanIndex
     val postList by viewModel.mainList.collectAsState()    //cause postlist getting new values with scanindex
-    val errorMessage by remember { viewModel.errorMessage }
+    val errorMessage = remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
     val state = rememberLazyListState()
-    fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
-    val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
+    val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts, key = { quote  ->
-            quote.id
-        }) { post ->
+        items(posts) { post ->
             MainRow(post = post, navController = navController, myId = myId)
         }
         item {
-            LaunchedEffect(endOfListReached) {
+            LaunchedEffect(isScrollToEnd) {
                 if(scanIndex != 0) {
                     if(scanIndex == -1)
                     {
 //                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
                     }
                     else {
-                        viewModel.viewModelScope.launch {
-                            async {
-                                viewModel.loadMainScans(myId, scanIndex)
-                            }.await()
-                            checkState = !checkState
-                        }
+                        viewModel.loadMainScans(myId, scanIndex)
+                        checkState = !checkState
                     }
                 }
             }
         }
     }
     if(checkState) {
-        if(endOfListReached)
+        if(isScrollToEnd)
         {
             if(scanIndex>0) {
                 PostListView(posts = postList, navController = navController, myId)
@@ -227,23 +216,16 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
         }
     }
 }
-
 @Composable
 fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
     viewModel.viewModelScope.launch {
         viewModel.amILike(myId,quoteId)
-        //delay(200)
     }
 }
-
-
 private fun getVideoDurationSeconds(player: ExoPlayer): Int {
     val timeMs = player.duration.toInt()
     return timeMs / 1000
 }
-
-
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
@@ -256,7 +238,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     val userPhoto = post.userphoto
     val userId = post.userId
     var isPressed by remember { mutableStateOf(false) }
-    val url = "http://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/ateapill.ogg"
+    val url = MEDIA_URL+quoteUrl
     var color: Color
     val context = LocalContext.current
     val playing = remember { mutableStateOf(false) }
@@ -347,31 +329,42 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         })
                         {
                             Icon(
-                                painter = painterResource(id =  if (!playing.value || player.currentPosition==durationForSlider) R.drawable.play else R.drawable.play_pause),
+                                painter = painterResource(id =
+                                if (!playing.value || player.currentPosition==durationForSlider)
+                                    R.drawable.play
+                                else
+                                    R.drawable.play_pause),
                                 contentDescription = "image",
                                 tint = Color.White, modifier = Modifier
                                     .padding(16.dp)
-                                    .size(10.dp,12.dp)
+                                    .size(10.dp, 12.dp)
                             )
                         }
-                        Slider(value = position, valueRange = 0F..durationForSlider.toFloat(), onValueChange =
-                        {
-                            position = it
-                            player.seekTo(it.toLong())
-                        }
-                        ,modifier = Modifier.size(130.dp,50.dp),enabled = true, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
-                        Text(text = if(seconds > 10)
-                        {
+                        Slider(
+                            value = position,
+                            valueRange = 0F..durationForSlider.toFloat(),
+                            onValueChange = {
+                                position = it
+                                player.seekTo(it.toLong())
+                            },
+                            modifier = Modifier.size(130.dp,50.dp),
+                            enabled = true,
+                            colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
+                        Text(text =
+                        if(seconds > 10) {
                             "$minute:$seconds"
                         }
                         else
                         {
                             "$minute:0$seconds"
-                        }
-                        , color = Color.White, modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start=10.dp))
-                        Text(text = "$likeCount BEĞENME"
-                        ,color = Color.White, modifier = Modifier
+                        },
+                            color = Color.White,
+                            modifier = Modifier.padding(top = 15.dp))
+                        Spacer(modifier = Modifier.padding(start=20.dp))
+                        Text(
+                            text = "$likeCount BEĞENME" ,
+                            color = Color.White,
+                            modifier = Modifier
                                 .padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(end=5.dp))
                     }
@@ -392,15 +385,19 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 .fillMaxWidth()
                                 .padding(bottom = 10.dp)
                         ) {
-                            Text(text = "-$username", color = Color.White)
+                            Text(
+                                text = "-$username",
+                                color = Color.White)
                             Spacer(modifier = Modifier.padding(start = 180.dp))
-                            Image(painter = painterResource(id = R.drawable.voice_record),
+                            Image(
+                                painter = painterResource(id = R.drawable.voice_record),
                                 contentDescription = "microphone button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
                                     .clickable {})
                             Spacer(modifier = Modifier.padding(10.dp))
-                            Image(painter = painterResource(id = R.drawable.share),
+                            Image(
+                                painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
@@ -422,7 +419,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             IconButton(
                                 onClick = {
                                     isPressed = true
-                                }, modifier = Modifier
+                                },
+                                modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
                                 color = when (amILike) {
@@ -444,6 +442,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                         .size(21.dp, 20.dp)
                                 )
                         }
+                            Spacer(modifier = Modifier.padding(end = 5.dp))
                             if (isPressed) {
                                 RefreshWithLike(viewModel, quoteId, myId)
                                 when(amILike){
