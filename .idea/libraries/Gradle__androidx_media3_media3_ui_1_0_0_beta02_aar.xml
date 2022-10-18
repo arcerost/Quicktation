@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: androidx.media3:media3-ui:1.0.0-beta02@aar">
     <ANNOTATIONS>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/b856a3c1d0d150807e65d70ddba6bc99/transformed/media3-ui-1.0.0-beta02/annotations.zip!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/bed470018aabb2003f0dc18f3fa02f1f/transformed/media3-ui-1.0.0-beta02/annotations.zip!/" />
     </ANNOTATIONS>
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/b856a3c1d0d150807e65d70ddba6bc99/transformed/media3-ui-1.0.0-beta02/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/b856a3c1d0d150807e65d70ddba6bc99/transformed/media3-ui-1.0.0-beta02/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/b856a3c1d0d150807e65d70ddba6bc99/transformed/media3-ui-1.0.0-beta02/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/bed470018aabb2003f0dc18f3fa02f1f/transformed/media3-ui-1.0.0-beta02/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/bed470018aabb2003f0dc18f3fa02f1f/transformed/media3-ui-1.0.0-beta02/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/bed470018aabb2003f0dc18f3fa02f1f/transformed/media3-ui-1.0.0-beta02/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

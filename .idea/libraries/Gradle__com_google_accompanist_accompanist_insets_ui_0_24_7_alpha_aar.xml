@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.accompanist:accompanist-insets-ui:0.24.7-alpha@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/99820dc2c2bdc0575930737ea039fd48/transformed/accompanist-insets-ui-0.24.7-alpha/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/99820dc2c2bdc0575930737ea039fd48/transformed/accompanist-insets-ui-0.24.7-alpha/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/797ffb20bdd2144bfa8a99b21ed9774d/transformed/accompanist-insets-ui-0.24.7-alpha/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/797ffb20bdd2144bfa8a99b21ed9774d/transformed/accompanist-insets-ui-0.24.7-alpha/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.accompanist/accompanist-insets-ui/0.24.7-alpha/3a9ee263da0753c3066eac6291e4d4b163474af0/accompanist-insets-ui-0.24.7-alpha-javadoc.jar!/" />

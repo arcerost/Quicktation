@@ -177,6 +177,31 @@ class MainActivity: ComponentActivity() {
                     val userId4 = remember { it.arguments?.getInt("userId")}
                     EditProfilePage(navController = navController,userId4!!)
                 }
+                composable("create_quote_sound_page/{userId}/{quoteText}/{userPhoto}/{userName}/{quoteId}", arguments = listOf(
+                    navArgument("userId"){
+                        type = NavType.IntType
+                    },
+                    navArgument("quoteText"){
+                        type = NavType.StringType
+                    },
+                    navArgument("userName"){
+                        type = NavType.StringType
+                    },
+                    navArgument("userPhoto"){
+                        type = NavType.StringType
+                    },
+                    navArgument("quoteId"){
+                        type = NavType.IntType
+                    }
+                ))
+                {
+                    val userId5 = remember { it.arguments?.getInt("userId")}
+                    val quoteId = remember { it.arguments?.getInt("quoteId")}
+                    val quoteText = remember { it.arguments?.getString("quoteText")}
+                    val userName = remember { it.arguments?.getString("userName")}
+                    val userPhoto = remember { it.arguments?.getString("userPhoto")}
+                    CreateQuoteSoundPage(navController = navController, userId = userId5!!, quoteText = quoteText!!, userPhoto = userPhoto, userName = userName!!, quoteId = quoteId!!)
+                }
             }
         }
     }

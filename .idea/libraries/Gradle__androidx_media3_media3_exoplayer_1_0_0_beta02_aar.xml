@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: androidx.media3:media3-exoplayer:1.0.0-beta02@aar">
     <ANNOTATIONS>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/0f50d32d89449897b4a6642e13fdbdc6/transformed/media3-exoplayer-1.0.0-beta02/annotations.zip!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/edc3f0c211d76e58ec97b0e83bf74119/transformed/media3-exoplayer-1.0.0-beta02/annotations.zip!/" />
     </ANNOTATIONS>
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/0f50d32d89449897b4a6642e13fdbdc6/transformed/media3-exoplayer-1.0.0-beta02/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/0f50d32d89449897b4a6642e13fdbdc6/transformed/media3-exoplayer-1.0.0-beta02/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/0f50d32d89449897b4a6642e13fdbdc6/transformed/media3-exoplayer-1.0.0-beta02/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/edc3f0c211d76e58ec97b0e83bf74119/transformed/media3-exoplayer-1.0.0-beta02/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/edc3f0c211d76e58ec97b0e83bf74119/transformed/media3-exoplayer-1.0.0-beta02/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/edc3f0c211d76e58ec97b0e83bf74119/transformed/media3-exoplayer-1.0.0-beta02/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

@@ -16,118 +16,118 @@
               <args>
                 <arg>$MODULE_DIR$/../../../app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/logging-interceptor/4.9.0/f9ce50fc73074fc4e7bde6e177e8bb4792045e/logging-interceptor-4.9.0.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/b8d5ba095e337de7d9670fd24130f9f6/transformed/hilt-navigation-compose-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/3323cc27a27fff3ff6fb600a314d4a8f/transformed/navigation-compose-2.5.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/c5b6374d417dbc53cf1e58a47e16e880/transformed/activity-compose-1.6.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/6e780ef4bac30cb1ea0b614976c0879e/transformed/navigation-runtime-ktx-2.5.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/40c21e0109505cbdd7e4c63702c47982/transformed/hilt-navigation-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/701df470e3dcd4bfcc7d8552aa9133e2/transformed/navigation-runtime-2.5.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/cb54ee86cdca138a56495f4e229e334c/transformed/activity-ktx-1.6.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/4ef76e4d2470652403cec528ff52746f/transformed/navigation-common-ktx-2.5.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/21ce8191a90fa0301bd986e5908a74a6/transformed/navigation-common-2.5.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/875e3eab57d0d8b4b323a414c3ee5d56/transformed/lifecycle-runtime-ktx-2.5.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/0be83fbc67ca721bcee294326267f031/transformed/lifecycle-viewmodel-compose-2.5.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/60b6191a57713b7df9dee25d605540de/transformed/lifecycle-viewmodel-ktx-2.5.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ad42e82f90d09fe0aa696b82c0554ce1/transformed/room-ktx-2.4.3-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/6558aea1c12189db9a6275655c0e5166/transformed/ui-tooling-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/d8bad1c4b84adc68d0f1cfa41c546e1a/transformed/accompanist-insets-ui-0.24.7-alpha-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/8cd9104364b5dc76f48cb58fb92fcde2/transformed/material-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/437aebd98d204362694487653ba3acad/transformed/ui-tooling-preview-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/691b3384b0179ccc1ea93ba8df3fbe82/transformed/runtime-livedata-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/8daf68e345a0af84033b3ccbd90e10bb/transformed/ui-tooling-data-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/805317cf893746e8c079fbeb0ba0b075/transformed/material-ripple-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/bd17c151c9c962e823d144b2497a9498/transformed/foundation-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/f5bca3917abe2e9143358eeef00557e4/transformed/animation-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/acc8482584aab780f9c97ac4276b5eb7/transformed/coil-compose-1.3.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/aa25944114855e9d6d6baf4a8755162b/transformed/material-icons-core-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/a5a4f58b8264c7deb9d76d8473c13974/transformed/coil-compose-base-1.3.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/067119ce0acac0579455cf51599a54fe/transformed/foundation-layout-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/e1c25a85abd6f316bf3e2b5dd0f4b71c/transformed/ui-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/df66c8eb168143e8e81458c53037eb55/transformed/runtime-saveable-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/78f12a6a49463f847881bb94c4b32a04/transformed/runtime-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/1c7f5262ab47ef4f16f0a6a135eae40c/transformed/hilt-android-2.43.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/66c9a59c0bbf9c2503a232765ac9f6c3/transformed/ui-test-manifest-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/d906c5505a5c350ed6a53d2f84f62e76/transformed/fragment-1.5.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/882ec7a5572493b0ab696827c94415ed/transformed/activity-1.6.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/6cb65a3016a2e9e6a51f1a7ff261807b/transformed/lifecycle-viewmodel-savedstate-2.5.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/2f0ea7b68591d19e8b39e70fa03c80ac/transformed/animation-core-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/09addb87110fc55438158818199d8f5c/transformed/datastore-preferences-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/0d9c1aa867a0b9f8f6fb6eebedea80f9/transformed/datastore-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/4c1e2c165437db446576b57b0e49587e/transformed/hilt-navigation-compose-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/9a32aa5e83a27ddd29e3898f61ce1872/transformed/navigation-compose-2.5.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/9ffd46e18a8ac3601c2092c27210792a/transformed/activity-compose-1.6.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/d2046a08a2714aaa93fc77bfea7f6d78/transformed/navigation-runtime-ktx-2.5.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/353abdee3eea6184fcde304db38b084a/transformed/hilt-navigation-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/625f5a223fbbc87ab8041204976551d4/transformed/navigation-runtime-2.5.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/3052a02d89cb2c1d5e8ab73224a9286d/transformed/activity-ktx-1.6.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/8e9e89e1528b4e420ae642df402f21c8/transformed/navigation-common-ktx-2.5.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/a859a822f16b0624a7210e1ec7363a7f/transformed/navigation-common-2.5.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/2d4e25419379af6f1e421c2be4b4deca/transformed/lifecycle-runtime-ktx-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/820ada086b9a7c0399d7f467f323d962/transformed/lifecycle-viewmodel-compose-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/9df6d0306f77b30b3981ff980fd4dc33/transformed/lifecycle-viewmodel-ktx-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/401c923c63d915c49b5d6ec03f251694/transformed/room-ktx-2.4.3-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/c50fff1fb95bafc9e661c13e0c95a67a/transformed/ui-tooling-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/456376633165e762a750948ed8e77112/transformed/accompanist-insets-ui-0.24.7-alpha-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/7ae5b96a10f18c73768b11118a79ac64/transformed/material-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/a8a0afc5e3f5f75133e460b33f56f6a3/transformed/ui-tooling-preview-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/3e7a01f25af7661ca52485cd034780d1/transformed/runtime-livedata-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/7cb2a75c2419b579c9c9b9a8bf302a7f/transformed/ui-tooling-data-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/cffb4a76923fe0c35494531eb003229f/transformed/material-ripple-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/5ac61810a8a3c2a243961be6a78d8574/transformed/foundation-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/7869fc168031df82bcf662c94d935a88/transformed/animation-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/bbc4d00e553eae42f35bc3f06146806c/transformed/coil-compose-1.3.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/8362dc9b60ffac79f4e1518b3ffd1943/transformed/material-icons-core-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/0cf36bf8001d990c5ac133cc25c87ec5/transformed/coil-compose-base-1.3.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/aa35d5a669c56de1fae6870e888566dc/transformed/foundation-layout-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/78e23eeafac9d4c008c445de14874e8c/transformed/ui-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/f745cefe16639066edc0faf40d1e1c4f/transformed/runtime-saveable-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/a337cc5aa4430bcbab89b120f1c3877b/transformed/runtime-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/cb2ea4af45a7bf7fe3388c74baa18c5d/transformed/hilt-android-2.43.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/829793dc193eeaa50c3d5c7dd63248cb/transformed/ui-test-manifest-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/eb909a9a2b3a4e82370f197ca756162f/transformed/fragment-1.5.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/94480b3b955f3c90b51034c1486cc9b2/transformed/activity-1.6.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/96ff6cf7cb72ba12be6c48c0f99d980a/transformed/lifecycle-viewmodel-savedstate-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/b541df64aca1df0526377f1cedf45c38/transformed/animation-core-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/f8bd0c4091f25e71e16d3ecc5d2222fc/transformed/datastore-preferences-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/510a2a6b43cfd600c4989dd115f67ec7/transformed/datastore-1.0.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.datastore/datastore-preferences-core/1.0.0/403f64499b9a8994f5f7010329ddd1ee5c919ed5/datastore-preferences-core-1.0.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.datastore/datastore-core/1.0.0/91b04fb657294e2906d95dce6a9e5a851f6125c1/datastore-core-1.0.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/df12ae9665863649b4bb618ad0e00e15/transformed/coil-1.3.2-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/d1df85ae8156ccad723ab0e66d3f096a/transformed/coil-base-1.3.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/0275f5f93a227ec0658e2631bdb2d79b/transformed/coil-1.3.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/f06f90a17c7a7b51e8ed5ad1f866e04e/transformed/coil-base-1.3.2-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-android/1.6.4/f955fc8b2ad196e2f4429598440e15f7492eeb2b/kotlinx-coroutines-android-1.6.4.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.7.10/d70d7d2c56371f7aa18f32e984e3e2e998fe9081/kotlin-stdlib-jdk8-1.7.10.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/e925c7eed0325f55f3c239a95f792487/transformed/core-ktx-1.9.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/2c6aa4a68ecf6fef389fee82dd98faf9/transformed/core-ktx-1.9.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.retrofit2/converter-gson/2.9.0/fc93484fc67ab52b1e0ccbdaa3922d8a6678e097/converter-gson-2.9.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.retrofit2/retrofit/2.9.0/d8fdfbd5da952141a665a403348b74538efc05ff/retrofit-2.9.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.9.0/8e17601d3bdc8cf57902c154de021931d2c27c1/okhttp-4.9.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.7.10/1ef73fee66f45d52c67e2aca12fd945dbe0659bf/kotlin-stdlib-jdk7-1.7.10.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/7db2e56b5e0bae0e4a8ec91bd8c72e31/transformed/exoplayer-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ecbc5486e89caf783f99c24b79e0b6ba/transformed/exoplayer-ui-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ee68568ad6cfbc67c9f34f63c5888dc9/transformed/media-1.6.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/282146c4e6ed666dd8390b8cf48aba83/transformed/loader-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/f49a9487de126679dc361e2ef3e813c4/transformed/viewpager-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ab39e7d27d76b709b450d371da683ceb/transformed/customview-1.0.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/2d01d7174177b58e3ada35fc6b6a9da5/transformed/core-1.9.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/e39ae156bef5e52b9a94943e031e3a19/transformed/ui-text-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/9a8b428810e1ab8e9de811aa1031ca84/transformed/ui-graphics-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ee684f3039b8ff3c5726caa2fd5534c4/transformed/ui-unit-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ff070de9f054552d35801402c559d27d/transformed/ui-geometry-1.3.0-rc01-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/6fb3281c356d53eb95a04298681fd12b/transformed/lifecycle-runtime-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/f420ea16d9d7492fd6d8ec557dd0a4dc/transformed/exoplayer-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/7d08d761c589a8ed3c3d6c7f0d0b197b/transformed/exoplayer-ui-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/e6bc3f3c2cabf8b37bbb0e8990915bfb/transformed/media-1.6.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/a9c8f3ff7df8cf3db576dc9c499b579c/transformed/loader-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/6f12f0e3c2198c0bc37a6e74766ba541/transformed/viewpager-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/4405b51a0230ee85b70120364b56e863/transformed/customview-1.0.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/ddf98e927379e7a6d2f7f013a3a14876/transformed/core-1.9.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/6bb0d9c0aa8bb7333cc938631d875f40/transformed/ui-text-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/55228353d5344c6a833578748d656450/transformed/ui-graphics-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/adccbfb1de5e7b1930f55b941f92ffd6/transformed/ui-unit-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/65f638849a973f285fc87357a1f92b02/transformed/ui-geometry-1.3.0-rc01-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/1e983c37447812dac08ad8a6ac873de6/transformed/lifecycle-runtime-2.5.1-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common-java8/2.5.1/5b8f86fea035328fc9e8c660773037a3401ce25f/lifecycle-common-java8-2.5.1.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/2a99a2e27095d3d427fbce87c88dcdaf/transformed/lifecycle-livedata-2.2.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/a22e203497b7d49fbb5a4cc3d0b9d23b/transformed/lifecycle-livedata-core-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/11378eb01bdbd7fd0e05b184f4c1b741/transformed/lifecycle-livedata-2.2.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/f778ad280cfee397c3d864e057afdb50/transformed/lifecycle-livedata-core-2.5.1-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common/2.5.1/1fdb7349701e9cf2f0a69fc10642b6fef6bb3e12/lifecycle-common-2.5.1.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/cb2441eec51374458c92da11585c5aa5/transformed/lifecycle-viewmodel-2.5.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/3996df0170cf027a8bd6003830f8afa4/transformed/savedstate-ktx-1.2.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/3d4a8d0fa945931008ea19e0401ba806/transformed/savedstate-1.2.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/41ec21270e91d6cfdae57313b9ffa881/transformed/room-runtime-2.4.3-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/6047d97130ee73a3c5ea61a21470e958/transformed/lifecycle-viewmodel-2.5.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/e8068c22fd9a3c90f8deed7eb0150621/transformed/savedstate-ktx-1.2.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/eb83a760366222caef63584c5708f32b/transformed/savedstate-1.2.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/4e78cb4fc1e55aec7b548293be7dd5e3/transformed/room-runtime-2.4.3-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.room/room-common/2.4.3/63d9f9cb245ee9b4c8ebb8aca201661f99583ffa/room-common-2.4.3.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/a1b10844d88486e80b67c85315d59a99/transformed/sqlite-framework-2.2.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ccbe1d43147fac85df18c570d3c230c7/transformed/sqlite-2.2.0-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/89c4d832fe7c2a3cd178b24d8648e82c/transformed/versionedparcelable-1.1.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/74801188326a963203890a551afdb34a/transformed/core-runtime-2.1.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/5b5f2654272634ba1d89656348fdd04a/transformed/sqlite-framework-2.2.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/77d5dc14ad85ebcaa122c541998cb660/transformed/sqlite-2.2.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/b2fae2ac189ea7f408976459aeb933bb/transformed/versionedparcelable-1.1.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/1768041454159c6288b22ae30c8a55c0/transformed/core-runtime-2.1.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.arch.core/core-common/2.1.0/b3152fc64428c9354344bd89848ecddc09b6f07e/core-common-2.1.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.collection/collection/1.1.0/1f27220b47669781457de0d600849a5de0e89909/collection-1.1.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.annotation/annotation/1.5.0/857678d6b4ca7b28571ef7935c668bdb57e15027/annotation-1.5.0.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/2.10.0/accaddddbb597fb70290fd40358b1ce66b8c2b3d/okio-jvm-2.10.0.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/952cf44ddd11b86b7fc91eaab168435a/transformed/media3-exoplayer-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/451718b235b1897cd57bae35be4e6770/transformed/media3-session-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/c714e14e0c91bf92d3beb62e8dd3c87f/transformed/media3-common-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/dfb1daa103d1ffb8acdaa6b37c43acc2/transformed/annotation-experimental-1.3.0-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/ac9214a157fee260afabc9bc031f2f9b/transformed/media3-exoplayer-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/3e410acf78ab956aa0ae75005787a45f/transformed/media3-session-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/aab6a228ea7fa486120a649ff18627db/transformed/media3-common-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/21cdfaf0529334e92ef7585475f1ff92/transformed/annotation-experimental-1.3.0-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.7.10/d2abf9e77736acc4450dc4a3f707fa2c10f5099d/kotlin-stdlib-1.7.10.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.7.10/bac80c520d0a9e3f3673bc2658c6ed02ef45a76a/kotlin-stdlib-common-1.7.10.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/dbdba792cca9208c9bd8cee686ef861f/transformed/exoplayer-core-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/63283ba60827f84a7d27c0bc821d9e4b/transformed/exoplayer-common-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/73ddcdbb294c08315b6d26fe1ad202c4/transformed/exoplayer-core-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/81075096d1fe4f6764b384180d9de769/transformed/exoplayer-common-2.18.1-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/31.0.1-android/b400db548e748a1a60ba18543ad4fbb44a675a69/guava-31.0.1-android.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/b421526c5f297295adef1c886e5246c39d4ac629/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.compose.compiler/compiler/1.3.2/335219e4e0172fb22076cdd1ebeb609644657ab5/compiler-1.3.2.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.dagger/hilt-core/2.43.2/337bddcc089f0d98895bb495ea8cb75c97c0ebd3/hilt-core-2.43.2.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.dagger/dagger/2.43.2/911d07691411f7cbccf00d177ac41c1af3873cbb/dagger-2.43.2.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.inject/javax.inject/1/6975da39a7040257bd51d21a231b76c915872d38/javax.inject-1.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/47ee6de5e378b97f94ae4ccc36a9ae31/transformed/dagger-lint-aar-2.43.2-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/dc23fd1f6328f9e65dadd57bd3d49a50/transformed/dagger-lint-aar-2.43.2-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/25ea2e8b0c338a877313bd4672d3fe056ea78f0d/jsr305-3.0.2.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.5/f645ed69d595b24d4cf8b3fbb64cc505bede8829/gson-2.8.5.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/0f701329ff6b9f668ab391870700df59/transformed/accompanist-insets-0.24.7-alpha-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/09305b66f6dd1d790457c424c6325d7d/transformed/accompanist-permissions-0.26.5-rc-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/f52ea856b299f40dc16a4b6a9e4074a9/transformed/media3-ui-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/21ebc01d5d38f118aaaccf4f6f8a888d/transformed/accompanist-insets-0.24.7-alpha-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/ad13edc6e3dfe0692d9bedba69887413/transformed/accompanist-permissions-0.26.5-rc-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/cb36f7b7b192d7b7d5eb4fadf7ea9f4b/transformed/media3-ui-1.0.0-beta02-api.jar</arg>
                 <arg>$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/failureaccess/1.0.1/1dcf1de382a0bf95a3d8b0849546c88bac1292c9/failureaccess-1.0.1.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/9d6ff55756911f29bf0a0c21c5df1f3b/transformed/media3-database-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/e426e453e69a45301af64ee64d022aa4/transformed/media3-datasource-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/2ea6267b1411d2cb1630d5b7fc17a82d/transformed/media3-decoder-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/6e8dbef8af3de79ead78524c7fd3caeb/transformed/media3-extractor-1.0.0-beta02-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/4e5867fb3ff418965c33d80b72a57570/transformed/exoplayer-database-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/73a1afe504e71e1874a18764a462bc12/transformed/exoplayer-datasource-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/4131e391ec642f24474eeba9d19c5fb1/transformed/exoplayer-decoder-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/97d91d767f4ff5471022f51cfaa989fd/transformed/exoplayer-extractor-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/2d7a61fd25cc152eb7c1eb0503fc670c/transformed/exoplayer-dash-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/09ad1e903cc5e65ef8727cb46909f60d/transformed/exoplayer-hls-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/898485ecf67335369f50943391af63b8/transformed/exoplayer-rtsp-2.18.1-api.jar</arg>
-                <arg>$USER_HOME$/.gradle/caches/transforms-3/ecf070559f9e7493a74da75b9d1a5ab7/transformed/exoplayer-smoothstreaming-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/fe2d947a6af9668e1094aed8093e61df/transformed/media3-database-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/4a6ded7c333681102bff48b67c815af0/transformed/media3-datasource-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/ac008310f6a160d003d2a975b10fc379/transformed/media3-decoder-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/2e59d4b7b36c444e92f552e0e1bb3bd3/transformed/media3-extractor-1.0.0-beta02-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/c2c71804f28b91ef052ab0c1ac931657/transformed/exoplayer-database-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/132577dc343589ccfc11618ae6359e7f/transformed/exoplayer-datasource-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/af131e5538f02b1188a30600d3c5944f/transformed/exoplayer-decoder-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/bdcd2f18a74e954fcc87b89a7ea990c7/transformed/exoplayer-extractor-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/8c7fee20e6f2b74fd24475af9d29b473/transformed/exoplayer-dash-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/e84c13407820aa05c50603b06f0c22df/transformed/exoplayer-hls-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/dc44eea68159d4692a1e7481bfb21a1e/transformed/exoplayer-rtsp-2.18.1-api.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/48ab0253cea70cd0d4e38cb620ccc56d/transformed/exoplayer-smoothstreaming-2.18.1-api.jar</arg>
                 <arg>$USER_HOME$/AppData/Local/Android/Sdk/platforms/android-33/android.jar</arg>
                 <arg>$USER_HOME$/AppData/Local/Android/Sdk/build-tools/30.0.3/core-lambda-stubs.jar</arg>
               </args>

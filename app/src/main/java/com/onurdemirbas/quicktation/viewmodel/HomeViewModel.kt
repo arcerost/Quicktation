@@ -10,7 +10,7 @@ import com.onurdemirbas.quicktation.repository.QuicktationRepo
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,6 +18,7 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
     var errorMessage by mutableStateOf("")
     var scanIndex by mutableStateOf(0)
     var mainList = MutableStateFlow<List<Quotation>>(listOf())
+//    var mainList = mutableListOf<Quotation>()
     var likeCount = -1
 
     fun loadMains(userid: Int) {
@@ -46,7 +47,6 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
                 }
         }
     }
-    private var saveIndex = 0
     fun loadMainScans(userid: Int,scanIndexx: Int) {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
@@ -84,7 +84,7 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
                 initialMainList = mainList.value
                 isSearchStarting = false
             }
-            mainList.value = results
+            mainList.value = results.toMutableList()
         }
     }
 }

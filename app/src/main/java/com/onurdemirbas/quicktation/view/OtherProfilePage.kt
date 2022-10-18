@@ -656,7 +656,9 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                                 contentDescription = "microphone button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+                                        navController.navigate("create_quote_sound_page/$myId/$quoteText/$userPhoto/$username/$quoteId")
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             Image(painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",

@@ -164,7 +164,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
 
 @Composable
 fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
-    val postList by viewModel.mainList.collectAsState()
+    val postList = viewModel.mainList.collectAsState().value
     val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
@@ -175,17 +175,20 @@ fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         PostListView(posts = postList, navController = navController, myId)
     }
 }
+
 @Composable
 fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
     val context= LocalContext.current
     val scanIndex = viewModel.scanIndex
-    val postList by viewModel.mainList.collectAsState()    //cause postlist getting new values with scanindex
+    val postList = viewModel.mainList.collectAsState().value  //cause postlist getting new values with scanindex
     val errorMessage = remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
     val state = rememberLazyListState()
     val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts) { post ->
+        items(posts, key = {
+            it.id
+        }) { post ->
             MainRow(post = post, navController = navController, myId = myId)
         }
         item {
@@ -216,16 +219,19 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
         }
     }
 }
+
 @Composable
 fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
     viewModel.viewModelScope.launch {
         viewModel.amILike(myId,quoteId)
     }
 }
+
 private fun getVideoDurationSeconds(player: ExoPlayer): Int {
     val timeMs = player.duration.toInt()
     return timeMs / 1000
 }
+
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
@@ -334,7 +340,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     R.drawable.play
                                 else
                                     R.drawable.play_pause),
-                                contentDescription = "image",
+                                contentDescription = "play/pause",
                                 tint = Color.White, modifier = Modifier
                                     .padding(16.dp)
                                     .size(10.dp, 12.dp)
@@ -394,7 +400,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 contentDescription = "microphone button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
-                                    .clickable {})
+                                    .clickable {
+                                        navController.navigate("create_quote_sound_page/$myId/$quoteText/$userPhoto/$username/$quoteId")
+                                    })
                             Spacer(modifier = Modifier.padding(10.dp))
                             Image(
                                 painter = painterResource(id = R.drawable.share),
