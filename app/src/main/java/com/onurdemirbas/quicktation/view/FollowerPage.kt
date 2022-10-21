@@ -52,7 +52,8 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
     }
     val interactionSource =  MutableInteractionSource()
     val photo = viewModel.userPhoto.collectAsState(initial = "").value?:""
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -105,7 +106,7 @@ fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, actio
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$userId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,

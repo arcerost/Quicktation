@@ -52,11 +52,13 @@ import com.onurdemirbas.quicktation.viewmodel.EditProfileViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-
 @Composable
 fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProfileViewModel = hiltViewModel()) {
     viewModel.viewModelScope.launch {
         viewModel.loadUser(myId)
+    }
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     val context = LocalContext.current
     val userInfo = viewModel.userInfo.collectAsState()
@@ -70,11 +72,33 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val bitmap = remember { MutableStateFlow<Bitmap?>(null) }
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? -> imageUri = uri }
+    var photoChanged by remember { mutableStateOf(false) }
+    var uriChangeCheck by remember { mutableStateOf(false) }
     val byteArrayOutputStream = ByteArrayOutputStream()
     var byteArray by remember { mutableStateOf<ByteArray?>(null) }
     var encoded by remember { mutableStateOf<String?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    if(uriChangeCheck)
+    {
+        imageUri?.let {
+            if (Build.VERSION.SDK_INT < 28) {
+                bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            }
+            else {
+                val source = ImageDecoder.createSource(context.contentResolver, it)
+                bitmap.value = ImageDecoder.decodeBitmap(source)
+            }
+            bitmap.value?.let { btm ->
+                userPhotoForService = btm
+                uriChangeCheck = !uriChangeCheck
+                photoChanged = !photoChanged
+                bitmap.value!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                byteArray = byteArrayOutputStream.toByteArray()
+                encoded = Base64.encodeToString(byteArray, Base64.DEFAULT)
+            }
+        }
+    }
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -92,21 +116,6 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 modifier = Modifier.fillMaxSize()
             )
             {
-                imageUri?.let {
-                    if (Build.VERSION.SDK_INT < 28) {
-                        bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-                    }
-                    else {
-                        val source = ImageDecoder.createSource(context.contentResolver, it)
-                        bitmap.value = ImageDecoder.decodeBitmap(source)
-                    }
-                    bitmap.value?.let { btm ->
-                        userPhotoForService = btm
-                        bitmap.value!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-                        byteArray = byteArrayOutputStream.toByteArray()
-                        encoded = Base64.encodeToString(byteArray, Base64.DEFAULT)
-                    }
-                }
                 Spacer(modifier = Modifier.padding(top = 25.dp))
                 Text(text = "PROFİLİ DÜZENLE", fontSize = 18.sp, fontFamily = openSansBold)
                 Spacer(modifier = Modifier.padding(top = 15.dp))
@@ -118,7 +127,21 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 Spacer(modifier = Modifier.padding(top = 30.dp))
                 Box(contentAlignment = Alignment.Center)
                 {
-                    if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
+                    if(photoChanged)
+                    {
+                        Image(bitmap = bitmap.value!!.asImageBitmap(),"profile photo",contentScale = ContentScale.Crop, modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape))
+                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
+                        {
+                            IconButton(onClick = {
+                                launcher.launch("image/*")
+                            }) {
+                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
+                            }
+                        }
+                    }
+                    else if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
                         if(userPhotoForService == null)
                         {
                             Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier
@@ -147,6 +170,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         {
                             IconButton(onClick = {
                                 launcher.launch("image/*")
+                                uriChangeCheck = !uriChangeCheck
                             }) {
                                 Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
                             }
@@ -273,7 +297,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = "messages",

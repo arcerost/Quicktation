@@ -2,9 +2,13 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.CountDownTimer
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -74,7 +79,8 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         viewModel.loadMains(id)
     }
     val interactionSource =  MutableInteractionSource()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -138,7 +144,7 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$id") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,
@@ -235,6 +241,10 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
+    var audioPermCheck by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){isGranted: Boolean ->
+        audioPermCheck = isGranted
+    }
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
@@ -248,8 +258,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     var color: Color
     val context = LocalContext.current
     val playing = remember { mutableStateOf(false) }
-    var position by remember { mutableStateOf(0F) }
     //MEDIAPLAYERSTARTED
+    var position by remember { mutableStateOf(0F) }
     var duration: Int
     var durationForSlider by remember { mutableStateOf(0L) }
     val player = ExoPlayer.Builder(context).build()
@@ -311,7 +321,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        Spacer(modifier = Modifier.padding(15.dp))
+                        Spacer(modifier = Modifier.padding(start = 25.dp))
                         IconButton(onClick = {
                             if (playing.value) {
                                 playing.value = false
@@ -342,8 +352,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     R.drawable.play_pause),
                                 contentDescription = "play/pause",
                                 tint = Color.White, modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(10.dp, 12.dp)
+//                                    .padding(start = 0.dp)
+                                    .size(15.dp, 15.dp)
                             )
                         }
                         Slider(
@@ -366,24 +376,24 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         },
                             color = Color.White,
                             modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start=20.dp))
+                        Spacer(modifier = Modifier.padding(start=30.dp))
                         Text(
-                            text = "$likeCount BEĞENME" ,
+                            text = "$likeCount BEĞENİ" ,
                             color = Color.White,
                             modifier = Modifier
                                 .padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(end=5.dp))
+                        Spacer(modifier = Modifier.padding(end=10.dp))
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.padding(start = 15.dp, end = 15.dp)
+                        modifier = Modifier.padding(start = 15.dp)
                     )
                     {
                         HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
 
                         }
-                        Spacer(modifier = Modifier.padding(10.dp))
+                        Spacer(modifier = Modifier.padding(top = 40.dp))
                         Row(
                             verticalAlignment = Alignment.Bottom,
                             horizontalArrangement = Arrangement.Start,
@@ -394,16 +404,23 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             Text(
                                 text = "-$username",
                                 color = Color.White)
-                            Spacer(modifier = Modifier.padding(start = 180.dp))
+                            Spacer(modifier = Modifier.padding(start = 160.dp))
                             Image(
                                 painter = painterResource(id = R.drawable.voice_record),
                                 contentDescription = "microphone button",
                                 modifier = Modifier
                                     .size(21.dp, 21.dp)
                                     .clickable {
-                                        navController.navigate("create_quote_sound_page/$myId/$quoteText/$userPhoto/$username/$quoteId")
+                                        when (PackageManager.PERMISSION_GRANTED) {
+                                            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) -> {
+                                                navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
+                                            }
+                                            else -> {
+                                                launcher.launch(Manifest.permission.RECORD_AUDIO)
+                                            }
+                                        }
                                     })
-                            Spacer(modifier = Modifier.padding(10.dp))
+                            Spacer(modifier = Modifier.padding(start = 20.dp))
                             Image(
                                 painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
@@ -423,7 +440,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                             null
                                         )
                                     })
-                            Spacer(modifier = Modifier.padding(10.dp))
+                            Spacer(modifier = Modifier.padding(start = 20.dp))
                             IconButton(
                                 onClick = {
                                     isPressed = true
@@ -449,8 +466,8 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )
+                                Spacer(modifier = Modifier.padding(end = 10.dp))
                         }
-                            Spacer(modifier = Modifier.padding(end = 5.dp))
                             if (isPressed) {
                                 RefreshWithLike(viewModel, quoteId, myId)
                                 when(amILike){
@@ -496,9 +513,11 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
             Image(
                 painter = painter,
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
+                    .clip(CircleShape)
                     .clickable {
                         if (myId == userId) {
                             navController.navigate("my_profile_page/$myId")
@@ -509,10 +528,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
             )
         }
     }
-    Spacer(Modifier.padding(bottom = 15.dp))
-
-
-
+    Spacer(Modifier.padding(bottom = 10.dp))
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     DisposableEffect(lifecycleOwner) {
         val lifecycle = lifecycleOwner.lifecycle

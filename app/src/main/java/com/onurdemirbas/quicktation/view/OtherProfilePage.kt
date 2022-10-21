@@ -53,7 +53,8 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
         viewModel.loadQuotes(userId,myId)
     }
     val interactionSource =  MutableInteractionSource()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -113,7 +114,7 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,

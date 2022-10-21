@@ -18,7 +18,6 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
     var errorMessage by mutableStateOf("")
     var scanIndex by mutableStateOf(0)
     var mainList = MutableStateFlow<List<Quotation>>(listOf())
-//    var mainList = mutableListOf<Quotation>()
     var likeCount = -1
 
     fun loadMains(userid: Int) {

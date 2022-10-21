@@ -18,7 +18,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: HomeApi, api5: NotificationsApi, api6: LikeApi, api7: QuoteDetailApi, api8: MyProfileApi, api9: LikeSoundApi, api10: FollowerApi, api11: EditProfileApi, api12: ReportUserApi, api13: DeleteQuoteApi, api14: FollowUnfollowUserApi, api15: CreateQuoteSoundApi) = QuicktationRepo(api,api2,api3,api4,api5,api6,api7,api8,api9,api10,api11,api12,api13,api14,api15)
+    fun provideQuicktationRepository(api: RegisterApi, api2: LoginApi, api3: ForgotPwApi, api4: HomeApi, api5: NotificationsApi, api6: LikeApi, api7: QuoteDetailApi, api8: MyProfileApi, api9: LikeSoundApi, api10: FollowerApi, api11: EditProfileApi, api12: ReportUserApi, api13: DeleteQuoteApi, api14: FollowUnfollowUserApi, api15: CreateQuoteSoundApi, api16: CreateQuoteApi) = QuicktationRepo(api,api2,api3,api4,api5,api6,api7,api8,api9,api10,api11,api12,api13,api14,api15, api16)
 
 
     @Singleton
@@ -167,5 +167,15 @@ object AppModule {
             .baseUrl(BASE_URL)
             .build()
             .create(CreateQuoteSoundApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideQuicktationCreateQuoteApi(): CreateQuoteApi{
+        return  Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .build()
+            .create(CreateQuoteApi::class.java)
     }
 }

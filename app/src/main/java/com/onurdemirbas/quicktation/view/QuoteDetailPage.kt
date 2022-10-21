@@ -3,7 +3,6 @@
 package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
-import android.media.AudioAttributes
 import android.os.CountDownTimer
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -42,7 +41,6 @@ import com.onurdemirbas.quicktation.model.Sound
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,7 +49,8 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
         viewModel.loadQuote(userId, id)
     }
     val interactionSource =  MutableInteractionSource()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -111,7 +110,7 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$userId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,

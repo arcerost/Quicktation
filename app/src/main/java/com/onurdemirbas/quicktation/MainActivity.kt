@@ -177,8 +177,11 @@ class MainActivity: ComponentActivity() {
                     val userId4 = remember { it.arguments?.getInt("userId")}
                     EditProfilePage(navController = navController,userId4!!)
                 }
-                composable("create_quote_sound_page/{userId}/{quoteText}/{userPhoto}/{userName}/{quoteId}", arguments = listOf(
+                composable("create_quote_sound_page/{userId}/{postUserId}/{quoteText}/{userName}/{quoteId}", arguments = listOf(
                     navArgument("userId"){
+                        type = NavType.IntType
+                    },
+                    navArgument("postUserId"){
                         type = NavType.IntType
                     },
                     navArgument("quoteText"){
@@ -187,20 +190,25 @@ class MainActivity: ComponentActivity() {
                     navArgument("userName"){
                         type = NavType.StringType
                     },
-                    navArgument("userPhoto"){
-                        type = NavType.StringType
-                    },
                     navArgument("quoteId"){
                         type = NavType.IntType
-                    }
+                    },
                 ))
                 {
                     val userId5 = remember { it.arguments?.getInt("userId")}
+                    val postUserId = remember { it.arguments?.getInt("postUserId")}
                     val quoteId = remember { it.arguments?.getInt("quoteId")}
                     val quoteText = remember { it.arguments?.getString("quoteText")}
                     val userName = remember { it.arguments?.getString("userName")}
-                    val userPhoto = remember { it.arguments?.getString("userPhoto")}
-                    CreateQuoteSoundPage(navController = navController, userId = userId5!!, quoteText = quoteText!!, userPhoto = userPhoto, userName = userName!!, quoteId = quoteId!!)
+                    CreateQuoteSoundPage(navController = navController, userId = userId5!!, postUserId = postUserId!!, quoteText = quoteText!!, userName = userName!!, quoteId = quoteId!!)
+                }
+                composable("create_quote_page/{userId}", arguments = listOf(
+                    navArgument("userId"){
+                        type = NavType.IntType
+                    }
+                )){
+                    val userId6 = remember { it.arguments?.getInt("userId")}
+                    CreateQuotePage(navController = navController, userId = userId6!!)
                 }
             }
         }

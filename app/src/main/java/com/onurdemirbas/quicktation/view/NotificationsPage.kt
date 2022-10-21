@@ -27,7 +27,8 @@ import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 fun NotificationsPage(navController: NavController, myId: Int) {
     val interactionSource = MutableInteractionSource()
     val isPressed by interactionSource.collectIsPressedAsState()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -99,7 +100,7 @@ fun NotificationsPage(navController: NavController, myId: Int) {
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat_black),
                     contentDescription = null,

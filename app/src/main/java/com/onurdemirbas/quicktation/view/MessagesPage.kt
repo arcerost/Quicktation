@@ -41,7 +41,8 @@ fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesVie
     }
     val userPhoto = viewModel.userInfo.value.photo
     val interactionSource =  MutableInteractionSource()
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFDDDDDD)) {
+    Surface(Modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
     Column(
         verticalArrangement = Arrangement.Top,
@@ -129,7 +130,7 @@ fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesVie
                         .clickable(
                             interactionSource,
                             indication = null
-                        ) { navController.navigate("home_page") }
+                        ) { navController.navigate("create_quote_page/$myId") }
                         .size(28.dp, 31.dp))
                 Image(painter = painterResource(id = R.drawable.chat),
                     contentDescription = null,
