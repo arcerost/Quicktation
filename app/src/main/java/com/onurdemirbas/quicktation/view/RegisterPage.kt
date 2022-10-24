@@ -23,11 +23,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -48,6 +47,7 @@ import java.security.MessageDigest
 @Composable
 fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hiltViewModel()) {
     val name = remember { mutableStateOf(TextFieldValue())}
+    val username = remember { mutableStateOf(TextFieldValue()) }
     val email = remember { mutableStateOf(TextFieldValue())}
     val password = remember { mutableStateOf(TextFieldValue())}
     val password2 = remember { mutableStateOf(TextFieldValue())}
@@ -93,10 +93,20 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                         focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent,  unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "İsim Soyisim", color= Color.White, fontFamily = openSansFontFamily)
             })
+            TextField(value = username.value, onValueChange ={
+                username.value = it
+            },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()
+                        focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent,  unfocusedIndicatorColor = Color.White), placeholder = {
+                    Text(text = "Kullanıcı adı", color= Color.White, fontFamily = openSansFontFamily)
+                })
             TextField(value = email.value, onValueChange ={
                 email.value = it
             },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Email),
+                textStyle  = TextStyle(),
                 keyboardActions = KeyboardActions(
                     onDone = {keyboardController?.hide()
                         focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
@@ -156,12 +166,14 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                                 email = email.value.text,
                                                 password = md5(password.value.text),
                                                 namesurname = name.value.text,
+                                                username = username.value.text.lowercase(),
                                                 navController = navController
                                             )
                                             viewModel.viewModelScope.launch {
                                                 delay(600)
                                                 val errorMessage = viewModel.errorMessage
                                                 if (errorMessage.value.isEmpty()) {
+                                                    //none
                                                 } else {
                                                     Toast.makeText(
                                                         context,

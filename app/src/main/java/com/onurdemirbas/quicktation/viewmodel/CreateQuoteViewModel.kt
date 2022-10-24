@@ -12,12 +12,13 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateQuoteViewModel @Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
     var errorMessage = mutableStateOf("")
+    var quoteId = mutableStateOf(0)
     fun sendQuote(userId: Int, quote_sound: String, quote_text: String) {
         viewModelScope.launch {
             when(val result = repository.postCreateQuoteApi(userId, quote_sound, quote_text)){
                 is Resource.Success ->
                 {
-
+                    quoteId.value = result.data!!.response
                 }
                 is Resource.Error ->
                 {

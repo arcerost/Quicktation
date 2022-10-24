@@ -10,5 +10,6 @@ data class UserInfo(
     var likeCount: Int,
     var namesurname: String,
     val password: String,
-    var photo: String?
+    var photo: String?,
+    var username: String
 )

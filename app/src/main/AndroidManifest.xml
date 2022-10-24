@@ -20,12 +20,12 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/quicktationlogo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Quicktaion"
+        android:theme="@style/Theme.Quicktation"
         tools:targetApi="31">
         <activity
             android:name="com.onurdemirbas.quicktation.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Quicktaion">
+            android:theme="@style/Theme.Quicktation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

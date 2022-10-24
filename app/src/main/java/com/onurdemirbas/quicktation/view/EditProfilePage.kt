@@ -62,10 +62,12 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
     }
     val context = LocalContext.current
     val userInfo = viewModel.userInfo.collectAsState()
-    val userNameAlr = userInfo.value.namesurname
+    val nameSurnameAlr = userInfo.value.namesurname
     val userEmailAlr = userInfo.value.email
     val userPhotoAlr = userInfo.value.photo
-    val username = remember { mutableStateOf(TextFieldValue()) }
+    val usernameAlr = userInfo.value.username
+    val userName = remember { mutableStateOf(TextFieldValue()) }
+    val nameSurname = remember { mutableStateOf(TextFieldValue()) }
     val email = remember { mutableStateOf(TextFieldValue()) }
     var userPhotoForService by remember { mutableStateOf<Bitmap?>(null) }
     val interactionSource = MutableInteractionSource()
@@ -206,9 +208,9 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                 )
                 Spacer(modifier = Modifier.padding(20.dp))
                 OutlinedTextField(
-                    value = username.value,
+                    value = nameSurname.value,
                     onValueChange = {
-                        username.value = it
+                        nameSurname.value = it
                     },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
@@ -222,7 +224,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     shape = RoundedCornerShape(10.dp),
                     label = {
                         Text(
-                            text = userNameAlr
+                            text = nameSurnameAlr
                         )
                     },
                     leadingIcon = {
@@ -234,10 +236,37 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     },
                     singleLine = true
                 )
+                Spacer(modifier = Modifier.padding(top = 30.dp))
+                OutlinedTextField(
+                    value = userName.value,
+                    onValueChange = {
+                        userName.value = it
+                    },
+                    enabled = true,
+                    textStyle = TextStyle(fontFamily = openSansFontFamily),
+                    colors = TextFieldDefaults.textFieldColors(
+                        textColor = Color.Black,
+                        backgroundColor = Color(217, 217, 217, 255)
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    label = {
+                        Text(
+                            text = usernameAlr
+                        )
+                    },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.user),
+                            contentDescription = "username icon",
+                            Modifier.size(25.dp)
+                        )
+                    },
+                    singleLine = true
+                )
                 Spacer(modifier = Modifier.padding(30.dp))
                 Button(
                     onClick = {
-                        viewModel.loadEdit(myId, username.value.text, encoded?:"")
+                        viewModel.loadEdit(myId, nameSurname.value.text, encoded?:"",userName.value.text)
                         Toast.makeText(context, "Değişiklikler Kaydedildi.", Toast.LENGTH_LONG).show()
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Yellow),

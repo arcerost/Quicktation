@@ -5,7 +5,6 @@ package com.onurdemirbas.quicktation.view
 import android.Manifest
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
-import android.media.AudioRecord
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.CountDownTimer
@@ -48,13 +47,13 @@ import java.io.File
 import java.util.*
 
 
-var player = MediaPlayer()
-var pageCheck by mutableStateOf(false)
-var recCheck by mutableStateOf(0)
-var seconds by mutableStateOf(0)
-var minutes by mutableStateOf(0)
-val outputFile = Environment.getExternalStorageDirectory() .absolutePath + "/recording.3gpp"
-lateinit var recorder: MediaRecorder
+private var player = MediaPlayer()
+private var pageCheck by mutableStateOf(false)
+private var recCheck by mutableStateOf(0)
+private var seconds by mutableStateOf(0)
+private var minutes by mutableStateOf(0)
+private val outputFile = Environment.getExternalStorageDirectory() .absolutePath + "/recording.3gpp"
+private lateinit var recorder: MediaRecorder
 @Composable
 fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: Int, quoteText: String, userName: String, quoteId: Int, viewModel: CreateQuoteSoundViewModel = hiltViewModel()) {
     val interactionSource =  MutableInteractionSource()
@@ -87,7 +86,7 @@ fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: 
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(painter = painterResource(id = R.drawable.home),
+                Image(painter = painterResource(id = R.drawable.homeblack),
                     contentDescription = null,
                     modifier = Modifier
                         .clickable(
@@ -103,7 +102,7 @@ fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: 
                             indication = null
                         ) { navController.navigate("notifications_page/${userId}") }
                         .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
+                Image(painter = painterResource(id = R.drawable.add),
                     contentDescription = null,
                     modifier = Modifier
                         .clickable(
@@ -132,7 +131,7 @@ fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: 
     }
 }
 
-fun startRecord() {
+private fun startRecord() {
     recorder= MediaRecorder().apply {
         setAudioSource(MediaRecorder.AudioSource.MIC)
         setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
@@ -149,15 +148,11 @@ fun startRecord() {
         }
     }
 }
-fun stopRecord()
-{
+private fun stopRecord() {
     recorder.stop()
     recorder.reset()
 }
-fun audioRecorder(audioRecord: AudioRecord) {
-    
-}
-fun startPlayer(mediaPlayer: MediaPlayer) {
+private fun startPlayer(mediaPlayer: MediaPlayer) {
     mediaPlayer.apply {
         setAudioAttributes(
             AudioAttributes.Builder()
@@ -183,17 +178,14 @@ fun startPlayer(mediaPlayer: MediaPlayer) {
         }
     }
 }
-
-fun stopPlayer(mediaPlayer: MediaPlayer) {
+private fun stopPlayer(mediaPlayer: MediaPlayer) {
     mediaPlayer.stop()
     mediaPlayer.reset()
 }
-
 private fun getVideoDurationSeconds(player: MediaPlayer): Int {
     val timeMs = player.duration
     return timeMs / 1000
 }
-
 @Composable
 fun CreateMain(navController: NavController, userId: Int, quoteText: String, userPhoto: String?, userName: String, quoteId: Int,  viewModel: CreateQuoteSoundViewModel = hiltViewModel()) {
     var position by remember { mutableStateOf(0F) }

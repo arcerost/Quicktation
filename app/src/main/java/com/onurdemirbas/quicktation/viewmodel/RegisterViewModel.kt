@@ -17,10 +17,11 @@ class RegisterViewModel @Inject constructor(private val repository: QuicktationR
         email: String,
         password: String,
         namesurname: String,
+        username: String,
         navController: NavController
     ) {
         viewModelScope.launch {
-            val result = repository.postRegisterApi(email, password, namesurname)
+            val result = repository.postRegisterApi(email, password, namesurname, username)
             if (result.message != null && result.message != "")
             {
                 result.message.let {
@@ -31,13 +32,6 @@ class RegisterViewModel @Inject constructor(private val repository: QuicktationR
             {
                 navController.navigate("open_page")
             }
-            /*
-            if(result.data!!.error ==1)
-            {
-                errorMessage.value = result.message!!
-            }
-
-             */
         }
     }
 

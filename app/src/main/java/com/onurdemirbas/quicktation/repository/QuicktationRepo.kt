@@ -11,8 +11,8 @@ import kotlin.Exception
 class QuicktationRepo @Inject constructor(private val api: RegisterApi, private val api2: LoginApi, private val api3: ForgotPwApi, private val api4: HomeApi, private val api5: NotificationsApi, private val api6: LikeApi, private val api7: QuoteDetailApi, private val api8: MyProfileApi, private val api9: LikeSoundApi, private val api10: FollowerApi, private val api11: EditProfileApi, private val api12: ReportUserApi, private val api13: DeleteQuoteApi, private val api14: FollowUnfollowUserApi, private val api15: CreateQuoteSoundApi, private val api16: CreateQuoteApi) {
     private lateinit var hatametni: String
     private lateinit var loginError: String
-    suspend fun postRegisterApi(email: String, password: String, namesurname: String): Resource<RegisterResponse> {
-        val request = Register(email, password, namesurname)
+    suspend fun postRegisterApi(email: String, password: String, namesurname: String, username: String): Resource<RegisterResponse> {
+        val request = Register(email, password, namesurname, username)
         val response = api.postRegisterApi(request)
         try {
             when (response.error) {
@@ -30,7 +30,6 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         }
         return Resource.Success(response)
     }
-
     suspend fun postLoginApi(email: String, password: String): Resource<LoginResponse> {
         val request = Login(email, password)
         val response = api2.postLoginApi(request)
@@ -283,9 +282,9 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
         return Resource.Success(response)
     }
 
-    suspend fun postEditProfileApi(userId: Int,namesurname: String, userPhoto: String?): Resource<EditProfileResponse>
+    suspend fun postEditProfileApi(userId: Int,namesurname: String, userPhoto: String?, username: String?): Resource<EditProfileResponse>
     {
-        val request = EditProfile(userId,namesurname, userPhoto!!)
+        val request = EditProfile(userId,username,userPhoto!!,namesurname)
         val response = api11.postEditProfileApi(request)
         try {
             when (response.error) {

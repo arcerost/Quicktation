@@ -79,92 +79,91 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         viewModel.loadMains(id)
     }
     val interactionSource =  MutableInteractionSource()
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Scaffold(Modifier.fillMaxSize(), bottomBar = {
+        BottomNavigation {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(painter = painterResource(id = R.drawable.home),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource,
+                                indication = null
+                            ) { navController.navigate("home_page") }
+                            .size(28.dp, 31.dp))
+                    Image(painter = painterResource(id = R.drawable.notifications_black),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource,
+                                indication = null
+                            ) { navController.navigate("notifications_page/${id}") }
+                            .size(28.dp, 31.dp))
+                    Image(painter = painterResource(id = R.drawable.add_black),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource,
+                                indication = null
+                            ) { navController.navigate("create_quote_page/$id") }
+                            .size(28.dp, 31.dp))
+                    Image(painter = painterResource(id = R.drawable.chat_black),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource,
+                                indication = null
+                            ) { navController.navigate("messages_page/${id}") }
+                            .size(28.dp, 31.dp))
+                    Image(painter = painterResource(id = R.drawable.profile_black),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource,
+                                indication = null
+                            ) { navController.navigate("my_profile_page/${id}") }
+                            .size(28.dp, 31.dp))
+                }
+            }
+        }
+    }) {
+
+        Surface(Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
+        }
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
-        )
-        {
-            SearchBar(hint = "Ara...", modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
-                viewModel.searchMainList(it)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            )
+            {
+                SearchBar(hint = "Ara...", modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)) {
+                    viewModel.searchMainList(it)
+                }
+                PostList(navController = navController, myId = id)
             }
-            PostList(navController = navController, myId = id)
         }
     }
     //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.home),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/${id}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$id") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${id}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/${id}") }
-                        .size(28.dp, 31.dp))
-            }
-        }
-    }
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
+//    )
+//    {
+//
+//    }
 }
 
 
@@ -412,7 +411,10 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     .size(21.dp, 21.dp)
                                     .clickable {
                                         when (PackageManager.PERMISSION_GRANTED) {
-                                            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) -> {
+                                            ContextCompat.checkSelfPermission(
+                                                context,
+                                                Manifest.permission.RECORD_AUDIO
+                                            ) -> {
                                                 navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
                                             }
                                             else -> {

@@ -4,5 +4,6 @@ data class EditProfileEditResponse(
     val namesurname: String,
     val userEmail: String,
     val userId: Int,
-    val userPhoto: String
+    val userPhoto: String,
+    val username: String
 )

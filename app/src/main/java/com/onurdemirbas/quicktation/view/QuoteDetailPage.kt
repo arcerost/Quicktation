@@ -466,7 +466,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
             Image(
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -485,7 +485,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
             Image(
                 painter = painter,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -692,8 +692,8 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
         if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
             Image(
                 painter = painterResource(id = R.drawable.pp),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentDescription = "profile photo",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(horizontal = 10.dp)
                     .size(44.dp, 44.dp)
@@ -709,17 +709,21 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
         }
         else {
             val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
-            Image(painter = painter, contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .size(44.dp, 44.dp)
-                .clickable {
-                    if (myId == userId) {
-                        navController.navigate("my_profile_page/$myId")
-                    } else {
-                        navController.navigate("other_profile_page/$userId/$myId")
+            Image(
+                painter = painter,
+                contentDescription = "profile photo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .size(44.dp, 44.dp)
+                    .clickable {
+                        if (myId == userId) {
+                            navController.navigate("my_profile_page/$myId")
+                        } else {
+                            navController.navigate("other_profile_page/$userId/$myId")
+                        }
                     }
-                }
-                .clip(CircleShape)
+                    .clip(CircleShape)
             )
         }
     }

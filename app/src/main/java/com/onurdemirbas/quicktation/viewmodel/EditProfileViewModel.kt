@@ -16,16 +16,18 @@ import javax.inject.Inject
 class EditProfileViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel()  {
     var userphoto = MutableStateFlow("")
     var nameSurname = MutableStateFlow("")
+    var userName =  MutableStateFlow("")
     var errorMessage = mutableStateOf("")
-    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
-    fun loadEdit(userId: Int, namesurname: String, userPhoto: String)
+    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
+    fun loadEdit(userId: Int, namesurname: String, userPhoto: String, username: String?)
     {
         viewModelScope.launch {
-            when(val result = repository.postEditProfileApi(userId, namesurname, userPhoto))
+            when(val result = repository.postEditProfileApi(userId, namesurname, userPhoto, username))
             {
                 is Resource.Success -> {
                     userphoto.value = result.data!!.response.userPhoto
                     nameSurname.value = result.data.response.namesurname
+                    userName.value =  result.data.response.username
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
