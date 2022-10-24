@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MessagesViewModel @Inject constructor(private val repository: QuicktationRepo) : ViewModel(){
     var errorMessage = mutableStateOf("")
-    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
+    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
     fun loadQuotes(myUserId: Int) {
         viewModelScope.launch {
             when (val result = repository.postMyProfileApi(myUserId,myUserId)) {

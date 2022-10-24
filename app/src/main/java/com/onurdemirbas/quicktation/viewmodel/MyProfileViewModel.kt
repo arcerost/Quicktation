@@ -16,7 +16,7 @@ import javax.inject.Inject
 class MyProfileViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
     var likeCount = MutableStateFlow(-1)
     var posts = MutableStateFlow<List<QuoteFromMyProfile>>(listOf())
-    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","",""))
+    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
     fun loadQuotes(myUserId: Int) {
