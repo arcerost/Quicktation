@@ -468,9 +468,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
-
-                        }
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId)
                         Spacer(modifier = Modifier.padding(top = 20.dp))
                         Row(
                             verticalAlignment = Alignment.Bottom,

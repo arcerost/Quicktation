@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.repository
 
+import android.util.Log
 import com.onurdemirbas.quicktation.model.*
 import com.onurdemirbas.quicktation.service.*
 import com.onurdemirbas.quicktation.util.Resource
@@ -403,6 +404,50 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
 
         val request = CreateQuote(userId, quote_sound,quote_text)
         val response = api16.postDeleteQuoteApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postSearchApi(userId: Int, action: String, searchKey: String, scanIndex: Int): Resource<SearchResponse> {
+        val request = Search(userId, action, searchKey, scanIndex)
+        val response = api4.postSearchApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postSearchQuoteApi(userId: Int, action: String, searchKey: String, scanIndex: Int): Resource<SearchQuoteResponse> {
+        val request = Search(userId, action, searchKey, scanIndex)
+        val response = api4.postSearchQuoteApi(request)
         try {
             when (response.error) {
                 "0" -> {

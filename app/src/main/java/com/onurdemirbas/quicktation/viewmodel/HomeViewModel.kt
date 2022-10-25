@@ -1,11 +1,13 @@
 package com.onurdemirbas.quicktation.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.Quotation
+import com.onurdemirbas.quicktation.model.User
 import com.onurdemirbas.quicktation.repository.QuicktationRepo
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +19,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
     var errorMessage by mutableStateOf("")
     var scanIndex by mutableStateOf(0)
+    var user = MutableStateFlow<List<User>>(listOf())
+    var quotes = MutableStateFlow<List<Quotation>>(listOf())
     var mainList = MutableStateFlow<List<Quotation>>(listOf())
     var likeCount = -1
 
@@ -62,28 +66,29 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
             }
         }
     }
-    private var isSearchStarting = true
-    private var initialMainList = listOf<Quotation>()
-    fun searchMainList(query: String) {
-        val listToSearch = if(isSearchStarting) {
-            mainList.value
-        } else {
-            initialMainList
+
+    fun search(userId: Int, action: String, searchKey: String, scanIndex: Int){
+        viewModelScope.launch {
+            when(val result = repository.postSearchApi(userId, action, searchKey, scanIndex)){
+                is Resource.Success -> {
+                    user.value = result.data!!.response.users
+                }
+                is Resource.Error -> {
+                    errorMessage = result.message!!
+                }
+            }
         }
-        viewModelScope.launch(Dispatchers.Default) {
-            if(query.isEmpty()) {
-                mainList.value = initialMainList
-                isSearchStarting = true
-                return@launch
+    }
+    fun searchQuote(userId: Int, action: String, searchKey: String, scanIndex: Int){
+        viewModelScope.launch {
+            when(val result = repository.postSearchQuoteApi(userId, action, searchKey, scanIndex)){
+                is Resource.Success -> {
+                    quotes.value = result.data!!.response.quotations
+                }
+                is Resource.Error -> {
+                    errorMessage = result.message!!
+                }
             }
-            val results = listToSearch.filter {
-                it.quote_text.contains(query.trim(), ignoreCase = true)
-            }
-            if(isSearchStarting) {
-                initialMainList = mainList.value
-                isSearchStarting = false
-            }
-            mainList.value = results.toMutableList()
         }
     }
 }

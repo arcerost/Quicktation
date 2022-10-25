@@ -551,7 +551,7 @@ fun QuoteRow(navController: NavController, userId: Int, quoteText: String, userP
                     Spacer(modifier = Modifier.padding(15.dp))
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Start) {
                         Spacer(modifier = Modifier.padding(start = 15.dp))
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = userId) {}
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = userId)
                     }
                     Spacer(modifier = Modifier.padding(15.dp))
                     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Start) {

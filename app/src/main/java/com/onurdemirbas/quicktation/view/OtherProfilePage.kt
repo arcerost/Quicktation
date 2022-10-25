@@ -640,9 +640,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                         modifier = Modifier.padding(start = 15.dp, end = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
-
-                        }
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId)
                         Spacer(modifier = Modifier.padding(10.dp))
                         Row(
                             verticalAlignment = Alignment.Bottom,

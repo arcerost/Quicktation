@@ -6,18 +6,17 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,14 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -44,6 +38,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -146,26 +142,23 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
                 modifier = Modifier.fillMaxSize()
             )
             {
-                SearchBar(hint = "Ara...", modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)) {
-                    viewModel.searchMainList(it)
-                }
+                SearchBar(id,viewModel,navController)
                 PostList(navController = navController, myId = id)
             }
         }
     }
-    //BottomBar
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-//    )
-//    {
-//
-//    }
+}
+private fun getVideoDurationSeconds(player: ExoPlayer): Int {
+    val timeMs = player.duration.toInt()
+    return timeMs / 1000
 }
 
+@Composable
+fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
+    viewModel.viewModelScope.launch {
+        viewModel.amILike(myId,quoteId)
+    }
+}
 
 @Composable
 fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
@@ -223,18 +216,6 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
             checkState= !checkState
         }
     }
-}
-
-@Composable
-fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
-    viewModel.viewModelScope.launch {
-        viewModel.amILike(myId,quoteId)
-    }
-}
-
-private fun getVideoDurationSeconds(player: ExoPlayer): Int {
-    val timeMs = player.duration.toInt()
-    return timeMs / 1000
 }
 
 @OptIn(ExperimentalCoilApi::class)
@@ -389,9 +370,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         modifier = Modifier.padding(start = 15.dp)
                     )
                     {
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId) {
-
-                        }
+                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId)
                         Spacer(modifier = Modifier.padding(top = 40.dp))
                         Row(
                             verticalAlignment = Alignment.Bottom,
@@ -567,7 +546,6 @@ fun HashText(
     linkTextFontWeight: FontWeight = FontWeight.Medium,
     linkTextDecoration: TextDecoration = TextDecoration.Underline,
     fontSize: TextUnit = TextUnit.Unspecified,
-    onClick: () -> Unit,
 ) {
     var startIndex: Int
     var endIndex: Int
@@ -642,30 +620,73 @@ fun HashText(
 }
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier, hint: String = "", onSearch: (String) -> Unit = {}) {
+fun SearchBar(myId: Int,viewModel: HomeViewModel, navController: NavController) {
     var text by remember { mutableStateOf("") }
-    var isHintDisplayed by remember { mutableStateOf(hint != "") }
+    var textExpand by remember { mutableStateOf(false) }
+    val users = viewModel.user.collectAsState().value
+    var userId by remember { mutableStateOf(-1) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    Box(modifier = modifier) {
-        BasicTextField(value = text, onValueChange = {
-            text = it
-            onSearch(it)
-        }, maxLines = 1, singleLine = true,
+    var pageCheck by remember { mutableStateOf(false) }
+    Box {
+            DropdownMenu(expanded = textExpand, onDismissRequest = { textExpand = false }, modifier = Modifier.fillMaxWidth(), properties = PopupProperties(focusable = false, dismissOnClickOutside = true, dismissOnBackPress = true)){
+                users.forEach{
+                    DropdownMenuItem(onClick = {
+                        userId = it.id
+                        if(myId == userId)
+                            navController.navigate("my_profile_page/$myId")
+                        else
+                            navController.navigate("other_profile_page/$userId/$myId")
+                    }) {
+                        Text(text = it.username)
+                    }
+                }
+        }
+        TextField(value = text,
+            onValueChange = {
+                text = it
+                if(text.startsWith("@"))
+                {
+                    if(text.length>3)
+                    {
+                        viewModel.viewModelScope.launch {
+                            val sendText = text.removeRange(0,1)
+                            viewModel.search(myId,"user",sendText,0)
+                            textExpand = true
+                        }
+                    }
+                }
+            },
+            maxLines = 1,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
-                onDone = {keyboardController?.hide()
-                    focusManager.clearFocus()})
-            ,textStyle = TextStyle(color = Color.Black), modifier = Modifier
+                onDone = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    navController.navigate("search_page/$myId/$text")
+                }),
+            textStyle = TextStyle(color = Color.Black),
+            modifier = Modifier
                 .fillMaxWidth()
-                .shadow(5.dp, CircleShape)
-                .background(Color.White, CircleShape)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-                .onFocusChanged {
-                    isHintDisplayed = it.isFocused != true && text.isEmpty()
-                })
-        if(isHintDisplayed) {
-            Text(text = hint, color = Color.LightGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
-        }
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            placeholder = {
+                Text(text = "Ara..", fontSize = 12.sp)
+            },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search),
+                    contentDescription = "search",
+                    modifier = Modifier.size(30.dp),
+                    tint = Color.Black
+                )
+            },
+            shape = CircleShape,
+            colors = TextFieldDefaults.textFieldColors(
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent
+            )
+        )
     }
 }

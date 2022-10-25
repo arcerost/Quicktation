@@ -212,6 +212,19 @@ class MainActivity: ComponentActivity() {
                         val userId6 = remember { it.arguments?.getInt("userId")}
                         CreateQuotePage(navController = navController, userId = userId6!!)
                     }
+                    composable("search_page/{myId}/{text}", arguments = listOf(
+                        navArgument("myId"){
+                            type = NavType.IntType
+                        },
+                        navArgument("text"){
+                            type = NavType.StringType
+                        }
+                    ))
+                    {
+                        val myId = remember { it.arguments?.getInt("myId")}
+                        val text = remember { it.arguments?.getString("text")}
+                        SearchPage(myId!!,text!!,navController)
+                    }
                 }
             }
         }
