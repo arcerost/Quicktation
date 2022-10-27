@@ -44,10 +44,7 @@ import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 @Composable
 fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileViewModel = hiltViewModel()) {
@@ -138,10 +135,10 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
     val openDialog2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     var exit by remember { mutableStateOf(false) }
-    val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
+    val db: UserDatabase =
+        Room.databaseBuilder(context, UserDatabase::class.java, "UserInfo").build()
     val userDao = db.UserDao()
-    if(exit)
-    {
+    if (exit) {
         viewModel.viewModelScope.launch {
             val userDb = userDao.getUser()
             userDao.delete(userDb)
@@ -149,17 +146,32 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxSize()) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Spacer(Modifier.padding(top = 15.dp))
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = {openDialog2.value = !openDialog2.value }) {
-                    Icon(painter = painterResource(id = R.drawable.options), contentDescription = "options",
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = { openDialog2.value = !openDialog2.value }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.options),
+                        contentDescription = "options",
                         modifier = Modifier
-                            .size(52.dp, 20.dp))
+                            .size(52.dp, 20.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
@@ -175,8 +187,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                         builder = {})
                     Image(
                         painter = painter,
-                        contentScale = ContentScale.Crop
-                        ,contentDescription = null,
+                        contentScale = ContentScale.Crop, contentDescription = null,
                         modifier = Modifier
                             .size(75.dp, 75.dp)
                             .clip(CircleShape)
@@ -198,107 +209,154 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 TextButton(onClick = {
                     navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(text = "Takipçiler\n        ${user.value.followerCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                    Text(
+                        text = "Takipçiler\n        ${user.value.followerCount}",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily
+                    )
                 }
                 TextButton(onClick = {
                     navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(text = "Takip Edilenler\n            ${user.value.followCount}", fontSize = 16.sp, fontFamily = openSansFontFamily)
+                    Text(
+                        text = "Takip Edilenler\n            ${user.value.followCount}",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily
+                    )
                 }
-                Text(text = "Beğeniler\n       ${user.value.likeCount}", fontSize = 16.sp, fontFamily = openSansFontFamily, letterSpacing = 1.sp)
+                Text(
+                    text = "Beğeniler\n       ${user.value.likeCount}",
+                    fontSize = 16.sp,
+                    fontFamily = openSansFontFamily,
+                    letterSpacing = 1.sp
+                )
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
-            ProfilePostList(navController = navController,myId)
+            ProfilePostList(navController = navController, myId)
         }
     }
-    if(openDialog2.value)
-    {
-        Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog2.value = !openDialog2.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                .background(
-                    color = Color(4, 108, 122, 204),
-                    shape = RoundedCornerShape(
-                        topStart = 20.dp,
-                        topEnd = 20.dp,
-                        bottomEnd = 0.dp,
-                        bottomStart = 0.dp
+    if (openDialog2.value) {
+        Popup(
+            alignment = Alignment.BottomCenter,
+            onDismissRequest = { openDialog2.value = !openDialog2.value },
+            properties = PopupProperties(
+                focusable = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204),
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomEnd = 0.dp,
+                            bottomStart = 0.dp
+                        )
                     )
-                )
-                .size(750.dp, 220.dp)
-                //.wrapContentSize()
-                .windowInsetsPadding(WindowInsets.ime))
+                    .size(750.dp, 220.dp)
+                    //.wrapContentSize()
+                    .windowInsetsPadding(WindowInsets.ime)
+            )
             {
-                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                Column(
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Divider(
+                        color = Color.Black,
+                        thickness = 3.dp,
+                        modifier = Modifier.size(width = 30.dp, height = 3.dp)
+                    )
                     Spacer(modifier = Modifier.padding(top = 20.dp))
-                        Button(onClick = {
-                            exit=!exit
-                        }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.logout),
-                                    contentDescription = "delete post",
-                                    Modifier.size(25.dp)
-                                )
-                                Spacer(modifier = Modifier.padding(start = 20.dp))
-                                Text(
-                                    text = "Çıkış Yap",
-                                    fontFamily = openSansBold,
-                                    fontSize = 17.sp,
-                                    color = Color.Black
-                                )
-                            }
+                    Button(
+                        onClick = {
+                            exit = !exit
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 50.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.logout),
+                                contentDescription = "delete post",
+                                Modifier.size(25.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(start = 20.dp))
+                            Text(
+                                text = "Çıkış Yap",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
+                    }
                     Spacer(modifier = Modifier.padding(top = 10.dp))
-                        Button(onClick = {
+                    Button(
+                        onClick = {
 
-                        }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.deletepost),
-                                    contentDescription = "delete post",
-                                    Modifier.size(25.dp)
-                                )
-                                Spacer(modifier = Modifier.padding(start = 20.dp))
-                                Text(
-                                    text = "Hesabımı Sil",
-                                    fontFamily = openSansBold,
-                                    fontSize = 17.sp,
-                                    color = Color.Black
-                                )
-                            }
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 50.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.deletepost),
+                                contentDescription = "delete post",
+                                Modifier.size(25.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(start = 20.dp))
+                            Text(
+                                text = "Hesabımı Sil",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
-                    Spacer(modifier = Modifier.padding(top =10.dp))
-                        Button(onClick = {
+                    }
+                    Spacer(modifier = Modifier.padding(top = 10.dp))
+                    Button(
+                        onClick = {
                             navController.navigate("edit_profile_page/$myId")
-                        }, border = BorderStroke(1.dp, color = Color.Black),modifier = Modifier.size(250.dp,50.dp), shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.editprofile),
-                                    contentDescription = "delete post",
-                                    Modifier.size(25.dp)
-                                )
-                                Spacer(modifier = Modifier.padding(start = 20.dp))
-                                Text(
-                                    text = "Profilimi düzenle",
-                                    fontFamily = openSansBold,
-                                    fontSize = 17.sp,
-                                    color = Color.Black
-                                )
-                            }
+                        },
+                        border = BorderStroke(1.dp, color = Color.Black),
+                        modifier = Modifier.size(250.dp, 50.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.editprofile),
+                                contentDescription = "delete post",
+                                Modifier.size(25.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(start = 20.dp))
+                            Text(
+                                text = "Profilimi düzenle",
+                                fontFamily = openSansBold,
+                                fontSize = 17.sp,
+                                color = Color.Black
+                            )
                         }
+                    }
                 }
             }
         }
@@ -345,9 +403,10 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
                     }
                     else {
                         viewModel.viewModelScope.launch {
-                            async {
-                               // viewModel.loadMainScans(1, scanIndex)
-                            }.await()
+                            // viewModel.loadMainScans(1, scanIndex)
+                            withContext(Dispatchers.Default) {
+                                // viewModel.loadMainScans(1, scanIndex)
+                            }
                             checkState = !checkState
                         }
                     }

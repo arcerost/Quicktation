@@ -6,7 +6,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,8 +41,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.room.Room
@@ -64,15 +61,15 @@ import kotlinx.coroutines.*
 
 @Composable
 fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    var ready by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
     val userDao = db.UserDao()
     val id: Int
     runBlocking {
         id = userDao.getUser().userId!!
-    }
-    viewModel.viewModelScope.launch{
         viewModel.loadMains(id)
+        ready = true
     }
     val interactionSource =  MutableInteractionSource()
     Scaffold(Modifier.fillMaxSize(), bottomBar = {
@@ -127,7 +124,6 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
             }
         }
     }) {
-
         Surface(Modifier.fillMaxSize()) {
             Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
         }
@@ -143,7 +139,10 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
             )
             {
                 SearchBar(id,viewModel,navController)
-                PostList(navController = navController, myId = id)
+                if(ready)
+                {
+                    PostList(navController = navController, myId = id)
+                }
             }
         }
     }
@@ -155,14 +154,14 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 
 @Composable
 fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
-    viewModel.viewModelScope.launch {
+    runBlocking {
         viewModel.amILike(myId,quoteId)
     }
 }
 
 @Composable
 fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
-    val postList = viewModel.mainList.collectAsState().value
+    val postList = viewModel.mainList.value
     val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
@@ -178,49 +177,51 @@ fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewMo
 fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
     val context= LocalContext.current
     val scanIndex = viewModel.scanIndex
-    val postList = viewModel.mainList.collectAsState().value  //cause postlist getting new values with scanindex
+    var postList = viewModel.mainList.value
     val errorMessage = remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
     val state = rememberLazyListState()
     val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts, key = {
-            it.id
-        }) { post ->
+        items(posts
+            , key = { it.id }
+        ) { post ->
             MainRow(post = post, navController = navController, myId = myId)
         }
         item {
             LaunchedEffect(isScrollToEnd) {
-                if(scanIndex != 0) {
-                    if(scanIndex == -1)
-                    {
-//                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
-                    }
-                    else {
-                        viewModel.loadMainScans(myId, scanIndex)
-                        checkState = !checkState
+                if(isScrollToEnd)
+                {
+                    if(scanIndex != 0) {
+                        if(scanIndex == -1)
+                        {
+//                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                        }
+                        else {
+                            runBlocking {
+                                viewModel.loadMainScans(myId, scanIndex)
+                                postList = viewModel.mainList.value
+                                checkState = true
+                            }
+                        }
                     }
                 }
             }
         }
     }
     if(checkState) {
-        if(isScrollToEnd)
-        {
-            if(scanIndex>0) {
-                PostListView(posts = postList, navController = navController, myId)
-                if (errorMessage.isNotEmpty()) {
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                }
-            }
-            checkState= !checkState
+        PostListView(posts = postList, navController = navController, myId = myId)
+        if (errorMessage.isNotEmpty()) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
+        checkState= false
     }
 }
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
+    val mainList = viewModel.mainList.value
     var audioPermCheck by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){isGranted: Boolean ->
         audioPermCheck = isGranted
@@ -228,17 +229,26 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
-    var amILike = post.amIlike
-    var likeCount = post.likeCount
+    val amILike = post.amIlike
+    val likeCount = post.likeCount
+    var ananLike by remember { mutableStateOf(-1) }
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
-    var isPressed by remember { mutableStateOf(false) }
     val url = MEDIA_URL+quoteUrl
-    var color: Color
+    var likeCountFromVm: Int
+    var amILikeFromVm: Int
+    var isPressed by remember { mutableStateOf(false) }
+    var color by remember { mutableStateOf(Color.Black) }
     val context = LocalContext.current
-    val playing = remember { mutableStateOf(false) }
+    ananLike = likeCount
+    color = if(amILike == 0) {
+        Color.White
+    }
+    else
+        Color.Yellow
     //MEDIAPLAYERSTARTED
+    val playing = remember { mutableStateOf(false) }
     var position by remember { mutableStateOf(0F) }
     var duration: Int
     var durationForSlider by remember { mutableStateOf(0L) }
@@ -287,6 +297,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         navController.navigate("quote_detail_page/$quoteId/$myId")
                     }, contentAlignment = Alignment.TopStart
             ) {
+                //gabbie carter
                 Image(
                     painter = painterResource(id = R.drawable.backgroundrow),
                     contentDescription = "background",
@@ -358,7 +369,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start=30.dp))
                         Text(
-                            text = "$likeCount BEĞENİ" ,
+                            text = "$ananLike BEĞENİ",
                             color = Color.White,
                             modifier = Modifier
                                 .padding(top = 15.dp))
@@ -424,22 +435,28 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             Spacer(modifier = Modifier.padding(start = 20.dp))
                             IconButton(
                                 onClick = {
-                                    isPressed = true
+                                    runBlocking {
+                                        viewModel.amILike(myId,quoteId)
+                                        likeCountFromVm = viewModel.likeCount
+                                        amILikeFromVm = viewModel.isDeleted
+                                        isPressed = !isPressed
+                                        ananLike = likeCountFromVm
+                                        color = if(amILikeFromVm == 0) {
+                                            Color.Yellow
+                                        } else
+                                            Color.White
+                                        mainList.onEach {
+                                            if(quoteId == it.id)
+                                            {
+                                                it.amIlike = if(amILikeFromVm==0) 1 else 0
+                                                it.likeCount = likeCountFromVm
+                                            }
+                                        }
+                                    }
                                 },
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
-                                color = when (amILike) {
-                                    1 -> {
-                                        Color(0xFFD9DD23)
-                                    }
-                                    0 -> {
-                                        Color.White
-                                    }
-                                    else -> {
-                                        Color.Black
-                                    }
-                                }
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
@@ -449,25 +466,6 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                 )
                                 Spacer(modifier = Modifier.padding(end = 10.dp))
                         }
-                            if (isPressed) {
-                                RefreshWithLike(viewModel, quoteId, myId)
-                                when(amILike){
-                                    1 -> {
-                                        color = Color.White
-                                        likeCount -= 1
-                                        amILike = 0
-                                    }
-                                    0 -> {
-                                        color = Color(0xFFD9DD23)
-                                        likeCount += 1
-                                        amILike = 1
-                                    }
-                                    else -> {
-                                        color = Color.Black
-                                    }
-                                }
-                                isPressed = false
-                            }
                         }
                     }
                 }
@@ -510,29 +508,6 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
         }
     }
     Spacer(Modifier.padding(bottom = 10.dp))
-    val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
-    DisposableEffect(lifecycleOwner) {
-        val lifecycle = lifecycleOwner.lifecycle
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                }
-                Lifecycle.Event.ON_RESUME -> {
-                }
-                Lifecycle.Event.ON_DESTROY -> {
-                    player.run {
-                        stop()
-                        release()
-                    }
-                }
-                else -> {}
-            }
-        }
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-        }
-    }
 }
 
 @Composable
@@ -627,7 +602,6 @@ fun SearchBar(myId: Int,viewModel: HomeViewModel, navController: NavController) 
     var userId by remember { mutableStateOf(-1) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    var pageCheck by remember { mutableStateOf(false) }
     Box {
             DropdownMenu(expanded = textExpand, onDismissRequest = { textExpand = false }, modifier = Modifier.fillMaxWidth(), properties = PopupProperties(focusable = false, dismissOnClickOutside = true, dismissOnBackPress = true)){
                 users.forEach{

@@ -252,21 +252,6 @@ fun CreateRow(myId: Int, navController: NavController, viewModel: CreateQuoteVie
         .fillMaxSize()
         .wrapContentSize(), contentAlignment = Alignment.Center) {
         Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
-//            Box(contentAlignment = Alignment.TopStart, modifier = Modifier
-//                .wrapContentSize()
-//                .clip(
-//                    RoundedCornerShape(20.dp)
-//                )) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.backgroundrow),
-//                    contentDescription = "background photo",
-//                    Modifier
-//                        .size(350.dp, 300.dp)
-//                        .wrapContentSize()
-//                        .clip(RoundedCornerShape(20.dp)),
-//                    contentScale = ContentScale.Crop
-//                )
-//            }
             TextField(
                 value = edit.value,
                 onValueChange =
