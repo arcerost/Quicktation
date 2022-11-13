@@ -4,13 +4,13 @@ package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
 import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,8 +40,8 @@ import com.onurdemirbas.quicktation.model.QuoteDetailResponseRowList
 import com.onurdemirbas.quicktation.model.Sound
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
@@ -133,24 +133,24 @@ fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel
     }
 }
 
-@Composable
-fun RefreshWithLikeQuote(viewModel: QuoteDetailViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
-    viewModel.viewModelScope.launch {
-        viewModel.amILike(userId,quoteId)
-        delay(200) }
-}
-
-@Composable
-fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), myId: Int, quotesound_id: Int) {
-    viewModel.viewModelScope.launch {
-        viewModel.amILikeSound(myId,quotesound_id)
-        delay(200) }
-}
+//@Composable
+//fun RefreshWithLikeQuote(viewModel: QuoteDetailViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
+//    viewModel.viewModelScope.launch {
+//        viewModel.amILike(userId,quoteId)
+//        delay(200) }
+//}
+//
+//@Composable
+//fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), myId: Int, quotesound_id: Int) {
+//    viewModel.viewModelScope.launch {
+//        viewModel.amILikeSound(myId,quotesound_id)
+//        delay(200) }
+//}
 
 @Composable
 fun Post(navController: NavController, userId: Int, myId: Int, viewModel: QuoteDetailViewModel = hiltViewModel()) {
-    val soundList by viewModel.soundList.collectAsState()
-    val errorMessage by remember { viewModel.errorMessage }
+    val soundList = viewModel.soundList.value
+    val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -163,65 +163,76 @@ fun Post(navController: NavController, userId: Int, myId: Int, viewModel: QuoteD
 
 @Composable
 fun PostView(posts: List<Sound>, navController: NavController, userId: Int, myId: Int, viewModel: QuoteDetailViewModel = hiltViewModel()) {
-    val scanIndex by viewModel.scanIndex.collectAsState()
-    val soundList by viewModel.soundList.collectAsState()
+    val scanIndex = viewModel.scanIndex
+    var soundList = viewModel.soundList.value
     var checkState by remember { mutableStateOf(false) }
     val headerPost by viewModel.head.collectAsState()
-    val errorMessage by remember { viewModel.errorMessage }
+    val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     val state = rememberLazyListState()
-    fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
-    val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
-    LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        item{
+    val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
+    LazyColumn(
+        contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        state = state
+    ) {
+        item {
             QuoteRow(post = headerPost, navController = navController, userId = userId, myId = myId)
         }
         items(posts) { post ->
             SoundRow(sound = post, navController = navController, userId = userId, myId = myId)
         }
         item {
-            LaunchedEffect(endOfListReached) {
-                if(scanIndex != 0) {
-                    if(scanIndex == -1)
-                    {
-//                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
-                    }
-                    else {
-              //              viewModel.loadMainScans(1, scanIndex)
-                            checkState = !checkState
+            LaunchedEffect(isScrollToEnd) {
+                if (isScrollToEnd) {
+                    if (scanIndex != 0) {
+                        if (scanIndex == -1) {
+//                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                        } else {
+                            runBlocking {
+                                try {
+                                    viewModel.loadQuoteScans(userId, myId, scanIndex)
+                                    soundList = viewModel.soundList.value
+                                    checkState = true
+                                } catch (e: Exception) {
+                                    Log.e("exception", "$e")
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
-    if(checkState) {
-        if(endOfListReached)
-        {
-            if(scanIndex>0) {
-                PostView(posts = soundList, navController = navController,userId, myId = myId)
-                if (errorMessage.isNotEmpty()) {
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                }
-            }
-            checkState= !checkState
+    if (checkState) {
+        PostView(posts = soundList, navController = navController, userId, myId = myId)
+        if (errorMessage.isNotEmpty()) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
+        checkState = !checkState
     }
 }
 
 @Composable
 fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetailResponseRowList, userId: Int, myId: Int, navController: NavController) {
     val quoteId  = post.id
-    val quoteIdFromVm = viewModel.quoteIdx.collectAsState()
     val username = post.username
     val quoteUrl = post.quote_url
-    var amILike = post.amIlike
-    var color: Color
-    val amILikeFromVm = viewModel.isDeleted.collectAsState()
-    var likeCount = post.likeCount
-    val likeCountFromVm = viewModel.likeCount.collectAsState()
+    val amILike = post.amIlike
+    val likeCount = post.likeCount
+    val mainList = viewModel.head.value
+    var likeCountFromVm: Int
+    var amILikeFromVm: Int
+    var countLike by remember { mutableStateOf(-1) }
+    var color by remember { mutableStateOf(Color.Black) }
+    countLike = likeCount
+    color = if(amILike == 0) {
+        Color.White
+    }
+    else
+        Color.Yellow
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
-    var isPressed by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val url = Constants.MEDIA_URL +quoteUrl
     val playing = remember { mutableStateOf(false) }
@@ -339,14 +350,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                             color = Color.White,
                             modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start = 20.dp))
-                        Text(text = if(quoteId != quoteIdFromVm.value)
-                        {
-                            "$likeCount BEĞENME"
-                        }
-                        else
-                        {
-                            "${likeCountFromVm.value} BEĞENME"
-                        }
+                        Text(text = "$countLike BEĞENME"
                             , color = Color.White, modifier = Modifier
                                 .padding(top = 15.dp))
                     }
@@ -366,7 +370,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                 .padding(bottom = 10.dp)
                         ) {
                             Text(text = "-$username", color = Color.White)
-                            Spacer(modifier = Modifier.padding(start = 180.dp))
+                            Spacer(modifier = Modifier.padding(start = 170.dp))
                             Icon(painter = painterResource(id = R.drawable.voice_record),
                                 contentDescription = "microphone button",
                                 modifier = Modifier
@@ -374,7 +378,7 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                     .clickable {
                                         navController.navigate("create_quote_sound_page/$myId/$quoteText/$userPhoto/$username/$quoteId")
                                     })
-                            Spacer(modifier = Modifier.padding(10.dp))
+                            Spacer(modifier = Modifier.padding(start = 10.dp))
                             Image(painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
                                 modifier = Modifier
@@ -393,68 +397,33 @@ fun QuoteRow(viewModel: QuoteDetailViewModel = hiltViewModel(), post: QuoteDetai
                                             null
                                         )
                                     })
-                            Spacer(modifier = Modifier.padding(10.dp))
+                            Spacer(modifier = Modifier.padding(start = 10.dp))
                             IconButton(
                                 onClick = {
-                                    isPressed = true
+                                    runBlocking {
+                                        viewModel.amILike(myId,quoteId)
+                                        likeCountFromVm = viewModel.likeCount
+                                        amILikeFromVm = viewModel.isDeleted
+                                        countLike = likeCountFromVm
+                                        color = if(amILikeFromVm == 0) {
+                                            Color.Yellow
+                                        } else
+                                            Color.White
+                                        mainList.amIlike = if(amILikeFromVm==0) 1 else 0
+                                        mainList.likeCount = likeCountFromVm
+                                    }
                                 }, modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint =
-                                    if(quoteId != quoteIdFromVm.value) {
-                                        when (amILike) {
-                                            1 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            0 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        when (amILikeFromVm.value) {
-                                            0 -> {
-                                                Color(0xFFD9DD23)
-                                            }
-                                            1 -> {
-                                                Color.White
-                                            }
-                                            else -> {
-                                                Color.Black
-                                            }
-                                        }
-                                    },
+                                    tint = color,
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )
                             }
                             Spacer(modifier = Modifier.padding(end = 5.dp))
-                            if (isPressed) {
-                                RefreshWithLikeQuote(viewModel,myId, quoteId)
-                                when(amILike){
-                                    1 -> {
-                                        color = Color.White
-                                        likeCount -= 1
-                                        amILike = 0
-                                    }
-                                    0 -> {
-                                        color = Color(0xFFD9DD23)
-                                        likeCount += 1
-                                        amILike = 1
-                                    }
-                                    else -> {
-                                        color = Color.Black
-                                    }
-                                }
-                                isPressed = false
-                            }
                         }
                     }
                 }
@@ -511,17 +480,26 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
     val soundId  = sound.id
     val username by remember { mutableStateOf(sound.username) }
     val soundURL = sound.soundURL
-    var amILike = sound.amIlike
-    var color: Color
-    var likeCount = sound.likeCount
+    val amILike = sound.amIlike
+    val likeCount = sound.likeCount
+    val mainList = viewModel.soundList.value
+    var likeCountFromVm: Int
+    var amILikeFromVm: Int
+    var countLike by remember { mutableStateOf(-1) }
+    var color by remember { mutableStateOf(Color.Black) }
+    countLike = likeCount
+    color = if(amILike == 0) {
+        Color.White
+    }
+    else
+        Color.Yellow
     val userPhoto by remember { mutableStateOf(sound.userphoto) }
-    var isPressed by remember { mutableStateOf(false) }
-    val context = LocalContext.current
     val url = Constants.MEDIA_URL + soundURL
     val playing = remember { mutableStateOf(false) }
     var position by remember { mutableStateOf(0F) }
     //MEDIAPLAYERSTARTED
     var duration: Int
+    val context = LocalContext.current
     var durationForSlider by remember { mutableStateOf(0L) }
     val player = ExoPlayer.Builder(context).build()
     var minute by remember { mutableStateOf(0) }
@@ -564,7 +542,7 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                 Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillBounds)
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End,modifier = Modifier.fillMaxWidth() ){
-                        Text(text = "$likeCount BEĞENME", color = Color.White, modifier = Modifier.padding(end = 20.dp, top= 10.dp))
+                        Text(text = "$countLike BEĞENME", color = Color.White, modifier = Modifier.padding(end = 20.dp, top= 10.dp))
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
@@ -647,7 +625,23 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                                 })
                             Spacer(modifier = Modifier.padding(10.dp))
                             IconButton(onClick = {
-                                    isPressed = true
+                                runBlocking {
+                                    viewModel.amILikeSound(myId,soundId)
+                                    likeCountFromVm = viewModel.likeCountSound
+                                    amILikeFromVm = viewModel.isDeletedSound
+                                    countLike = likeCountFromVm
+                                    color = if(amILikeFromVm == 0) {
+                                        Color.Yellow
+                                    } else
+                                        Color.White
+                                    mainList.onEach {
+                                        if(soundId == it.id)
+                                        {
+                                            it.amIlike = if(amILikeFromVm==0) 1 else 0
+                                            it.likeCount = likeCountFromVm
+                                        }
+                                    }
+                                }
                                 }, modifier = Modifier.size(21.dp, 20.dp)) {
                                 color = when (amILike) {
                                     1 -> {
@@ -664,25 +658,6 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
                                     modifier = Modifier.size(21.dp, 20.dp))
                             }
                             Spacer(modifier = Modifier.padding(end = 5.dp))
-                            if (isPressed) {
-                                RefreshWithLikeSound(viewModel, soundId, myId)
-                                when(amILike){
-                                    1 -> {
-                                        color = Color.White
-                                        likeCount -= 1
-                                        amILike = 0
-                                    }
-                                    0 -> {
-                                        color = Color(0xFFD9DD23)
-                                        likeCount += 1
-                                        amILike = 1
-                                    }
-                                    else -> {
-                                        color = Color.Black
-                                    }
-                                }
-                                isPressed = false
-                            }
                         }
                 }
             }

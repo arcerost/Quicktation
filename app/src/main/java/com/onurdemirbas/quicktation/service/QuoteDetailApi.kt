@@ -10,4 +10,8 @@ interface QuoteDetailApi {
     @Headers("Content-Type:application/json")
     @POST("quotationdetail")
     suspend fun postQuoteDetailApi(@Body request: QuoteDetail): QuoteDetailResponse
+
+    @Headers("Content-Type:application/json")
+    @POST("quotationdetail")
+    suspend fun postQuoteDetailScanApi(@Body request: QuoteDetail): QuoteDetailResponse
 }

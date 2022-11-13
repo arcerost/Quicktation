@@ -1,6 +1,5 @@
 package com.onurdemirbas.quicktation.repository
 
-import android.util.Log
 import com.onurdemirbas.quicktation.model.*
 import com.onurdemirbas.quicktation.service.*
 import com.onurdemirbas.quicktation.util.Resource
@@ -191,8 +190,31 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
 
     suspend fun postQuoteDetailApi(userId: Int, quoteId: Int): Resource<QuoteDetailResponse> {
 
-        val request = QuoteDetail(userId,quoteId)
+        val request = QuoteDetail(userId,quoteId,0)
         val response = api7.postQuoteDetailApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postQuoteDetailScanApi(userId: Int, quoteId: Int, scanIndex: Int): Resource<QuoteDetailResponse> {
+
+        val request = QuoteDetail(userId,quoteId,scanIndex)
+        val response = api7.postQuoteDetailScanApi(request)
         try {
             when (response.error) {
                 "0" -> {
@@ -216,6 +238,29 @@ class QuicktationRepo @Inject constructor(private val api: RegisterApi, private 
 
         val request = ProfileDetail(userId,myUserId,0)
         val response = api8.postMyProfileApi(request)
+        try {
+            when (response.error) {
+                "0" -> {
+                }
+                "1" -> {
+                    loginError = response.errorText
+                    return Resource.Error(loginError)
+                }
+                else -> {
+                }
+            }
+        }
+        catch(e: Exception)
+        {
+            return Resource.Error(e.message.toString())
+        }
+        return Resource.Success(response)
+    }
+
+    suspend fun postMyProfileScanApi(userId: Int, myUserId: Int, scanIndex: Int): Resource<MyProfileResponse> {
+
+        val request = ProfileDetail(userId,myUserId,scanIndex)
+        val response = api8.postMyProfileScanApi(request)
         try {
             when (response.error) {
                 "0" -> {

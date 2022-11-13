@@ -1,3 +1,3 @@
 package com.onurdemirbas.quicktation.model
 
-data class QuoteDetail(val userId: Int, val quoteId: Int)
+data class QuoteDetail(val userId: Int, val quoteId: Int, val scanIndex: Int)

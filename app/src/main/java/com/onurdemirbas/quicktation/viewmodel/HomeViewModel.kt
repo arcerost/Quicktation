@@ -66,12 +66,12 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
             }
         }
     }
-
     fun search(userId: Int, action: String, searchKey: String, scanIndex: Int){
         runBlocking {
             when(val result = repository.postSearchApi(userId, action, searchKey, scanIndex)){
                 is Resource.Success -> {
                     user.value = result.data!!.response.users
+                    errorMessage = ""
                 }
                 is Resource.Error -> {
                     errorMessage = result.message!!
@@ -79,14 +79,33 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepo)
             }
         }
     }
-    fun searchQuote(userId: Int, action: String, searchKey: String, scanIndex: Int){
+    fun searchQuote(userId: Int, action: String, searchKey: String, scanIndexx: Int){
         runBlocking {
-            when(val result = repository.postSearchQuoteApi(userId, action, searchKey, scanIndex)){
+            when(val result = repository.postSearchQuoteApi(userId, action, searchKey, scanIndexx)){
                 is Resource.Success -> {
                     quotes.value = result.data!!.response.quotations
+                    scanIndex = result.data.response.scanIndex
+                    errorMessage = ""
                 }
                 is Resource.Error -> {
                     errorMessage = result.message!!
+                }
+            }
+        }
+    }
+    fun loadSearchScans(userId: Int, action: String, searchKey: String, scanIndexx: Int)
+    {
+        runBlocking {
+            withContext(Dispatchers.IO){
+                when (val result = repository.postSearchQuoteApi(userId, action, searchKey, scanIndexx)) {
+                    is Resource.Success -> {
+                        quotes.value += result.data!!.response.quotations
+                        scanIndex = result.data.response.scanIndex
+                        errorMessage = ""
+                    }
+                    is Resource.Error -> {
+                        errorMessage = result.message!!
+                    }
                 }
             }
         }

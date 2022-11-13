@@ -62,7 +62,7 @@ fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: 
     Surface(Modifier.fillMaxSize()) {
         Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
     }
-    Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+    Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         CreateMain(navController = navController, userId = userId, quoteText = quoteText, userPhoto = userPhoto, userName = userName, quoteId = quoteId)
     }
     //BottomBar
@@ -240,22 +240,22 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
             Spacer(modifier = Modifier.padding(top = 20.dp))
             Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
             ) {
-                Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.padding(start = 140.dp))
+                Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 0.dp).fillMaxWidth()) {
+                    Spacer(modifier = Modifier.padding(0.dp))
+                    Spacer(modifier = Modifier.padding(0.dp))
                     Text(text = "SES OLUŞTUR", color = Color.Black, fontSize = 16.sp, fontFamily = openSansBold)
-                    Spacer(modifier = Modifier.padding(start = 100.dp))
+                    Spacer(modifier = Modifier.padding(0.dp))
                     Icon(painter = painterResource(id = R.drawable.how), contentDescription = "how to record",
                         Modifier
                             .size(23.dp)
                             .clickable {
                                 //popup
                             })
-                    Spacer(modifier = Modifier.padding(end = 15.dp))
                 }
                 Spacer(modifier = Modifier.padding(top = 10.dp))
                 Divider(Modifier.padding(start = 20.dp, end = 20.dp), thickness = 2.dp, color = Color.Black)
+                QuoteRow(navController = navController, userId = userId, quoteText = quoteText, userPhoto = userPhoto, userName = userName, quoteId = quoteId)
             }
-            QuoteRow(navController = navController, userId = userId, quoteText = quoteText, userPhoto = userPhoto, userName = userName, quoteId = quoteId)
         }
         Spacer(modifier = Modifier.padding(top = 10.dp))
         if(pageCheck)

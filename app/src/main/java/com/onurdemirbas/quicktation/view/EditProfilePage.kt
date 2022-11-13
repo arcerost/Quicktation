@@ -81,8 +81,7 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
     var encoded by remember { mutableStateOf<String?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    if(uriChangeCheck)
-    {
+    if(uriChangeCheck) {
         imageUri?.let {
             if (Build.VERSION.SDK_INT < 28) {
                 bitmap.value = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
@@ -101,191 +100,200 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
             }
         }
     }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+    Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.padding(top = 25.dp))
+        Text(text = "PROFİLİ DÜZENLE", fontSize = 18.sp, fontFamily = openSansBold)
+        Spacer(modifier = Modifier.padding(top = 15.dp))
+        Divider(
+            thickness = 1.dp,
+            color = Color.Black,
+            modifier = Modifier.size(300.dp, 1.dp)
         )
-        {
-            Column(
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
-            )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxSize()) {
+            Box(contentAlignment = Alignment.Center)
             {
-                Spacer(modifier = Modifier.padding(top = 25.dp))
-                Text(text = "PROFİLİ DÜZENLE", fontSize = 18.sp, fontFamily = openSansBold)
-                Spacer(modifier = Modifier.padding(top = 15.dp))
-                Divider(
-                    thickness = 1.dp,
-                    color = Color.Black,
-                    modifier = Modifier.size(300.dp, 1.dp)
-                )
-                Spacer(modifier = Modifier.padding(top = 30.dp))
-                Box(contentAlignment = Alignment.Center)
-                {
-                    if(photoChanged)
-                    {
-                        Image(bitmap = bitmap.value!!.asImageBitmap(),"profile photo",contentScale = ContentScale.Crop, modifier = Modifier
+                if (photoChanged) {
+                    Image(
+                        bitmap = bitmap.value!!.asImageBitmap(),
+                        "profile photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
                             .size(100.dp)
-                            .clip(CircleShape))
-                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
-                        {
-                            IconButton(onClick = {
-                                launcher.launch("image/*")
-                            }) {
-                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
-                            }
+                            .clip(CircleShape)
+                    )
+                    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
+                    {
+                        IconButton(onClick = {
+                            launcher.launch("image/*")
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.addphoto),
+                                contentDescription = "add photo",
+                                Modifier.size(30.dp, 30.dp)
+                            )
                         }
                     }
-                    else if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
-                        if(userPhotoForService == null)
-                        {
-                            Image(painter = painterResource(id = R.drawable.pp), contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier
+                } else if (userPhotoAlr == "" || userPhotoAlr == null || userPhotoAlr == "null") {
+                    if (userPhotoForService == null) {
+                        Image(
+                            painter = painterResource(id = R.drawable.pp),
+                            contentDescription = "profile photo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
                                 .size(100.dp)
-                                .clip(CircleShape))
-                        }
-                        else
-                        {
-                            Image(bitmap = userPhotoForService!!.asImageBitmap(), contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Image(
+                            bitmap = userPhotoForService!!.asImageBitmap(),
+                            contentDescription = "profile photo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
                                 .size(100.dp)
-                                .clip(CircleShape))
-                        }
-                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
-                        {
-                            IconButton(onClick = {
-                                launcher.launch("image/*")
-                            }) {
-                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
-                            }
+                                .clip(CircleShape)
+                        )
+                    }
+                    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
+                    {
+                        IconButton(onClick = {
+                            launcher.launch("image/*")
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.addphoto),
+                                contentDescription = "add photo",
+                                Modifier.size(30.dp, 30.dp)
+                            )
                         }
                     }
-                    else {
-                        val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhotoAlr, builder = {})
-                        Image(painter = painter, contentDescription = "profile photo", contentScale = ContentScale.Crop, modifier = Modifier.size(100.dp).clip(CircleShape))
-                        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(140.dp))
-                        {
-                            IconButton(onClick = {
-                                launcher.launch("image/*")
-                                uriChangeCheck = !uriChangeCheck
-                            }) {
-                                Icon(painter = painterResource(id = R.drawable.addphoto), contentDescription = "add photo", Modifier.size(30.dp, 30.dp))
-                            }
+                } else {
+                    val painter =
+                        rememberImagePainter(data = Constants.MEDIA_URL + userPhotoAlr, builder = {})
+                    Image(
+                        painter = painter,
+                        contentDescription = "profile photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                    )
+                    Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(140.dp))
+                    {
+                        IconButton(onClick = {
+                            launcher.launch("image/*")
+                            uriChangeCheck = !uriChangeCheck
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.addphoto),
+                                contentDescription = "add photo",
+                                Modifier.size(30.dp, 30.dp)
+                            )
                         }
                     }
-                }
-                Spacer(modifier = Modifier.padding(top = 50.dp))
-                OutlinedTextField(
-                    value = email.value,
-                    onValueChange = {
-                        email.value = it
-                    },
-                    enabled = false,
-                    textStyle = TextStyle(fontFamily = openSansFontFamily),
-                    colors = TextFieldDefaults.textFieldColors(
-                        textColor = Color.Black,
-                        backgroundColor = Color(217, 217, 217, 255)
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    label = {
-                        Text(
-                            text = userEmailAlr
-                        )
-                    },
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = R.drawable.email),
-                            contentDescription = "email icon",
-                            Modifier.size(25.dp)
-                        )
-                    },
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.padding(20.dp))
-                OutlinedTextField(
-                    value = nameSurname.value,
-                    onValueChange = {
-                        nameSurname.value = it
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {keyboardController?.hide()
-                            focusManager.clearFocus()}),
-                    textStyle = TextStyle(fontFamily = openSansFontFamily),
-                    colors = TextFieldDefaults.textFieldColors(
-                        textColor = Color.Black,
-                        backgroundColor = Color(217, 217, 217, 255)
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    label = {
-                        Text(
-                            text = nameSurnameAlr
-                        )
-                    },
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = R.drawable.useredit),
-                            contentDescription = "username icon",
-                            Modifier.size(25.dp)
-                        )
-                    },
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.padding(top = 30.dp))
-                OutlinedTextField(
-                    value = userName.value,
-                    onValueChange = {
-                        userName.value = it
-                    },
-                    enabled = true,
-                    textStyle = TextStyle(fontFamily = openSansFontFamily),
-                    colors = TextFieldDefaults.textFieldColors(
-                        textColor = Color.Black,
-                        backgroundColor = Color(217, 217, 217, 255)
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    label = {
-                        Text(
-                            text = usernameAlr
-                        )
-                    },
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = R.drawable.user),
-                            contentDescription = "username icon",
-                            Modifier.size(25.dp)
-                        )
-                    },
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.padding(30.dp))
-                Button(
-                    onClick = {
-                        viewModel.loadEdit(myId, nameSurname.value.text, encoded?:"",userName.value.text)
-                        Toast.makeText(context, "Değişiklikler Kaydedildi.", Toast.LENGTH_LONG).show()
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Yellow),
-                    border = BorderStroke(1.dp, color = Color.Black),
-                    shape = RoundedCornerShape(15.dp),
-                    modifier = Modifier.size(130.dp, 50.dp)
-                ) {
-                    Text(text = "KAYDET", color = Color.Black, fontFamily = openSansBold)
                 }
             }
+            OutlinedTextField(
+                value = email.value,
+                onValueChange = {
+                    email.value = it
+                },
+                enabled = false,
+                textStyle = TextStyle(fontFamily = openSansFontFamily),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    backgroundColor = Color(217, 217, 217, 255)
+                ),
+                shape = RoundedCornerShape(10.dp),
+                label = {
+                    Text(
+                        text = userEmailAlr
+                    )
+                },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.email),
+                        contentDescription = "email icon",
+                        Modifier.size(25.dp)
+                    )
+                },
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = nameSurname.value,
+                onValueChange = {
+                    nameSurname.value = it
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }),
+                textStyle = TextStyle(fontFamily = openSansFontFamily),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    backgroundColor = Color(217, 217, 217, 255)
+                ),
+                shape = RoundedCornerShape(10.dp),
+                label = {
+                    Text(
+                        text = nameSurnameAlr
+                    )
+                },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.useredit),
+                        contentDescription = "username icon",
+                        Modifier.size(25.dp)
+                    )
+                },
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = userName.value,
+                onValueChange = {
+                    userName.value = it
+                },
+                enabled = true,
+                textStyle = TextStyle(fontFamily = openSansFontFamily),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    backgroundColor = Color(217, 217, 217, 255)
+                ),
+                shape = RoundedCornerShape(10.dp),
+                label = {
+                    Text(
+                        text = usernameAlr
+                    )
+                },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.user),
+                        contentDescription = "username icon",
+                        Modifier.size(25.dp)
+                    )
+                },
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.padding(0.dp))
+            Button(
+                onClick = {
+                    viewModel.loadEdit(myId, nameSurname.value.text, encoded ?: "", userName.value.text)
+                    Toast.makeText(context, "Değişiklikler Kaydedildi.", Toast.LENGTH_LONG).show()
+                },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Yellow),
+                border = BorderStroke(1.dp, color = Color.Black),
+                shape = RoundedCornerShape(15.dp),
+                modifier = Modifier.size(130.dp, 50.dp)
+            ) {
+                Text(text = "KAYDET", color = Color.Black, fontFamily = openSansBold)
+            }
+            Spacer(modifier = Modifier.padding(0.dp))
         }
     }
     //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .fillMaxWidth(), contentAlignment = Alignment.BottomStart) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()

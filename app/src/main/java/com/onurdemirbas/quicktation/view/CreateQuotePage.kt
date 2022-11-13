@@ -55,8 +55,7 @@ fun CreateQuotePage(navController: NavController, userId: Int, viewModel: Create
         Scaffold(Modifier.fillMaxSize()) {
             Surface(Modifier.fillMaxSize()) {
                 Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-                Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
-                ) {
+                Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.padding(top = 20.dp))
                     Row(horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Spacer(modifier = Modifier.padding(0.dp))

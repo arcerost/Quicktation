@@ -1,29 +1,31 @@
 package com.onurdemirbas.quicktation.viewmodel
 
-import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.*
 import com.onurdemirbas.quicktation.repository.QuicktationRepo
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class QuoteDetailViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
-    var likeCount = MutableStateFlow(-1)
-    var isDeleted = MutableStateFlow(-1)
-    var quoteIdx = MutableStateFlow(-1)
     var head = MutableStateFlow(QuoteDetailResponseRowList(amIlike = 1,"",1,1,"","",1,1,"",""))
-    var errorMessage = mutableStateOf("")
-    var scanIndex = MutableStateFlow(0)
-    var soundList = MutableStateFlow<List<Sound>>(listOf())
-    var soundIdx = MutableStateFlow(-2)
-    var isDeletedSound = MutableStateFlow(-1)
-    var likeCountSound = MutableStateFlow(-1)
+    var errorMessage by mutableStateOf("")
+    var scanIndex by mutableStateOf(0)
+    var soundList = mutableStateOf(listOf<Sound>())
+    var isDeletedSound = -1
+    var likeCountSound = -1
+    var isDeleted = -1
+    var likeCount = -1
     fun loadQuote(userId: Int, quoteId: Int)
     {
         viewModelScope.launch {
@@ -31,30 +33,45 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
                 is Resource.Success -> {
                     head.value = result.data!!.response.quoteDetail
                     soundList.value = result.data.response.soundList
-                    Log.d("soundList","${soundList.value}")
-                    scanIndex.value = result.data.response.scanIndex
-                    errorMessage.value = ""
+                    scanIndex = result.data.response.scanIndex
+                    errorMessage = ""
                 }
                 is Resource.Error -> {
-                    errorMessage.value = result.message!!
-                    println(errorMessage.value)
+                    errorMessage = result.message!!
+                    println(errorMessage)
                 }
             }
         }
     }
 
-    //tekrarlanan fonksiyon
     fun amILike(userid: Int, quoteId: Int) {
-        viewModelScope.launch {
+        runBlocking {
             when (val result = repository.postLikeApi(userid, quoteId)) {
                 is Resource.Success -> {
-                    isDeleted.value = result.data!!.response.isDeleted
-                    likeCount.value = result.data.response.likeCount
-                    quoteIdx.value = result.data.response.quoteId
+                    likeCount = result.data!!.response.likeCount
+                    isDeleted = result.data.response.isDeleted
                 }
                 is Resource.Error -> {
-                    errorMessage.value = result.message!!
-                    println(errorMessage.value)
+                    errorMessage = result.message!!
+                }
+            }
+        }
+    }
+
+
+    fun loadQuoteScans(userId: Int, quoteId: Int ,scanIndexx: Int) {
+        runBlocking {
+            withContext(Dispatchers.IO){
+                when (val result = repository.postQuoteDetailScanApi(userId, quoteId, scanIndexx)) {
+                    is Resource.Success -> {
+                        head.value = result.data!!.response.quoteDetail
+                        soundList.value += result.data.response.soundList
+                        scanIndex = result.data.response.scanIndex
+                        errorMessage = ""
+                    }
+                    is Resource.Error -> {
+                        errorMessage = result.message!!
+                    }
                 }
             }
         }
@@ -66,31 +83,13 @@ class QuoteDetailViewModel@Inject constructor(private val repository: Quicktatio
             when(val result = repository.postLikeSoundApi(myId, quotesound_id))
             {
                 is Resource.Success ->{
-                    isDeletedSound.value = result.data!!.response.isDeleted
-                    likeCountSound.value = result.data.response.likeCount
-                    soundIdx.value = result.data.response.quotesound_id
+                    isDeletedSound = result.data!!.response.isDeleted
+                    likeCountSound = result.data.response.likeCount
                 }
                 is Resource.Error ->{
-                    errorMessage.value = result.message!!
-                    println(errorMessage.value)
+                    errorMessage = result.message!!
                 }
             }
         }
     }
-
-//    fun loadMainScans(userid: Int,scanIndexx: Int) {
-//        viewModelScope.launch {
-//            when (val result = repository.postMainScanApi(userid,scanIndexx)) {
-//                is Resource.Success -> {
-//                    mainList.value += result.data!!.response.quotations
-//                    scanIndex.value = result.data.response.scanIndex
-//                    errorMessage.value = ""
-//                }
-//                is Resource.Error -> {
-//                    errorMessage.value = result.message!!
-//                    println(errorMessage.value)
-//                }
-//            }
-//        }
-//    }
 }

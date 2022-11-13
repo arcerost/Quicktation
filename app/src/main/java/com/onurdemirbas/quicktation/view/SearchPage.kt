@@ -42,6 +42,7 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun SearchPage(myId: Int, text:String, navController:NavController,viewModel: HomeViewModel= hiltViewModel()) {
@@ -113,7 +114,7 @@ fun SearchPage(myId: Int, text:String, navController:NavController,viewModel: Ho
                 modifier = Modifier.fillMaxSize()
             )
             {
-                PostListSearch(navController,viewModel,myId)
+                PostListSearch(navController,viewModel,myId,text)
             }
         }
     }
@@ -125,7 +126,7 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 }
 
 @Composable
-fun PostListSearch(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
+fun PostListSearch(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int, key: String) {
     val postList = viewModel.quotes.value
     val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
@@ -134,15 +135,15 @@ fun PostListSearch(navController: NavController, viewModel: HomeViewModel = hilt
     }
     else
     {
-        PostListSearchView(posts = postList, navController = navController, myId)
+        PostListSearchView(posts = postList, navController = navController, myId, key = key)
     }
 }
 
 @Composable
-fun PostListSearchView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
+fun PostListSearchView(posts: List<Quotation>, navController: NavController, myId:Int, key: String, viewModel: HomeViewModel = hiltViewModel()) {
     val context= LocalContext.current
     val scanIndex = viewModel.scanIndex
-    val postList = viewModel.quotes.value  //cause postlist getting new values with scanindex
+    var postList = viewModel.quotes.value  //cause postlist getting new values with scanindex
     val errorMessage = remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
     val state = rememberLazyListState()
@@ -155,30 +156,31 @@ fun PostListSearchView(posts: List<Quotation>, navController: NavController, myI
         }
         item {
             LaunchedEffect(isScrollToEnd) {
-                if(scanIndex != 0) {
-                    if(scanIndex == -1)
-                    {
-//                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
-                    }
-                    else {
-                        viewModel.loadMainScans(myId, scanIndex)
-                        checkState = !checkState
+                if(isScrollToEnd)
+                {
+                    if(scanIndex != 0) {
+                        if(scanIndex == -1)
+                        {
+//                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                        }
+                        else {
+                            runBlocking {
+                                viewModel.loadSearchScans(myId, "quote", key,scanIndex)
+                                postList = viewModel.quotes.value
+                                checkState = true
+                            }
+                        }
                     }
                 }
             }
         }
     }
     if(checkState) {
-        if(isScrollToEnd)
-        {
-            if(scanIndex>0) {
-                PostListSearchView(posts = postList, navController = navController, myId)
-                if (errorMessage.isNotEmpty()) {
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                }
-            }
-            checkState= !checkState
+        PostListSearchView(posts = postList, navController = navController, myId = myId,key)
+        if (errorMessage.isNotEmpty()) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
+        checkState= false
     }
 }
 
@@ -192,16 +194,27 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
-    var amILike = post.amIlike
-    var likeCount = post.likeCount
+    val amILike = post.amIlike
+    val likeCount = post.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
-    var isPressed by remember { mutableStateOf(false) }
     val url = Constants.MEDIA_URL +quoteUrl
-    var color: Color
-    val context = LocalContext.current
     val playing = remember { mutableStateOf(false) }
+    val mainList = viewModel.mainList.value
+    var countLike by remember { mutableStateOf(-1) }
+    var likeCountFromVm: Int
+    var amILikeFromVm: Int
+    var color by remember { mutableStateOf(Color.Black) }
+    val context = LocalContext.current
+    countLike = likeCount
+    color = if(amILike == 0) {
+        Color.White
+    }
+    else
+        Color.Yellow
+
+
     //MEDIAPLAYERSTARTED
     var position by remember { mutableStateOf(0F) }
     var duration: Int
@@ -225,7 +238,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                 minute = duration/60
                 seconds = duration%60
             }
-            super.onPlayerStateChanged(playWhenReady, playbackState)
+            super. onPlayerStateChanged(playWhenReady, playbackState)
             if(playbackState == ExoPlayer.STATE_ENDED)
             {
                 playing.value = false
@@ -322,7 +335,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                             modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start=30.dp))
                         Text(
-                            text = "$likeCount BEĞENİ" ,
+                            text = "$countLike BEĞENİ" ,
                             color = Color.White,
                             modifier = Modifier
                                 .padding(top = 15.dp))
@@ -388,22 +401,27 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                             Spacer(modifier = Modifier.padding(start = 20.dp))
                             IconButton(
                                 onClick = {
-                                    isPressed = true
+                                    runBlocking {
+                                        viewModel.amILike(myId,quoteId)
+                                        likeCountFromVm = viewModel.likeCount
+                                        amILikeFromVm = viewModel.isDeleted
+                                        countLike = likeCountFromVm
+                                        color = if(amILikeFromVm == 0) {
+                                            Color.Yellow
+                                        } else
+                                            Color.White
+                                        mainList.onEach {
+                                            if(quoteId == it.id)
+                                            {
+                                                it.amIlike = if(amILikeFromVm==0) 1 else 0
+                                                it.likeCount = likeCountFromVm
+                                            }
+                                        }
+                                    }
                                 },
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
                             ) {
-                                color = when (amILike) {
-                                    1 -> {
-                                        Color(0xFFD9DD23)
-                                    }
-                                    0 -> {
-                                        Color.White
-                                    }
-                                    else -> {
-                                        Color.Black
-                                    }
-                                }
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
@@ -412,25 +430,6 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                                         .size(21.dp, 20.dp)
                                 )
                                 Spacer(modifier = Modifier.padding(end = 10.dp))
-                            }
-                            if (isPressed) {
-                                RefreshWithLike(viewModel, quoteId, myId)
-                                when(amILike){
-                                    1 -> {
-                                        color = Color.White
-                                        likeCount -= 1
-                                        amILike = 0
-                                    }
-                                    0 -> {
-                                        color = Color(0xFFD9DD23)
-                                        likeCount += 1
-                                        amILike = 1
-                                    }
-                                    else -> {
-                                        color = Color.Black
-                                    }
-                                }
-                                isPressed = false
                             }
                         }
                     }

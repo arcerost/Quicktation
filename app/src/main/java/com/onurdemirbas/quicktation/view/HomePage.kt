@@ -58,9 +58,9 @@ import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
 
-
 @Composable
 fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val interactionSource =  MutableInteractionSource()
     var ready by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
@@ -71,7 +71,6 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
         viewModel.loadMains(id)
         ready = true
     }
-    val interactionSource =  MutableInteractionSource()
     Scaffold(Modifier.fillMaxSize(), bottomBar = {
         BottomNavigation {
             Surface(modifier = Modifier.fillMaxSize()) {
@@ -132,31 +131,17 @@ fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewMo
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
-            )
-            {
                 SearchBar(id,viewModel,navController)
                 if(ready)
                 {
                     PostList(navController = navController, myId = id)
                 }
-            }
         }
     }
 }
 private fun getVideoDurationSeconds(player: ExoPlayer): Int {
     val timeMs = player.duration.toInt()
     return timeMs / 1000
-}
-
-@Composable
-fun RefreshWithLike(viewModel: HomeViewModel = hiltViewModel(), quoteId: Int, myId: Int) {
-    runBlocking {
-        viewModel.amILike(myId,quoteId)
-    }
 }
 
 @Composable
@@ -190,11 +175,9 @@ fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int,
         }
         item {
             LaunchedEffect(isScrollToEnd) {
-                if(isScrollToEnd)
-                {
+                if(isScrollToEnd) {
                     if(scanIndex != 0) {
-                        if(scanIndex == -1)
-                        {
+                        if(scanIndex == -1) {
 //                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
                         }
                         else {
@@ -231,17 +214,16 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     val quoteUrl = post.quote_url
     val amILike = post.amIlike
     val likeCount = post.likeCount
-    var ananLike by remember { mutableStateOf(-1) }
+    var countLike by remember { mutableStateOf(-1) }
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
     val url = MEDIA_URL+quoteUrl
     var likeCountFromVm: Int
     var amILikeFromVm: Int
-    var isPressed by remember { mutableStateOf(false) }
     var color by remember { mutableStateOf(Color.Black) }
     val context = LocalContext.current
-    ananLike = likeCount
+    countLike = likeCount
     color = if(amILike == 0) {
         Color.White
     }
@@ -289,30 +271,21 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
             .clickable {
                 navController.navigate("quote_detail_page/$quoteId/$myId")
             }) {
-            Box(
-                modifier = Modifier
-                    .defaultMinSize(343.dp, 140.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        navController.navigate("quote_detail_page/$quoteId/$myId")
-                    }, contentAlignment = Alignment.TopStart
+            Box(modifier = Modifier
+                .defaultMinSize(343.dp, 140.dp)
+                .fillMaxWidth()
+                .clickable {
+                    navController.navigate("quote_detail_page/$quoteId/$myId")
+                }, contentAlignment = Alignment.TopStart
             ) {
-                //gabbie carter
                 Image(
                     painter = painterResource(id = R.drawable.backgroundrow),
                     contentDescription = "background",
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop
                 )
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Spacer(modifier = Modifier.padding(start = 25.dp))
+                Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.SpaceAround) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
                         IconButton(onClick = {
                             if (playing.value) {
                                 playing.value = false
@@ -343,7 +316,6 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                                     R.drawable.play_pause),
                                 contentDescription = "play/pause",
                                 tint = Color.White, modifier = Modifier
-//                                    .padding(start = 0.dp)
                                     .size(15.dp, 15.dp)
                             )
                         }
@@ -365,109 +337,114 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         {
                             "$minute:0$seconds"
                         },
-                            color = Color.White,
-                            modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start=30.dp))
+                            color = Color.White)
+                        Spacer(modifier = Modifier.padding(start=0.dp)) // for arrangement
                         Text(
-                            text = "$ananLike BEĞENİ",
-                            color = Color.White,
-                            modifier = Modifier
-                                .padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(end=10.dp))
+                            text = "$countLike BEĞENİ",
+                            color = Color.White)
                     }
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.padding(start = 15.dp)
-                    )
-                    {
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId)
-                        Spacer(modifier = Modifier.padding(top = 40.dp))
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.Start,
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
+                        HashText(
+                            navController = navController,
+                            fullText = quoteText,
+                            quoteId = quoteId,
+                            userId = myId
+                        )
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                    }
+                    Row{ Text(text = "")} //for design alignment
+                    Row{Text(text = "")}  //for design alignment
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
+                        Text(
+                            text = "-$username",
+                            color = Color.White)
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        IconButton(onClick = {
+                            when (PackageManager.PERMISSION_GRANTED) {
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.RECORD_AUDIO
+                                ) -> {
+                                    navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
+                                }
+                                else -> {
+                                    launcher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            }
+                        },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 10.dp)
-                        ) {
-                            Text(
-                                text = "-$username",
-                                color = Color.White)
-                            Spacer(modifier = Modifier.padding(start = 160.dp))
-                            Image(
+                                .size(19.dp, 19.dp)) {
+                            Icon(
                                 painter = painterResource(id = R.drawable.voice_record),
                                 contentDescription = "microphone button",
+                                tint = Color.White,
                                 modifier = Modifier
-                                    .size(21.dp, 21.dp)
-                                    .clickable {
-                                        when (PackageManager.PERMISSION_GRANTED) {
-                                            ContextCompat.checkSelfPermission(
-                                                context,
-                                                Manifest.permission.RECORD_AUDIO
-                                            ) -> {
-                                                navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
-                                            }
-                                            else -> {
-                                                launcher.launch(Manifest.permission.RECORD_AUDIO)
-                                            }
-                                        }
-                                    })
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            Image(
+                                    .size(21.dp, 21.dp))
+                        }
+                        IconButton(onClick = {
+                            val type = "text/plain"
+                            val subject = "Your subject"
+                            val shareWith = "Paylaş"
+                            val intent = Intent(Intent.ACTION_SEND)
+                            intent.type = type
+                            intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                            intent.putExtra(Intent.EXTRA_TEXT, url)
+                            ContextCompat.startActivity(
+                                context,
+                                Intent.createChooser(intent, shareWith),
+                                null
+                            )
+                        },
+                            modifier = Modifier
+                                .size(19.dp, 19.dp)) {
+                            Icon(
                                 painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
+                                tint = Color.White,
                                 modifier = Modifier
-                                    .size(21.dp, 21.dp)
-                                    .clickable {
-                                        val type = "text/plain"
-                                        val subject = "Your subject"
-                                        val shareWith = "Paylaş"
-                                        val intent = Intent(Intent.ACTION_SEND)
-                                        intent.type = type
-                                        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                        intent.putExtra(Intent.EXTRA_TEXT, url)
-                                        ContextCompat.startActivity(
-                                            context,
-                                            Intent.createChooser(intent, shareWith),
-                                            null
-                                        )
-                                    })
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            IconButton(
-                                onClick = {
-                                    runBlocking {
-                                        viewModel.amILike(myId,quoteId)
-                                        likeCountFromVm = viewModel.likeCount
-                                        amILikeFromVm = viewModel.isDeleted
-                                        isPressed = !isPressed
-                                        ananLike = likeCountFromVm
-                                        color = if(amILikeFromVm == 0) {
-                                            Color.Yellow
-                                        } else
-                                            Color.White
-                                        mainList.onEach {
-                                            if(quoteId == it.id)
-                                            {
-                                                it.amIlike = if(amILikeFromVm==0) 1 else 0
-                                                it.likeCount = likeCountFromVm
-                                            }
+                                    .size(19.dp, 19.dp))
+                        }
+                        IconButton(
+                            onClick = {
+                                runBlocking {
+                                    viewModel.amILike(myId,quoteId)
+                                    likeCountFromVm = viewModel.likeCount
+                                    amILikeFromVm = viewModel.isDeleted
+                                    countLike = likeCountFromVm
+                                    color = if(amILikeFromVm == 0) {
+                                        Color.Yellow
+                                    } else
+                                        Color.White
+                                    mainList.onEach {
+                                        if(quoteId == it.id)
+                                        {
+                                            it.amIlike = if(amILikeFromVm==0) 1 else 0
+                                            it.likeCount = likeCountFromVm
                                         }
                                     }
-                                },
+                                }
+                            },
+                            modifier = Modifier
+                                .size(21.dp, 20.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.like),
+                                contentDescription = "like",
+                                tint = color,
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.like),
-                                    contentDescription = "like",
-                                    tint = color,
-                                    modifier = Modifier
-                                        .size(21.dp, 20.dp)
-                                )
-                                Spacer(modifier = Modifier.padding(end = 10.dp))
-                        }
+                            )
+                            Spacer(modifier = Modifier.padding(end = 10.dp))
                         }
                     }
+                    Row{Text(text = "")}
                 }
             }
         }
@@ -476,7 +453,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                 painter = painterResource(id = R.drawable.pp),
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 5.dp)
                     .size(44.dp, 44.dp)
                     .clickable {
                         if (myId == userId) {
@@ -494,7 +471,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 5.dp)
                     .size(44.dp, 44.dp)
                     .clip(CircleShape)
                     .clickable {

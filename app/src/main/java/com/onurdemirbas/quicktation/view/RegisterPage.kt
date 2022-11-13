@@ -81,7 +81,7 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
         Image(
             painter = painterResource(id = R.drawable.quicktationlogo),
             contentDescription = "quicktationlogo",
-            Modifier.size(200.dp)
+            Modifier.size(150.dp)
         )
         Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
             TextField(value = name.value, onValueChange ={
@@ -130,7 +130,6 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                         focusManager.clearFocus()}), colors = TextFieldDefaults.textFieldColors(textColor = Color.White,backgroundColor = Color.Transparent, unfocusedIndicatorColor = Color.White), placeholder = {
                 Text(text = "Şifre (Tekrar)", color= Color.White, fontFamily = openSansFontFamily)
             })
-            Spacer(modifier = Modifier.size(25.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Checkbox(checked = s1check.value , onCheckedChange = {s1check.value =it}, colors = CheckboxDefaults.colors(checkedColor = Color.White, uncheckedColor = Color.White, checkmarkColor = Color.Black))
                 HyperLinkText(
@@ -139,8 +138,6 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                     linkText = listOf("Sözleşmeyi"), onClick = {
                         navController.navigate("policy_page")
                     })
-                 //   hyperLinks = listOf(PolicyPage(navController = navController)))
-
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
 
@@ -153,7 +150,6 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                     })
             }
             AlreadyHaveAnAccText(fullText = "Zaten hesabın var mı? Giriş yap.", hyperLinks = listOf(""), linkText = listOf("Zaten hesabın var mı? Giriş yap."), navController = navController)
-            Spacer(modifier = Modifier.padding(15.dp))
             Button(onClick = {
                 if (name.value.text != "") {
                     if (email.value.text != "") {
@@ -219,9 +215,9 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                     Toast.makeText(context, "İsim giriniz!", Toast.LENGTH_LONG).show()
                 }
 
-            },colors = ButtonDefaults.buttonColors(backgroundColor = Color.White, contentColor = Color.Black), shape = RoundedCornerShape(15.dp), modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 15.dp, vertical = 15.dp)) {
+            },colors = ButtonDefaults.buttonColors(backgroundColor = Color.White, contentColor = Color.Black), shape = RoundedCornerShape(15.dp),
+                modifier = Modifier
+                .fillMaxWidth()) {
                 Text(text = "Kayıt Ol", color = Color.Black, fontSize = 25.sp, fontFamily = nunitoFontFamily)
             }
         }

@@ -11,6 +11,7 @@ import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,6 +19,7 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     var followerList = MutableStateFlow<List<Follow>>(listOf())
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
+    var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
     private val x: String? = null
     var userPhoto = MutableStateFlow(x)
     fun loadFollowers(userId: Int, toUserId: Int, action: String) {
@@ -37,6 +39,7 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
             {
                 is Resource.Success ->{
                     userPhoto.value = result.data!!.response.userInfo.photo
+                    userInfo.value = result.data.response.userInfo
                 }
                 is Resource.Error -> {
                     errorMessage.value = result.message!!
@@ -64,7 +67,7 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     val amIFollow = MutableStateFlow(-1)
     fun followUnFollowUser(userid: Int, toUserId: Int)
     {
-        viewModelScope.launch {
+        runBlocking {
             when(val result = repository.postFollowUnfollowUserApi(userid,toUserId)){
                 is Resource.Success -> {
                     amIFollow.value = result.data!!.response.amIfollow

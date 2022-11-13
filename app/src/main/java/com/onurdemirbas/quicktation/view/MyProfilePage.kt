@@ -1,8 +1,11 @@
 package com.onurdemirbas.quicktation.view
 
 import android.content.Intent
-import android.media.AudioAttributes
+import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,7 +13,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,8 +37,10 @@ import androidx.navigation.NavController
 import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
@@ -287,7 +291,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.logout),
-                                contentDescription = "delete post",
+                                contentDescription = "exit",
                                 Modifier.size(25.dp)
                             )
                             Spacer(modifier = Modifier.padding(start = 20.dp))
@@ -316,7 +320,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.deletepost),
-                                contentDescription = "delete post",
+                                contentDescription = "delete account",
                                 Modifier.size(25.dp)
                             )
                             Spacer(modifier = Modifier.padding(start = 20.dp))
@@ -345,7 +349,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.editprofile),
-                                contentDescription = "delete post",
+                                contentDescription = "edit profile",
                                 Modifier.size(25.dp)
                             )
                             Spacer(modifier = Modifier.padding(start = 20.dp))
@@ -363,11 +367,10 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
     }
 }
 
-
 @Composable
 fun ProfilePostList(navController: NavController, myId: Int, viewModel: MyProfileViewModel = hiltViewModel()) {
-    val postList by viewModel.posts.collectAsState()
-    val errorMessage by remember { viewModel.errorMessage }
+    val postList = viewModel.posts.value
+    val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -378,36 +381,39 @@ fun ProfilePostList(navController: NavController, myId: Int, viewModel: MyProfil
     }
 }
 
-
-
 @Composable
 fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavController, myId: Int ,viewModel: MyProfileViewModel = hiltViewModel()) {
-    val scanIndex by viewModel.scanIndex.collectAsState()
     var checkState by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val errorMessage by remember { viewModel.errorMessage }
+    val scanIndex = viewModel.scanIndex
+    val errorMessage = remember { viewModel.errorMessage }
+    var postList = viewModel.posts.value
     val state = rememberLazyListState()
-    fun LazyListState.isScrolledToEnd() = layoutInfo.visibleItemsInfo.firstOrNull()?.index == layoutInfo.totalItemsCount - 1
-    val endOfListReached by remember { derivedStateOf { state.isScrolledToEnd() } }
-    val postList by viewModel.posts.collectAsState()
+    val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts) { post ->
+        items(posts
+            , key = { it.id }
+        ) { post ->
             ProfileQuoteRow(post = post, navController = navController, myId = myId)
         }
         item {
-            LaunchedEffect(endOfListReached) {
-                if(scanIndex != 0) {
-                    if(scanIndex == -1)
-                    {
-//                        Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
-                    }
-                    else {
-                        viewModel.viewModelScope.launch {
-                            // viewModel.loadMainScans(1, scanIndex)
-                            withContext(Dispatchers.Default) {
-                                // viewModel.loadMainScans(1, scanIndex)
+            LaunchedEffect(isScrollToEnd) {
+                if(isScrollToEnd) {
+                    if(scanIndex != 0) {
+                        if(scanIndex == -1) {
+//                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                        }
+                        else {
+                            runBlocking {
+                                try {
+                                    viewModel.loadMyProfileScans(myId, scanIndex)
+                                    postList = viewModel.posts.value
+                                    checkState = true
+                                }
+                                catch (e: Exception){
+                                    Log.e("exception","$e")
+                                }
                             }
-                            checkState = !checkState
                         }
                     }
                 }
@@ -415,49 +421,82 @@ fun ProfilePostListView(posts: List<QuoteFromMyProfile>, navController: NavContr
         }
     }
     if(checkState) {
-        if(endOfListReached)
-        {
-            if(scanIndex>0) {
-                ProfilePostListView(posts = postList, navController = navController,myId)
-                if (errorMessage.isNotEmpty()) {
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                }
-            }
-            checkState= !checkState
+        ProfilePostListView(posts = postList, navController = navController, myId = myId)
+        if (errorMessage.isNotEmpty()) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
+        checkState= false
     }
 }
 
-
+private fun getVideoDurationSeconds(player: ExoPlayer): Int {
+    val timeMs = player.duration.toInt()
+    return timeMs / 1000
+}
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController, myId: Int) {
     val context = LocalContext.current
+    var audioPermCheck by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){ isGranted: Boolean ->
+        audioPermCheck = isGranted
+    }
     val openDialog = remember { mutableStateOf(false) }
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
-    var amILike = post.amIlike
-    var likeCount = post.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
-    var color: Color
-    var isPressed by remember { mutableStateOf(false) }
+    val amILike = post.amIlike
+    val likeCount = post.likeCount
+    val mainList = viewModel.posts.value
+    var likeCountFromVm: Int
+    var amILikeFromVm: Int
+    var countLike by remember { mutableStateOf(-1) }
     val url = Constants.MEDIA_URL +quoteUrl
-    var mediaPressed by remember { mutableStateOf(false)}
-    var playPressed by remember { mutableStateOf(false) }
-    val mediaItem = MediaItem.fromUri(url)
-    val player = ExoPlayer.Builder(context).build()
-    player.setMediaItem(mediaItem)
-    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
-        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-        .setUsage(AudioAttributes.USAGE_MEDIA)
-        .build(),true)
-    LaunchedEffect(player) {
-        player.prepare()
+    var color by remember { mutableStateOf(Color.Black) }
+    countLike = likeCount
+    color = if(amILike == 0) {
+        Color.White
     }
-    var progress by remember { mutableStateOf(0f) }
+    else
+        Color.Yellow
+    //MEDIAPLAYERSTARTED
+    val playing = remember { mutableStateOf(false) }
+    var position by remember { mutableStateOf(0F) }
+    var duration: Int
+    var durationForSlider by remember { mutableStateOf(0L) }
+    val player = ExoPlayer.Builder(context).build()
+    var minute by remember { mutableStateOf(0) }
+    var seconds by remember { mutableStateOf(0) }
+    player.setMediaItem(MediaItem.fromUri(url))
+    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+        .setUsage(C.USAGE_MEDIA)
+        .build(),true)
+    player.prepare()
+    player.addListener(object : Player.Listener{
+        @Deprecated("Deprecated in Java")
+        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            if(playbackState == ExoPlayer.STATE_READY)
+            {
+                durationForSlider = player.duration
+                duration = getVideoDurationSeconds(player)
+                minute = duration/60
+                seconds = duration%60
+            }
+            super.onPlayerStateChanged(playWhenReady, playbackState)
+            if(playbackState == ExoPlayer.STATE_ENDED)
+            {
+                playing.value = false
+                position = 0F
+                player.seekTo(0L)
+                player.pause()
+            }
+        }
+    })
+    //MEDIAPLAYERENDED
     Box(modifier = Modifier
         .fillMaxSize()
         .wrapContentSize(), contentAlignment = Alignment.TopStart) {
@@ -477,150 +516,163 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop
                 )
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Spacer(modifier = Modifier.padding(15.dp))
+                Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.SpaceAround) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
                         IconButton(onClick = {
-                            playPressed = !playPressed
-                            mediaPressed = !mediaPressed
-                            player.playWhenReady
-                        })
-                        {
-                            if(playPressed)
-                            {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.play_pause),
-                                    modifier = Modifier.size(10.dp, 12.dp),
-                                    contentDescription = "play/pause",
-                                    tint = Color.White
-                                )
+                            if (playing.value) {
+                                playing.value = false
+                                player.pause()
+                            } else {
+                                playing.value = true
                                 player.play()
                             }
-                            else
-                            {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.play),
-                                    modifier = Modifier.size(10.dp, 12.dp),
-                                    contentDescription = "play/pause",
-                                    tint = Color.White
-                                )
-                                player.pause()
-                            }
+                            object :
+                                CountDownTimer(durationForSlider, 100) {
+                                override fun onTick(millisUntilFinished: Long) {
+                                    position =
+                                        player.currentPosition.toFloat()
+                                    if (player.currentPosition == durationForSlider) {
+                                        playing.value = false
+                                    }
+                                }
+                                override fun onFinish() {
+                                }
+                            }.start()
+                        })
+                        {
+                            Icon(
+                                painter = painterResource(id =
+                                if (!playing.value || player.currentPosition==durationForSlider)
+                                    R.drawable.play
+                                else
+                                    R.drawable.play_pause),
+                                contentDescription = "play/pause",
+                                tint = Color.White, modifier = Modifier
+                                    .size(15.dp, 15.dp)
+                            )
                         }
-                        Slider(value = progress, onValueChange = { progress = it }, modifier = Modifier.size(100.dp,50.dp),enabled = false, colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
-                        Spacer(modifier = Modifier.padding(start=0.dp))
-                        Text(text = "3:21", color = Color.White, modifier = Modifier.padding(top = 15.dp))
-                        Spacer(modifier = Modifier.padding(start = 60.dp))
-                        Text(text = "$likeCount BEĞENME"
-                            , color = Color.White, modifier = Modifier
-                                .padding(top = 15.dp))
+                        Slider(
+                            value = position,
+                            valueRange = 0F..durationForSlider.toFloat(),
+                            onValueChange = {
+                                position = it
+                                player.seekTo(it.toLong())
+                            },
+                            modifier = Modifier.size(130.dp,50.dp),
+                            enabled = true,
+                            colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
+                        Text(text =
+                        if(seconds > 10) {
+                            "$minute:$seconds"
+                        }
+                        else
+                        {
+                            "$minute:0$seconds"
+                        },
+                            color = Color.White)
+                        Spacer(modifier = Modifier.padding(start=0.dp)) // for arrangement
+                        Text(
+                            text = "$countLike BEĞENİ",
+                            color = Color.White)
                     }
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.padding(start = 15.dp, end = 15.dp)
-                    )
-                    {
-                        HashText(navController = navController, fullText = quoteText, quoteId = quoteId, userId = myId)
-                        Spacer(modifier = Modifier.padding(top = 20.dp))
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.Start,
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
+                        HashText(
+                            navController = navController,
+                            fullText = quoteText,
+                            quoteId = quoteId,
+                            userId = myId
+                        )
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                        Spacer(Modifier.padding(0.dp))
+                    }
+                    Row{ Text(text = "")} //for design alignment
+                    Row{Text(text = "")}  //for design alignment
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
+                        Text(
+                            text = "-$username",
+                            color = Color.White)
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        Spacer(Modifier.padding(0.dp)) // for design arrangement
+                        IconButton(onClick = {
+                            openDialog.value = !openDialog.value
+                        },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 10.dp)
-                        ) {
-                            Text(text = "-$username", color = Color.White)
-                            Spacer(modifier = Modifier.padding(start = 150.dp))
-                            Icon(painter = painterResource(id = R.drawable.options),
+                                .size(21.dp, 21.dp)) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.options),
                                 contentDescription = "more button",
                                 tint = Color.White,
                                 modifier = Modifier
-                                    .size(21.dp, 21.dp)
-                                    .clickable {
-                                        openDialog.value = !openDialog.value
-                                    })
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            Image(painter = painterResource(id = R.drawable.share),
+                                    .size(21.dp, 21.dp))
+                        }
+                        IconButton(onClick = {
+                            val type = "text/plain"
+                            val subject = "Your subject"
+                            val shareWith = "Paylaş"
+                            val intent = Intent(Intent.ACTION_SEND)
+                            intent.type = type
+                            intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                            intent.putExtra(Intent.EXTRA_TEXT, url)
+                            ContextCompat.startActivity(
+                                context,
+                                Intent.createChooser(intent, shareWith),
+                                null
+                            )
+                        },
+                            modifier = Modifier
+                                .size(19.dp, 19.dp)) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.share),
                                 contentDescription = "share button",
+                                tint = Color.White,
                                 modifier = Modifier
-                                    .size(21.dp, 21.dp)
-                                    .clickable {
-                                        val type = "text/plain"
-                                        val subject = "Your subject"
-                                        val shareWith = "Paylaş"
-                                        val intent = Intent(Intent.ACTION_SEND)
-                                        intent.type = type
-                                        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                        intent.putExtra(Intent.EXTRA_TEXT, url)
-                                        ContextCompat.startActivity(
-                                            context,
-                                            Intent.createChooser(intent, shareWith),
-                                            null
-                                        )
-                                    })
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            IconButton(
-                                onClick = {
-                                    isPressed = true
-                                }, modifier = Modifier
-                                    .size(21.dp, 20.dp)
-                            ) {
-                                color = when (amILike) {
-                                    1 -> {
-                                        Color(0xFFD9DD23)
-                                    }
-                                    0 -> {
+                                    .size(19.dp, 19.dp))
+                        }
+                        IconButton(
+                            onClick = {
+                                runBlocking {
+                                    viewModel.amILike(myId,quoteId)
+                                    likeCountFromVm = viewModel.likeCount
+                                    amILikeFromVm = viewModel.isDeleted
+                                    countLike = likeCountFromVm
+                                    color = if(amILikeFromVm == 0) {
+                                        Color.Yellow
+                                    } else
                                         Color.White
-                                    }
-                                    else -> {
-                                        Color.Black
-                                    }
-                                }
-                                Icon(
-                                    painter = painterResource(id = R.drawable.like),
-                                    contentDescription = "like",
-                                    tint = color,
-                                    modifier = Modifier
-                                        .size(21.dp, 20.dp)
-                                )
-                            }
-                            if (isPressed) {
-                                ProfileRefreshWithLikeQuote(viewModel, myId, quoteId)
-                                isPressed = false
-                                when(amILike){
-                                    1 -> {
-                                        color = Color.White
-                                        likeCount -= 1
-                                        amILike = 0
-                                    }
-                                    0 -> {
-                                        color = Color(0xFFD9DD23)
-                                        likeCount += 1
-                                        amILike = 1
-                                    }
-                                    else -> {
-                                        color = Color.Black
+                                    mainList.onEach {
+                                        if(quoteId == it.id)
+                                        {
+                                            it.amIlike = if(amILikeFromVm==0) 1 else 0
+                                            it.likeCount = likeCountFromVm
+                                        }
                                     }
                                 }
-                            }
-                            if(mediaPressed)
-                            {
-                                LaunchedEffect(Unit){
-                                    while(isActive){
-                                        progress = (player.currentPosition / player.duration).toFloat()
-                                        delay(200)
-                                    }
-                                }
-                            }
+                            },
+                            modifier = Modifier
+                                .size(21.dp, 20.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.like),
+                                contentDescription = "like",
+                                tint = color,
+                                modifier = Modifier
+                                    .size(21.dp, 20.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(end = 10.dp))
                         }
                     }
+                    Row{Text(text = "")}
                 }
             }
         }
@@ -657,9 +709,8 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
     Spacer(Modifier.padding(bottom = 15.dp))
     if(openDialog.value)
     {
-        Box(Modifier.fillMaxSize()) {
             Popup(alignment = Alignment.BottomCenter, onDismissRequest = {openDialog.value = !openDialog.value}, properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier
+                Box(contentAlignment = Alignment.TopCenter, modifier = Modifier
                     .background(
                         color = Color(201, 114, 12, 204),
                         shape = RoundedCornerShape(
@@ -669,12 +720,11 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             bottomStart = 0.dp
                         )
                     )
-                    .size(750.dp, 100.dp)
+                    .size(750.dp, 150.dp)
                     .windowInsetsPadding(WindowInsets.ime))
                 {
-                    Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
                         Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
-                        Spacer(modifier = Modifier.padding(top = 5.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                             Button(onClick = {
                                 viewModel.deleteQuote(myId,quoteId)
@@ -701,19 +751,9 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.padding(0.dp))
                     }
                 }
             }
-        }
     }
-}
-
-
-
-
-@Composable
-fun ProfileRefreshWithLikeQuote(viewModel: MyProfileViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
-    viewModel.viewModelScope.launch {
-        viewModel.amILikeFun(userId,quoteId)
-        delay(200) }
 }

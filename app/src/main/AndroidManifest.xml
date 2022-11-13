@@ -23,6 +23,7 @@
         android:theme="@style/Theme.Quicktation"
         tools:targetApi="31">
         <activity
+            android:windowSoftInputMode="adjustResize"
             android:name="com.onurdemirbas.quicktation.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Quicktation">
