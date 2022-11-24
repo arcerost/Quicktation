@@ -438,10 +438,6 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 @Composable
 fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController, myId: Int) {
     val context = LocalContext.current
-    var audioPermCheck by remember { mutableStateOf(false) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){ isGranted: Boolean ->
-        audioPermCheck = isGranted
-    }
     val openDialog = remember { mutableStateOf(false) }
     val quoteId  = post.id
     val username = post.username

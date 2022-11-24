@@ -138,13 +138,14 @@ private fun startRecord() {
         setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
         setOutputFile(outputFile)
         setMaxDuration(180000)
+        //permission control?
         try {
             prepare()
             start()
         }
         catch (e: Exception)
         {
-            Log.d("media","${e.message}")
+            Log.d("exam","exception from start ${e.message}")
         }
     }
 }
@@ -192,7 +193,7 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
     var durationForSlider by remember { mutableStateOf(0L) }
     var audioPermCheck by remember { mutableStateOf(false) }
     val context = LocalContext.current
-
+//    var storagePermCheck by remember { mutableStateOf(false) }
     //timer started
     var timerCheck by remember { mutableStateOf(false) }
     if(timerCheck)
@@ -314,9 +315,16 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
                         0 -> {
                             if(audioPermCheck)
                             {
-                                startRecord()
-                                recCheck = 1
-                                timerCheck = true
+                                try {
+                                    startRecord()
+                                    recCheck = 1
+                                    timerCheck = true
+                                }
+                                catch (e: Exception)
+                                {
+                                    Log.d("exam","exception from start onclick: $e")
+                                }
+
                             }
                         }
                         1 -> {
@@ -329,7 +337,7 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
                                 }
                                 catch (e: Exception)
                                 {
-                                    Log.d("exam","exception from onclick: $e")
+                                    Log.d("exam","exception from stop onclick: $e")
                                 }
                             }
                         }
@@ -450,9 +458,15 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
                                 {
                                     stopPlayer(player)
                                 }
-                                startRecord()
-                                recCheck = 1
-                                timerCheck = true
+                                try {
+                                    startRecord()
+                                    recCheck = 1
+                                    timerCheck = true
+                                }
+                                catch (e: Exception)
+                                {
+                                    Log.d("exam","exception from standart start onclick: $e")
+                                }
                             }
                         }
                         1 -> {
@@ -465,7 +479,7 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
                                 }
                                 catch (e: Exception)
                                 {
-                                    Log.d("exam","exception from onclick: $e")
+                                    Log.d("exam","exception from standart stop onclick: $e")
                                 }
                             }
                         }
