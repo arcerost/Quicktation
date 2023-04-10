@@ -2,8 +2,6 @@
 
 package com.onurdemirbas.quicktation.view
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -12,8 +10,6 @@ import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,11 +27,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.FileUtils
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
@@ -187,13 +184,13 @@ private fun getVideoDurationSeconds(player: MediaPlayer): Int {
     val timeMs = player.duration
     return timeMs / 1000
 }
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CreateMain(navController: NavController, userId: Int, quoteText: String, userPhoto: String?, userName: String, quoteId: Int,  viewModel: CreateQuoteSoundViewModel = hiltViewModel()) {
     var position by remember { mutableStateOf(0F) }
     var durationForSlider by remember { mutableStateOf(0L) }
     var audioPermCheck by remember { mutableStateOf(false) }
     val context = LocalContext.current
-//    var storagePermCheck by remember { mutableStateOf(false) }
     //timer started
     var timerCheck by remember { mutableStateOf(false) }
     if(timerCheck)
@@ -215,16 +212,14 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
     //timer  end
 
     //permission control start
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-                    audioPermCheck = isGranted
+    val permissionState = rememberMultiplePermissionsState(permissions = listOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
+    if(permissionState.allPermissionsGranted)
+    {
+        audioPermCheck = true
     }
-    when (PackageManager.PERMISSION_GRANTED) {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) -> {
-            audioPermCheck = true
-        }
-        else -> {
-            launcher.launch(Manifest.permission.RECORD_AUDIO)
-        }
+    else
+    {
+        permissionState.launchMultiplePermissionRequest()
     }
     //permission control end
 
@@ -241,7 +236,9 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
             Spacer(modifier = Modifier.padding(top = 20.dp))
             Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
             ) {
-                Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 0.dp).fillMaxWidth()) {
+                Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                    .padding(end = 0.dp)
+                    .fillMaxWidth()) {
                     Spacer(modifier = Modifier.padding(0.dp))
                     Spacer(modifier = Modifier.padding(0.dp))
                     Text(text = "SES OLUŞTUR", color = Color.Black, fontSize = 16.sp, fontFamily = openSansBold)

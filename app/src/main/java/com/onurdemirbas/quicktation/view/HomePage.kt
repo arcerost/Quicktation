@@ -2,16 +2,14 @@
 
 package com.onurdemirbas.quicktation.view
 
-import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.CountDownTimer
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,7 +18,9 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -43,7 +43,6 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.android.exoplayer2.C
@@ -51,218 +50,129 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.onurdemirbas.quicktation.R
-import com.onurdemirbas.quicktation.database.UserDatabase
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.*
+import java.util.concurrent.TimeUnit
+
+data class NavigationItem(val title: String,@DrawableRes val iconResId: Int, val route: String)
 
 @Composable
 fun HomePage(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val interactionSource =  MutableInteractionSource()
-    var ready by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java,"UserInfo").build()
-    val userDao = db.UserDao()
-    val id: Int
-    runBlocking {
-        id = userDao.getUser().userId!!
-        viewModel.loadMains(id)
-        ready = true
+    val ready by viewModel.ready.observeAsState(false)
+    val id = remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit){
+        val userId = viewModel.getUserId()
+        if(userId !=null)
+        {
+            id.value = userId
+            viewModel.loadMains(userId)
+            viewModel.setReady(true)
+        }
     }
-    Scaffold(Modifier.fillMaxSize(), bottomBar = {
-        BottomNavigation {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-                Row(
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
+    Scaffold(Modifier.fillMaxSize(),
+        topBar = {
+
+        }, content = {
+            Surface(
+                Modifier
+                    .fillMaxSize()
+                    .padding(it)) {
+                Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
+            }
+            if(id.value != null){
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Image(painter = painterResource(id = R.drawable.home),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("home_page") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.notifications_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("notifications_page/${id}") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.add_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("create_quote_page/$id") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.chat_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("messages_page/${id}") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.profile_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("my_profile_page/${id}") }
-                            .size(28.dp, 31.dp))
+                    SearchBar(id.value!!,viewModel,navController)
+                    if(ready)
+                    {
+                        PostList(navController = navController, myId = id.value!!, viewModel)
+                    }
                 }
             }
-        }
-    }) {
-        Surface(Modifier.fillMaxSize()) {
-            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-        }
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-                SearchBar(id,viewModel,navController)
-                if(ready)
-                {
-                    PostList(navController = navController, myId = id)
-                }
-        }
-    }
+        },
+        bottomBar = {
+            if(id.value != null)
+            {
+                BottomNavigationForHomePage(navController, id.value!!)
+            }
+    })
 }
-private fun getVideoDurationSeconds(player: ExoPlayer): Int {
-    val timeMs = player.duration.toInt()
-    return timeMs / 1000
-}
-
 @Composable
-fun PostList(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int) {
+fun PostList(navController: NavController, myId: Int, viewModel: HomeViewModel) {
     val postList = viewModel.mainList.value
     val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-    }
-    else
-    {
-        PostListView(posts = postList, navController = navController, myId)
+    } else {
+        PostListView(posts = postList, navController = navController, viewModel = viewModel, myId = myId)
     }
 }
 
 @Composable
-fun PostListView(posts: List<Quotation>, navController: NavController, myId:Int, viewModel: HomeViewModel = hiltViewModel()) {
-    val context= LocalContext.current
-    val scanIndex = viewModel.scanIndex
-    var postList = viewModel.mainList.value
-    val errorMessage = remember { viewModel.errorMessage }
-    var checkState by remember { mutableStateOf(false) }
+fun PostListView(posts: List<Quotation>, navController: NavController, viewModel: HomeViewModel, myId: Int) {
     val state = rememberLazyListState()
     val isScrollToEnd by remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.layoutInfo.totalItemsCount - 1 } }
     LazyColumn(contentPadding = PaddingValues(top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.SpaceEvenly, state = state) {
-        items(posts
-            , key = { it.id }
-        ) { post ->
+        items(posts, key = { it.id }) { post ->
             MainRow(post = post, navController = navController, myId = myId)
         }
         item {
-            LaunchedEffect(isScrollToEnd) {
-                if(isScrollToEnd) {
-                    if(scanIndex != 0) {
-                        if(scanIndex == -1) {
-//                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
-                        }
-                        else {
-                            runBlocking {
-                                viewModel.loadMainScans(myId, scanIndex)
-                                postList = viewModel.mainList.value
-                                checkState = true
-                            }
+            if (isScrollToEnd) {
+                LaunchedEffect(isScrollToEnd) {
+                    if (viewModel.scanIndex != 0) {
+                        if (viewModel.scanIndex == -1) {
+                            // Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
+                        } else {
+                            viewModel.loadMainScans(myId, viewModel.scanIndex)
                         }
                     }
                 }
             }
         }
     }
-    if(checkState) {
-        PostListView(posts = postList, navController = navController, myId = myId)
-        if (errorMessage.isNotEmpty()) {
-            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-        }
-        checkState= false
-    }
 }
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navController: NavController, myId: Int) {
     val mainList = viewModel.mainList.value
-    var audioPermCheck by remember { mutableStateOf(false) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){isGranted: Boolean ->
-        audioPermCheck = isGranted
-    }
+    val currentPost = mainList.firstOrNull { it.id == post.id } ?: post
+    val amILike = currentPost.amIlike
+    val likeCount = currentPost.likeCount
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
-    val amILike = post.amIlike
-    val likeCount = post.likeCount
-    var countLike by remember { mutableStateOf(-1) }
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
     val url = MEDIA_URL+quoteUrl
-    var likeCountFromVm: Int
-    var amILikeFromVm: Int
-    var color by remember { mutableStateOf(Color.Black) }
     val context = LocalContext.current
-    countLike = likeCount
-    color = if(amILike == 0) {
-        Color.White
-    }
-    else
-        Color.Yellow
     //MEDIAPLAYERSTARTED
     val playing = remember { mutableStateOf(false) }
     var position by remember { mutableStateOf(0F) }
-    var duration: Int
     var durationForSlider by remember { mutableStateOf(0L) }
-    val player = ExoPlayer.Builder(context).build()
     var minute by remember { mutableStateOf(0) }
     var seconds by remember { mutableStateOf(0) }
-    player.setMediaItem(MediaItem.fromUri(url))
-    player.setAudioAttributes(com.google.android.exoplayer2.audio.AudioAttributes.Builder()
-        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-        .setUsage(C.USAGE_MEDIA)
-        .build(),true)
-    player.prepare()
-    player.addListener(object : Player.Listener{
-        @Deprecated("Deprecated in Java")
-        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            if(playbackState == ExoPlayer.STATE_READY)
-            {
-                durationForSlider = player.duration
-                duration = getVideoDurationSeconds(player)
-                minute = duration/60
-                seconds = duration%60
-            }
-            super.onPlayerStateChanged(playWhenReady, playbackState)
-            if(playbackState == ExoPlayer.STATE_ENDED)
-            {
-                playing.value = false
-                position = 0F
-                player.seekTo(0L)
-                player.pause()
-            }
+    val player = createExoPlayer(
+        context = LocalContext.current,
+        url = url,
+        playing = playing,
+        onDurationReady = { duration ->
+            durationForSlider = duration
+            val durationInSeconds = TimeUnit.MILLISECONDS.toSeconds(duration)
+            minute = durationInSeconds.toInt() / 60
+            seconds = durationInSeconds.toInt() % 60
+        },
+        onPlaybackEnded = {
+            position = 0F
         }
-    })
+    )
     //MEDIAPLAYERENDED
     Box(modifier = Modifier
         .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
@@ -285,7 +195,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     contentScale = ContentScale.Crop
                 )
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.SpaceAround) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
                         IconButton(onClick = {
                             if (playing.value) {
                                 playing.value = false
@@ -330,7 +242,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             enabled = true,
                             colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Text(text =
-                        if(seconds > 10) {
+                        if(seconds >= 10) {
                             "$minute:$seconds"
                         }
                         else
@@ -340,10 +252,12 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             color = Color.White)
                         Spacer(modifier = Modifier.padding(start=0.dp)) // for arrangement
                         Text(
-                            text = "$countLike BEĞENİ",
+                            text = "$likeCount BEĞENİ",
                             color = Color.White)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
                         HashText(
                             navController = navController,
                             fullText = quoteText,
@@ -357,7 +271,9 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                     }
                     Row{ Text(text = "")} //for design alignment
                     Row{Text(text = "")}  //for design alignment
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(start = 15.dp, end = 15.dp).fillMaxWidth()){
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp)
+                        .fillMaxWidth()){
                         Text(
                             text = "-$username",
                             color = Color.White)
@@ -367,17 +283,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         Spacer(Modifier.padding(0.dp)) // for design arrangement
                         Spacer(Modifier.padding(0.dp)) // for design arrangement
                         IconButton(onClick = {
-                            when (PackageManager.PERMISSION_GRANTED) {
-                                ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.RECORD_AUDIO
-                                ) -> {
-                                    navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
-                                }
-                                else -> {
-                                    launcher.launch(Manifest.permission.RECORD_AUDIO)
-                                }
-                            }
+                            navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
                         },
                             modifier = Modifier
                                 .size(19.dp, 19.dp)) {
@@ -413,23 +319,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                         }
                         IconButton(
                             onClick = {
-                                runBlocking {
-                                    viewModel.amILike(myId,quoteId)
-                                    likeCountFromVm = viewModel.likeCount
-                                    amILikeFromVm = viewModel.isDeleted
-                                    countLike = likeCountFromVm
-                                    color = if(amILikeFromVm == 0) {
-                                        Color.Yellow
-                                    } else
-                                        Color.White
-                                    mainList.onEach {
-                                        if(quoteId == it.id)
-                                        {
-                                            it.amIlike = if(amILikeFromVm==0) 1 else 0
-                                            it.likeCount = likeCountFromVm
-                                        }
-                                    }
-                                }
+                                viewModel.likeButtonClicked(currentPost.id, myId) { _, _ -> }
                             },
                             modifier = Modifier
                                 .size(21.dp, 20.dp)
@@ -437,7 +327,7 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
                             Icon(
                                 painter = painterResource(id = R.drawable.like),
                                 contentDescription = "like",
-                                tint = color,
+                                tint = if (amILike == 1) Color.Yellow else Color.White,
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
                             )
@@ -486,6 +376,36 @@ fun MainRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, navCont
     }
     Spacer(Modifier.padding(bottom = 10.dp))
 }
+fun createExoPlayer(
+    context: Context,
+    url: String,
+    playing: MutableState<Boolean>,
+    onDurationReady: (Long) -> Unit,
+    onPlaybackEnded: () -> Unit
+): ExoPlayer {
+    val player = ExoPlayer.Builder(context).build()
+
+    player.setMediaItem(MediaItem.fromUri(url))
+    player.setAudioAttributes(
+        com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build(), true
+    )
+    player.prepare()
+    player.addListener(object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == ExoPlayer.STATE_READY) {
+                onDurationReady(player.duration)
+            }
+            if (playbackState == ExoPlayer.STATE_ENDED) {
+                playing.value = false
+                onPlaybackEnded()
+            }
+        }
+    })
+    return player
+}
 
 @Composable
 fun HashText(
@@ -511,7 +431,7 @@ fun HashText(
             ), start = 0, end = fullText.length
         )
         val words = fullText.split("\\s+".toRegex()).map { word ->
-            word.replace("""^[,\.]|[,\.]$""".toRegex(), "")
+            word.replace("""^[,.]|[,.]$""".toRegex(), "")
         }
         words.forEachIndexed { _, s ->
             if (s.startsWith("#")) {
@@ -639,5 +559,42 @@ fun SearchBar(myId: Int,viewModel: HomeViewModel, navController: NavController) 
                 focusedIndicatorColor = Color.Transparent
             )
         )
+    }
+}
+
+@Composable
+fun CustomIcon(@DrawableRes resId: Int, contentDescription: String) {
+    Image(
+        painter = painterResource(resId),
+        contentDescription = contentDescription,
+        modifier = Modifier.size(28.dp)
+    )
+}
+@SuppressLint("SuspiciousIndentation")
+@Composable
+fun BottomNavigationForHomePage(navController: NavController, myId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.home, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${myId}"),
+        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${myId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${myId}"),
+        NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${myId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
+        }
     }
 }

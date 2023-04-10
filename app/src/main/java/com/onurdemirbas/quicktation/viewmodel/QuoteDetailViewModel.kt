@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.*
-import com.onurdemirbas.quicktation.repository.QuicktationRepo
+import com.onurdemirbas.quicktation.repository.QuicktationRepository
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class QuoteDetailViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
+class QuoteDetailViewModel@Inject constructor(private val repository: QuicktationRepository) : ViewModel() {
     var head = MutableStateFlow(QuoteDetailResponseRowList(amIlike = 1,"",1,1,"","",1,1,"",""))
     var errorMessage by mutableStateOf("")
     var scanIndex by mutableStateOf(0)

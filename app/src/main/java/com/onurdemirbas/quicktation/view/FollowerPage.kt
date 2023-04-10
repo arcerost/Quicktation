@@ -466,12 +466,14 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
             )
         ) {
             Box(
-                contentAlignment = Alignment.TopCenter, modifier = Modifier.background(
-                    color = Color(4, 108, 122, 204), shape = RoundedCornerShape(
-                        topStart = 20.dp, topEnd = 20.dp, bottomEnd = 0.dp, bottomStart = 0.dp
+                contentAlignment = Alignment.TopCenter, modifier = Modifier
+                    .background(
+                        color = Color(4, 108, 122, 204), shape = RoundedCornerShape(
+                            topStart = 20.dp, topEnd = 20.dp, bottomEnd = 0.dp, bottomStart = 0.dp
+                        )
                     )
-                )
-                    .size(750.dp, 250.dp).windowInsetsPadding(WindowInsets.ime)
+                    .size(750.dp, 250.dp)
+                    .windowInsetsPadding(WindowInsets.ime)
             ) {
                 Column(
                     verticalArrangement = Arrangement.SpaceAround,
@@ -685,7 +687,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
 //    var color = Color.Transparent
     val context = LocalContext.current
     val check = remember { mutableStateOf(false) }
-    var amIFollowed = viewModel.userInfo.value.amIfollow
+    var amIFollowed = viewModel.userInfo.collectAsState().value.amIfollow
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(start = 20.dp, end = 20.dp, top = 20.dp), contentAlignment = Alignment.Center) {
@@ -726,16 +728,13 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
                         .padding(horizontal = 10.dp)
                         .size(44.dp, 44.dp)
                         .clickable {
-                            if(action == "follows")
-                            {
+                            if (action == "follows") {
                                 if (myId == toUserId) {
                                     navController.navigate("my_profile_page/$myId")
                                 } else {
                                     navController.navigate("other_profile_page/$toUserId/$myId")
                                 }
-                            }
-                            else if(action == "followers")
-                            {
+                            } else if (action == "followers") {
                                 if (myId == userIdFromRow) {
                                     navController.navigate("my_profile_page/$myId")
                                 } else {

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.Follow
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
 import com.onurdemirbas.quicktation.model.UserInfo
-import com.onurdemirbas.quicktation.repository.QuicktationRepo
+import com.onurdemirbas.quicktation.repository.QuicktationRepository
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
-class FollowerViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
+class FollowerViewModel@Inject constructor(private val repository: QuicktationRepository) : ViewModel() {
     var followerList = MutableStateFlow<List<Follow>>(listOf())
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)

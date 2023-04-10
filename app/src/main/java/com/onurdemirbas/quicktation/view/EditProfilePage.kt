@@ -3,6 +3,7 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -44,6 +45,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.openSansBold
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
@@ -52,8 +55,11 @@ import com.onurdemirbas.quicktation.viewmodel.EditProfileViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProfileViewModel = hiltViewModel()) {
+    val permissionState = rememberMultiplePermissionsState(permissions = listOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+    var permCheck = false
     viewModel.viewModelScope.launch {
         viewModel.loadUser(myId)
     }
@@ -156,7 +162,14 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
                     Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.size(150.dp))
                     {
                         IconButton(onClick = {
-                            launcher.launch("image/*")
+                            if(permCheck)
+                            {
+                                launcher.launch("image/*")
+                            }
+                            else
+                            {
+                                permissionState.launchMultiplePermissionRequest()
+                            }
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.addphoto),
@@ -355,4 +368,14 @@ fun EditProfilePage(navController: NavController, myId: Int, viewModel: EditProf
             }
         }
     }
+    //permission control start
+    if(permissionState.allPermissionsGranted)
+    {
+        permCheck = true
+    }
+    else
+    {
+        permissionState.launchMultiplePermissionRequest()
+    }
+    //permission control end
 }

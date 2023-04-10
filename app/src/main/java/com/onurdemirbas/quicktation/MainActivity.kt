@@ -5,8 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +22,8 @@ import kotlinx.coroutines.runBlocking
 class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.isAppearanceLightNavigationBars = true
         setContent {
             QuicktationTheme {
                 val db: UserDatabase = Room.databaseBuilder(this, UserDatabase::class.java,"UserInfo")
@@ -227,6 +228,15 @@ class MainActivity: ComponentActivity() {
                         val myId = remember { it.arguments?.getInt("myId")}
                         val text = remember { it.arguments?.getString("text")}
                         SearchPage(myId!!,text!!,navController)
+                    }
+                    composable("in_message_page/{myId}", arguments = listOf(
+                        navArgument("myId"){
+                            type = NavType.IntType
+                        }
+                    ))
+                    {
+                        val myId = remember { it.arguments?.getInt("myId")}
+                        InMessagePage(navController = navController, myId!!)
                     }
                 }
             }

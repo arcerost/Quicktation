@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
 import com.onurdemirbas.quicktation.model.UserInfo
-import com.onurdemirbas.quicktation.repository.QuicktationRepo
+import com.onurdemirbas.quicktation.repository.QuicktationRepository
 import com.onurdemirbas.quicktation.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MyProfileViewModel@Inject constructor(private val repository: QuicktationRepo) : ViewModel() {
+class MyProfileViewModel@Inject constructor(private val repository: QuicktationRepository) : ViewModel() {
     var posts = mutableStateOf(listOf<QuoteFromMyProfile>())
     var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
     var errorMessage by mutableStateOf("")

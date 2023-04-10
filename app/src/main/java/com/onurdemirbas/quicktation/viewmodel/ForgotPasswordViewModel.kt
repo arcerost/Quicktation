@@ -4,16 +4,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.onurdemirbas.quicktation.repository.QuicktationRepo
+import com.onurdemirbas.quicktation.repository.QuicktationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ForgotPasswordViewModel @Inject constructor(private val repository: QuicktationRepo): ViewModel(){
+class ForgotPasswordViewModel @Inject constructor(private val repository: QuicktationRepository): ViewModel(){
     var errorMessage = mutableStateOf("")
-
-
     fun forgotPassword(
         email: String
     ) {
@@ -31,8 +29,6 @@ class ForgotPasswordViewModel @Inject constructor(private val repository: Quickt
             }
         }
     }
-
-
     fun checkCode(
         email: String,
         code: String
@@ -51,8 +47,6 @@ class ForgotPasswordViewModel @Inject constructor(private val repository: Quickt
             }
         }
     }
-
-
     fun updatePassword(
         email: String,
         newpassword: String,

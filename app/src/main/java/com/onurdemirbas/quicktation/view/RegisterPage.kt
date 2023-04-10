@@ -44,6 +44,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hiltViewModel()) {
     val name = remember { mutableStateOf(TextFieldValue())}

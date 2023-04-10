@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        compose_version = '1.4.0-alpha02'
+        compose_version = '1.5.0-alpha01'
         kotlin_version = "1.7.10"
     }
     buildscript {
@@ -15,7 +15,7 @@ plugins {
     id 'com.android.application' version '7.3.1' apply false
     id 'com.android.library' version '7.3.1' apply false
     //kotlin version
-    id 'org.jetbrains.kotlin.android' version '1.7.10' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
     id 'com.google.dagger.hilt.android' version '2.43.2' apply false
 
 }

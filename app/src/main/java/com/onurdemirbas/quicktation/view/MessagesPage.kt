@@ -2,6 +2,7 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,9 +31,16 @@ import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.MessagesViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.*
+import java.util.*
 
 @Composable
 fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesViewModel = hiltViewModel()) {
+    val client = OkHttpClient()
+    val req = Request.Builder().url("ws://63.32.138.61:4000/").build()
+    val listener = com.onurdemirbas.quicktation.websocket.WebSocketListener(myId.toString())
+    val webSocket = client.newWebSocket(req,listener)
+    listener.onAssignUser(webSocket,myId,"assignUser")
     var userName = ""
     viewModel.loadQuotes(myId)
     runBlocking {
@@ -39,7 +48,7 @@ fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesVie
             userName = viewModel.userInfo.value.namesurname
         }
     }
-    val userPhoto = viewModel.userInfo.value.photo
+    val userPhoto = viewModel.userInfo.collectAsState().value.photo
     val interactionSource =  MutableInteractionSource()
     Surface(Modifier.fillMaxSize()) {
         Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
@@ -56,35 +65,14 @@ fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesVie
         )
         {
             Spacer(modifier = Modifier.padding(top = 20.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.padding(start = 10.dp))
-                Text(text = userName, fontFamily = openSansFontFamily, fontSize = 20.sp)
-                if(userPhoto == null || userPhoto == "" || userPhoto == "null") {
-                    Image(
-                        painter = painterResource(id = R.drawable.pp),
-                        contentScale = ContentScale.Crop,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .size(75.dp, 75.dp)
-                            .clip(CircleShape)
-                    )
-                }
-                else {
-                    val painter = rememberImagePainter(data = Constants.MEDIA_URL + userPhoto, builder = {})
-                    Image(
-                        painter = painter,
-                        contentScale = ContentScale.Crop,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .size(75.dp, 75.dp)
-                            .clip(CircleShape)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.padding(top = 40.dp))
-            MessageRow(userPhoto,userName)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
+            MessageRow(userPhoto,userName, myId, navController)
         }
     }
     //BottomBar
@@ -155,11 +143,15 @@ fun MessagesPage(navController: NavController, myId: Int, viewModel: MessagesVie
 
 
 @Composable
-fun MessageRow(userPhoto: String?, userName: String) {
+fun MessageRow(userPhoto: String?, userName: String, myId: Int, navController: NavController) {
+    Log.d("s", userName)
     Box(
         modifier = Modifier
             .defaultMinSize(315.dp, 50.dp)
-            .fillMaxWidth(), contentAlignment = Alignment.TopCenter
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate("in_message_page/${myId}")
+            }, contentAlignment = Alignment.TopCenter
     ) {
         Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Top) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
@@ -187,8 +179,7 @@ fun MessageRow(userPhoto: String?, userName: String) {
                     )
                 }
                 Box(modifier = Modifier
-                    .wrapContentSize()
-                    .clickable { }, contentAlignment = Alignment.Center) {
+                    .wrapContentSize(), contentAlignment = Alignment.Center) {
                     Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.wrapContentSize()) {
                         Text(text = "username", fontFamily = openSansBold, fontSize = 18.sp)
                         Text(text = "message", fontFamily = openSansFontFamily, fontSize = 13.sp)

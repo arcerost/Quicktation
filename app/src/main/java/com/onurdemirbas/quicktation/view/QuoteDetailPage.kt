@@ -2,6 +2,7 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.CountDownTimer
 import android.util.Log
@@ -43,109 +44,38 @@ import com.onurdemirbas.quicktation.viewmodel.QuoteDetailViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun QuoteDetailPage(id: Int, userId: Int,navController: NavController, viewModel: QuoteDetailViewModel = hiltViewModel()) {
     viewModel.viewModelScope.launch{
         viewModel.loadQuote(userId, id)
     }
     val interactionSource =  MutableInteractionSource()
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        )
-        {
-            Post(navController = navController, userId, myId = userId)
-        }
-    }
+    Scaffold(Modifier.fillMaxSize(),
+        topBar = {
 
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+    } , content = {
+            Surface(Modifier.fillMaxSize()) {
+                Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
             }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
             ) {
-                Image(painter = painterResource(id = R.drawable.home),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/$userId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$userId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${userId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/$userId") }
-                        .size(28.dp, 31.dp))
+                Column(
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize()
+                )
+                {
+                    Post(navController = navController, userId, myId = userId)
+                }
             }
-        }
-    }
+    }, bottomBar = {
+            BottomNavigationForQuoteDetailPage(navController,userId)
+    })
 }
-
-//@Composable
-//fun RefreshWithLikeQuote(viewModel: QuoteDetailViewModel = hiltViewModel(), userId: Int, quoteId: Int) {
-//    viewModel.viewModelScope.launch {
-//        viewModel.amILike(userId,quoteId)
-//        delay(200) }
-//}
-//
-//@Composable
-//fun RefreshWithLikeSound(viewModel: QuoteDetailViewModel = hiltViewModel(), myId: Int, quotesound_id: Int) {
-//    viewModel.viewModelScope.launch {
-//        viewModel.amILikeSound(myId,quotesound_id)
-//        delay(200) }
-//}
 
 @Composable
 fun Post(navController: NavController, userId: Int, myId: Int, viewModel: QuoteDetailViewModel = hiltViewModel()) {
@@ -701,4 +631,32 @@ fun SoundRow(viewModel: QuoteDetailViewModel = hiltViewModel(), sound: Sound, us
         }
     }
     Spacer(Modifier.padding(bottom = 15.dp))
+}
+
+@Composable
+fun BottomNavigationForQuoteDetailPage(navController: NavController, userId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.home, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${userId}"),
+        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${userId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${userId}"),
+        NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${userId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
+        }
+    }
 }
