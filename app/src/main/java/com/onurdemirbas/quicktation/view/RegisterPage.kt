@@ -38,7 +38,6 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.viewmodel.RegisterViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -55,13 +54,13 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
     val s1check = remember { mutableStateOf(false)}
     val s2check = remember { mutableStateOf(false)}
     val context = LocalContext.current
-    val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
+    val emailRegex = "^[A-Za-z](.*)(@)(.+)(\\.)(.+)"
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
 
     fun isEmailValid(email: String): Boolean {
-            return emailRegex.toRegex().matches(email);
+            return emailRegex.toRegex().matches(email)
     }
     fun md5(input:String): String {
         val md = MessageDigest.getInstance("MD5")
@@ -167,16 +166,10 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel = hil
                                                 navController = navController
                                             )
                                             viewModel.viewModelScope.launch {
-                                                delay(600)
-                                                val errorMessage = viewModel.errorMessage
-                                                if (errorMessage.value.isEmpty()) {
-                                                    //none
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        errorMessage.value,
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
+                                                viewModel.errorMessage.collect { message ->
+                                                    if (message.isNotEmpty()) {
+                                                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                                    }
                                                 }
                                             }
                                         } else {

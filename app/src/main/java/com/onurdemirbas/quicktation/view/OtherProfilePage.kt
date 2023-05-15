@@ -1,8 +1,10 @@
 @file:OptIn(ExperimentalCoilApi::class)
+@file:Suppress("DEPRECATION")
 
 package com.onurdemirbas.quicktation.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.CountDownTimer
@@ -11,7 +13,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,7 +36,6 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -51,94 +51,34 @@ import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.OtherProfileViewModel
 import kotlinx.coroutines.*
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewModel: OtherProfileViewModel = hiltViewModel()) {
-    viewModel.viewModelScope.launch{
+    LaunchedEffect(key1 = myId)
+    {
         viewModel.loadQuotes(userId,myId)
     }
-    val interactionSource =  MutableInteractionSource()
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Scaffold(topBar = {}, content = {
+        Surface(Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
+        }
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
-        )
-        {
-            OtherProfileRow(navController = navController, userId = userId, myId = myId)
-        }
-    }
-
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
         ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.home),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${myId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/$myId") }
-                        .size(28.dp, 31.dp))
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            )
+            {
+                OtherProfileRow(navController = navController, userId = userId, myId = myId)
             }
         }
-    }
+    }, bottomBar = {
+        BottomNavigationForMyProfilePage(navController = navController, userId = myId)
+    })
 }
 
 
@@ -150,6 +90,8 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
     val check = remember { mutableStateOf(false) }
     var reason by remember { mutableStateOf("") }
     val user = viewModel.userInfo.collectAsState()
+    val userName = user.value.namesurname
+    val nick = user.value.username
     var amIFollow = user.value.amIfollow
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -375,7 +317,9 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     }
                     Spacer(modifier = Modifier.padding(5.dp))
                     Button(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate("in_message_page/$myId/$userId/$userName/$nick")
+                        },
                         border = BorderStroke(1.dp, color = Color.Black),
                         modifier = Modifier.size(250.dp, 45.dp),
                         shape = RoundedCornerShape(20.dp),
@@ -663,7 +607,7 @@ fun OtherProfileQuoteRow(viewModel: OtherProfileViewModel = hiltViewModel(), pos
                             enabled = true,
                             colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Text(text =
-                        if(seconds > 10) {
+                        if(seconds > 9) {
                             "$minute:$seconds"
                         }
                         else

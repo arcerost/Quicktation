@@ -6,6 +6,11 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 
 interface ApiService {
+
+    @Headers("Content-Type:application/json")
+    @POST("messageList")
+    suspend fun postMessageListApi(@Body request: MessageList): MessageListResponse
+
     @Headers("Content-Type:application/json")
     @POST("createQuote")
     suspend fun postCreateQuoteApi(@Body request: CreateQuote): CreateQuoteResponse
@@ -97,4 +102,9 @@ interface ApiService {
     @Headers("Content-Type:application/json")
     @POST("reportUser")
     suspend fun postReportUserApi(@Body request: ReportUser): ReportUserResponse
+
+
+    @Headers("Content-Type:application/json")
+    @POST("messageDetail")
+    suspend fun postMessageDetailApi(@Body request: MessageDetail) : MessageDetailResponse
 }

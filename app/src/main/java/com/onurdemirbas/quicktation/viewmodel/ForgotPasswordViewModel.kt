@@ -1,17 +1,17 @@
 package com.onurdemirbas.quicktation.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.onurdemirbas.quicktation.repository.QuicktationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ForgotPasswordViewModel @Inject constructor(private val repository: QuicktationRepository): ViewModel(){
-    var errorMessage = mutableStateOf("")
+    val errorMessage = MutableStateFlow("")
     fun forgotPassword(
         email: String
     ) {

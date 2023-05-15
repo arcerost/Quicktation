@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
+@file:OptIn(ExperimentalComposeUiApi::class)
 
 package com.onurdemirbas.quicktation.view
 
@@ -18,6 +18,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -82,7 +83,9 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
         Image(
             painter = painterResource(id = R.drawable.quicktationlogo),
             contentDescription = "quicktationlogo",
-            Modifier.size(250.dp)
+            Modifier
+                .size(250.dp)
+                .aspectRatio(1.0f)
         )
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
@@ -94,6 +97,7 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                 onValueChange = {
                     email.value = it
                 },
+                modifier = Modifier.width((0.8f * LocalConfiguration.current.screenWidthDp).dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {keyboardController?.hide()
@@ -112,6 +116,7 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                 onValueChange = {
                     password.value = it
                 },
+                modifier = Modifier.width((0.8f * LocalConfiguration.current.screenWidthDp).dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {keyboardController?.hide()
@@ -125,18 +130,28 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewM
                     Text(text = "Şifre", color = Color.White, fontFamily = openSansFontFamily)
                 })
             Spacer(modifier = Modifier.size(50.dp))
-            ForgotPasswordText(
-                fullText = "Şifreni mi Unuttun?",
-                linkText = listOf("Şifreni mi Unuttun?"),
-                hyperLinks = listOf(""),
-                navController = navController
-            )
-            RegisterText(
-                fullText = "Hesabın mı yok? Kayıt olmak için tıkla!",
-                linkText = listOf("tıkla!"),
-                hyperLinks = listOf(""),
-                navController = navController
-            )
+            Row(
+                modifier = Modifier.width((0.8f * LocalConfiguration.current.screenWidthDp).dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                ForgotPasswordText(
+                    fullText = "Şifreni mi Unuttun?",
+                    linkText = listOf("Şifreni mi Unuttun?"),
+                    hyperLinks = listOf(""),
+                    navController = navController
+                )
+            }
+            Row(
+                modifier = Modifier.width((0.8f * LocalConfiguration.current.screenWidthDp).dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                RegisterText(
+                    fullText = "Hesabın mı yok? Kayıt olmak için tıkla!",
+                    linkText = listOf("tıkla!"),
+                    hyperLinks = listOf(""),
+                    navController = navController
+                )
+            }
             Spacer(modifier = Modifier.size(75.dp))
             Button(
                 onClick = {

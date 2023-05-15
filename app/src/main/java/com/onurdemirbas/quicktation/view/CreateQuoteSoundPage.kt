@@ -1,7 +1,9 @@
 @file:OptIn(ExperimentalCoilApi::class)
+@file:Suppress("DEPRECATION")
 
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -12,7 +14,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,81 +52,39 @@ private var seconds by mutableStateOf(0)
 private var minutes by mutableStateOf(0)
 private val outputFile = Environment.getExternalStorageDirectory() .absolutePath + "/recording.3gpp"
 private lateinit var recorder: MediaRecorder
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun CreateQuoteSoundPage(navController: NavController, userId: Int, postUserId: Int, quoteText: String, userName: String, quoteId: Int, viewModel: CreateQuoteSoundViewModel = hiltViewModel()) {
-    val interactionSource =  MutableInteractionSource()
-    viewModel.getPhoto(postUserId,userId)
-    val userPhoto = viewModel.userInfo.value.photo
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-        CreateMain(navController = navController, userId = userId, quoteText = quoteText, userPhoto = userPhoto, userName = userName, quoteId = quoteId)
-    }
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
+    viewModel.getPhoto(postUserId, userId)
+    val userPhoto = viewModel.userInfo.collectAsState().value.photo
+    Scaffold(topBar = {},
+        content = {
+            Surface(Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.mainbg),
+                    contentDescription = "background image",
+                    contentScale = ContentScale.FillHeight
+                )
             }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Image(painter = painterResource(id = R.drawable.homeblack),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/${userId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$userId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${userId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/${userId}") }
-                        .size(28.dp, 31.dp))
+                CreateMain(
+                    navController = navController,
+                    userId = userId,
+                    quoteText = quoteText,
+                    userPhoto = userPhoto,
+                    userName = userName,
+                    quoteId = quoteId
+                )
             }
+        },
+        bottomBar = {
+            BottomNavigationForCreateQuoteSoundPage(navController = navController, userId = userId)
         }
-    }
+    )
 }
 
 private fun startRecord() {
@@ -219,10 +178,12 @@ fun CreateMain(navController: NavController, userId: Int, quoteText: String, use
     }
     else
     {
-        permissionState.launchMultiplePermissionRequest()
+        LaunchedEffect(key1 = Unit)
+        {
+            permissionState.launchMultiplePermissionRequest()
+        }
     }
     //permission control end
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -592,6 +553,37 @@ fun QuoteRow(navController: NavController, userId: Int, quoteText: String, userP
                     .padding(horizontal = 10.dp)
                     .clip(CircleShape)
                     .size(44.dp, 44.dp)
+            )
+        }
+    }
+}
+
+
+
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
+@Composable
+fun BottomNavigationForCreateQuoteSoundPage(navController: NavController, userId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.homeblack, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${userId}"),
+        NavigationItem("Ekle", R.drawable.add,"create_quote_page/${userId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${userId}"),
+        NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${userId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
             )
         }
     }

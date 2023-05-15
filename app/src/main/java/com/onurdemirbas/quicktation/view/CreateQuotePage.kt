@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.onurdemirbas.quicktation.view
 
 import android.Manifest
@@ -334,14 +336,14 @@ private fun stopPlayer(mediaPlayer: MediaPlayer) {
     }
 }
 
-@SuppressLint("SuspiciousIndentation")
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
 @Composable
 fun BottomNavigationForCreateQuotePage(navController: NavController, userId: Int) {
     val selectedIndex = remember { mutableStateOf(0) }
     val navigationItems = listOf(
-        NavigationItem("Ana Sayfa", R.drawable.home, "home_page"),
+        NavigationItem("Ana Sayfa", R.drawable.homeblack, "home_page"),
         NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${userId}"),
-        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${userId}"),
+        NavigationItem("Ekle", R.drawable.add,"create_quote_page/${userId}"),
         NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${userId}"),
         NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${userId}"))
     BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {

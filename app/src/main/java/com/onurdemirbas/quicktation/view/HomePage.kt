@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalComposeUiApi::class)
+@file:Suppress("KotlinConstantConditions")
 
 package com.onurdemirbas.quicktation.view
 
@@ -570,7 +571,7 @@ fun CustomIcon(@DrawableRes resId: Int, contentDescription: String) {
         modifier = Modifier.size(28.dp)
     )
 }
-@SuppressLint("SuspiciousIndentation")
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
 @Composable
 fun BottomNavigationForHomePage(navController: NavController, myId: Int) {
     val selectedIndex = remember { mutableStateOf(0) }

@@ -281,6 +281,35 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             Resource.Error(e.message.toString())
         }
     }
+
+    suspend fun postMessageListApi(userId: Int): Resource<MessageListResponse>{
+        val request = MessageList(userId)
+        return try {
+            val response = api.postMessageListApi(request)
+            when (response.error) {
+                "0" -> Resource.Success(response)
+                "1" -> Resource.Error(response.errorText)
+                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message.toString())
+        }
+    }
+
+    suspend fun postMessageDetailApi(roomId: Int): Resource<MessageDetailResponse>{
+        val request = MessageDetail(roomId)
+        return try {
+            val response = api.postMessageDetailApi(request)
+            when (response.error){
+                "0" -> Resource.Success(response)
+                "1" -> Resource.Error(response.errorText)
+                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+            }
+        } catch (e: Exception){
+            Resource.Error(e.message.toString())
+        }
+    }
+
     suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>> {
         val response = try{
             api.postNotificationApi(Notifications(error))

@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,104 +26,45 @@ import com.onurdemirbas.quicktation.model.HomeResponse
 import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun NotificationsPage(navController: NavController, myId: Int) {
     val interactionSource = MutableInteractionSource()
     val isPressed by interactionSource.collectIsPressedAsState()
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Spacer(modifier = Modifier.padding(vertical = 40.dp))
-        Image(
-            painter = painterResource(id = R.drawable.quicktation_black),
-            contentDescription = "quicktationlogo",
-            Modifier.size(181.dp, 55.dp)
-        )
-        Spacer(modifier = Modifier.padding(top = 25.dp))
+    Scaffold(topBar = {}, content = {
+        Surface(Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
+        }
         Column(
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            //Lazy column row
-            NotificationRow()
-            NotificationRow()
-            NotificationRow()
-            NotificationRow()
-            NotificationRow()
-            NotificationRow()
-
-        }
-    }
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.homeblack),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${myId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/$myId") }
-                        .size(28.dp, 31.dp))
+            Spacer(modifier = Modifier.padding(vertical = 40.dp))
+            Image(
+                painter = painterResource(id = R.drawable.quicktation_black),
+                contentDescription = "quicktationlogo",
+                Modifier.size(181.dp, 55.dp)
+            )
+            Spacer(modifier = Modifier.padding(top = 25.dp))
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            )
+            {
+                //Lazy column row
+                NotificationRow()
+                NotificationRow()
+                NotificationRow()
+                NotificationRow()
+                NotificationRow()
+                NotificationRow()
+
             }
         }
-    }
+    }, bottomBar = {
+        BottomNavigationForNotificationsPage(navController = navController, myId = myId)
+    })
 }
 
 @Composable
@@ -144,7 +88,9 @@ fun NotificationRow() {
     val isPressed by colorControl.collectIsPressedAsState()
     val color = if (isPressed) Color(0xFFC1C1C1) else Color(0xFF3BE360)
     val clickable = Modifier.clickable(interactionSource = colorControl, indication = null){}
-    Box(modifier = Modifier.then(clickable).wrapContentSize())
+    Box(modifier = Modifier
+        .then(clickable)
+        .wrapContentSize())
     {
         Column(
             verticalArrangement = Arrangement.Top,
@@ -196,6 +142,35 @@ fun NotificationRow() {
                     Divider(color = Color.Black, thickness = 2.dp)
                 }
             }
+        }
+    }
+}
+
+@SuppressLint("SuspiciousIndentation")
+@Composable
+fun BottomNavigationForNotificationsPage(navController: NavController, myId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.homeblack, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications,"notifications_page/${myId}"),
+        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${myId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${myId}"),
+        NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${myId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.onurdemirbas.quicktation.view
 
 import android.annotation.SuppressLint
+import android.graphics.Rect
+import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -34,96 +37,131 @@ import com.onurdemirbas.quicktation.viewmodel.InMessageViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.zIndex
 import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
-
-
-data class Message(val text: String, val isSent: Boolean)
+import com.onurdemirbas.quicktation.websocket.AppState
+import com.onurdemirbas.quicktation.websocket.WebSocketListener
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalCoilApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun InMessagePage(navController: NavController, myId: Int, viewModel: InMessageViewModel = hiltViewModel()) {
+fun InMessagePage(navController: NavController, myId: Int, toUserId: Int, userName: String, userNick: String, viewModel: InMessageViewModel = hiltViewModel()) {
+    val appState = remember { AppState(myId) }
+    val webSocket = appState.webSocket
+    val listener = appState.listener
+    val userInfo by viewModel.userInfo.collectAsState()
+    val userPhoto = userInfo.photo ?: ""
+    LaunchedEffect(key1 = myId){
+        viewModel.loadUser(myId, toUserId)
+    }
     val message = remember { mutableStateOf(TextFieldValue()) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    val userInfo = viewModel.userInfo.collectAsState()
-    val userName = userInfo.value.namesurname
-    val userPhoto = viewModel.userInfo.collectAsState().value.photo
     val userPhotoUrl = remember(userPhoto) { MEDIA_URL + userPhoto}
+    var keyboardOpen by rememberSaveable { mutableStateOf(false) }
+    val messages = listener.messages.collectAsState().value
+    val bottomBarHeight = 58.dp
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            webSocket.close(WebSocketListener.NORMAL_CLOSE_STATUS, "InMessagePage closed")    // mesaj sayfasında websocket'i kapatmak istiyorsan burayı aç
+//        }
+//    }
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val listenerr = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            view.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = view.rootView.height
+            val keyboardHeight = screenHeight - rect.bottom
+            val isKeyboardVisible = keyboardHeight > screenHeight / 5
+            keyboardOpen = isKeyboardVisible
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listenerr)
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(listenerr)
+        }
+    }
     Scaffold(
-        topBar = {
-
-        },
+        topBar = {},
         content = {
             Surface(Modifier.fillMaxSize()) {
                 Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
             }
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(0.dp, 15.dp, 0.dp, 50.dp)
+                    .padding(0.dp, 15.dp, 0.dp, if (keyboardOpen) 2.dp else bottomBarHeight)
             ) {
-                Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxHeight(0.92f)) {
-                    Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth())
-                    {
-                        if( userPhotoUrl == "" || userPhotoUrl == "null" || userPhotoUrl == MEDIA_URL) {
-                            Image(
-                                painter = painterResource(id = R.drawable.pp),
-                                contentDescription = "user photo",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp)
-                                    .size(44.dp, 44.dp)
-                                    .clip(CircleShape)
-                            )
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxHeight(0.92f)) {
+                        Row(horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth())
+                        {
+                            if( userPhoto == "" || userPhoto == "null" ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.pp),
+                                    contentDescription = "user photo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .size(44.dp, 44.dp)
+                                        .clip(CircleShape)
+                                )
+                            }
+                            else {
+                                val painter = rememberImagePainter(data = userPhotoUrl, builder = {})
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "user photo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .size(44.dp, 44.dp)
+                                        .clip(CircleShape)
+                                )
+                            }
+                            Column(Modifier.wrapContentSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
+                                Text(text = userName, fontFamily = openSansBold, fontSize = 18.sp)
+                                Text(text = userNick, fontFamily = openSansFontFamily, fontSize = 13.sp)
+                            }
+                            Spacer(modifier = Modifier.padding(0.dp))
+                            Spacer(modifier = Modifier.padding(0.dp))
+                            Spacer(modifier = Modifier.padding(0.dp))
+                            Spacer(modifier = Modifier.padding(0.dp))
+                            IconButton(onClick = {
+                                //options
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.options),
+                                    contentDescription = "options",
+                                    modifier = Modifier
+                                        .size(33.dp, 9.dp)
+                                )
+                            }
                         }
-                        else {
-                            val painter = rememberImagePainter(data = MEDIA_URL + userPhotoUrl, builder = {})
-                            Image(
-                                painter = painter,
-                                contentDescription = "user photo",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp)
-                                    .size(44.dp, 44.dp)
-                                    .clip(CircleShape)
-                            )
-                        }
-                        Column(Modifier.wrapContentSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
-                            Text(text = "Faruk Arkadan Mutlu $userName", fontFamily = openSansBold, fontSize = 18.sp)
-                            Text(text = "musmutluyumuşyumak", fontFamily = openSansFontFamily, fontSize = 13.sp)
-                        }
-                        Spacer(modifier = Modifier.padding(0.dp))
-                        Spacer(modifier = Modifier.padding(0.dp))
-                        Spacer(modifier = Modifier.padding(0.dp))
-                        Spacer(modifier = Modifier.padding(0.dp))
-                        IconButton(onClick = {  }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.options),
-                                contentDescription = "options",
-                                modifier = Modifier
-                                    .size(33.dp, 9.dp)
-                            )
-                        }
+                        Spacer(modifier = Modifier.padding(top = 10.dp))
+                        Divider(Modifier.padding(start = 20.dp, end = 20.dp), color = Color.Black, thickness = 1.dp)
+                        MessagesRow(messages)
                     }
-                    Spacer(modifier = Modifier.padding(top = 10.dp))
-                    Divider(Modifier.padding(start = 20.dp, end = 20.dp), color = Color.Black, thickness = 1.dp)
-                    MessagesRow()
                 }
-                //message bottom bar
+                //message send bar
                 Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
-                    .padding(bottom = 6.dp),
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
                     contentAlignment = Alignment.Center)
                 {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
+                            .fillMaxWidth(),
                         Arrangement.SpaceAround,
                         Alignment.CenterVertically
                     ) {
@@ -133,10 +171,33 @@ fun InMessagePage(navController: NavController, myId: Int, viewModel: InMessageV
                             onValueChange = {
                                 message.value = it
                             },
-                            modifier = Modifier.size(width = 290.dp, height = 50.dp),
+                            modifier = Modifier
+                                .focusRequester(focusRequester)
+                                .size(width = 290.dp, height = 50.dp)
+                                .onFocusChanged { focusState ->
+                                    keyboardOpen = focusState.isFocused
+                                    Log.d("focusstate", "state = $keyboardOpen")
+                                    if (focusState.isFocused) {
+                                        keyboardController?.show()
+                                        Log.d("focusstate", "show")
+                                    } else {
+                                        keyboardController?.hide()
+                                        Log.d("focusstate", "hide")
+                                    }
+                                },
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(
                                 onDone = {
+                                    val messageText = message.value.text
+                                    if(messageText == "" || messageText.isEmpty())
+                                    {
+                                        //boş text
+                                    }
+                                    else
+                                    {
+                                        listener.sendMessage(webSocket, messageText, toUserId)
+                                        message.value = TextFieldValue("")
+                                    }
                                     keyboardController?.hide()
                                     focusManager.clearFocus()
                                 }),
@@ -160,7 +221,19 @@ fun InMessagePage(navController: NavController, myId: Int, viewModel: InMessageV
                                     color = Color.White
                                 )
                             })
-                        IconButton(onClick = {  }, modifier = Modifier.size(50.dp)) {
+                        IconButton(onClick = {
+                            val messageText = message.value.text
+                            if(messageText == "" || messageText.isEmpty())
+                            {
+                                return@IconButton
+                            }
+                            else
+                            {
+                                Log.d("deneme1","to usr $toUserId")
+                                listener.sendMessage(webSocket, messageText, toUserId)
+                                message.value = TextFieldValue("")
+                            }
+                        }, modifier = Modifier.size(50.dp)) {
                             Icon(
                                 painter = painterResource(id = R.drawable.send),
                                 contentDescription = "options",
@@ -174,150 +247,21 @@ fun InMessagePage(navController: NavController, myId: Int, viewModel: InMessageV
             }
         },
         bottomBar = {
-            Box{
-                Image(
-                    painter = painterResource(id = R.drawable.backgroundbottombar),
-                    contentDescription = "BottomAppBar Background",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .zIndex(0f)
-                )
-            }
-            BottomAppBar(
-                Modifier.fillMaxWidth(),
-                backgroundColor = Color.Transparent,
-                contentColor = Color.White,
-                elevation = 50.dp,
-                cutoutShape = CircleShape
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(
-                            onClick = { navController.navigate("home_page") },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.homeblack),
-                                contentDescription = "Home",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { navController.navigate("notifications_page/${myId}") },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.notifications_black),
-                                contentDescription = "Notifications",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { navController.navigate("create_quote_page/$myId") },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.add_black),
-                                contentDescription = "Create Quote",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { navController.navigate("messages_page/${myId}") },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.chat),
-                                contentDescription = "Messages",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { navController.navigate("my_profile_page/${myId}") },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.profile_black),
-                                contentDescription = "Profile",
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                }
-
-
+            if (!keyboardOpen) {
+                BottomNavigationForInMessagePage(navController = navController, userId = myId)
             }
         }
     )
 }
 
 @Composable
-fun MessagesRow() {
-    val messages = listOf(
-        Message(text = "Merhaba, nasılsın?", isSent = true),
-        Message(text = "İyiyim, teşekkürler. Sen nasılsın?", isSent = false),
-        Message(text = "Ben de iyiyim, teşekkürler.", isSent = true),
-        Message(text = "Ne yapıyorsun bu aralar?", isSent = false),
-        Message(text = "Çalışıyorum, sen?", isSent = true),
-        Message(text = "Ben hayatımda hiç..", isSent = true),
-        Message(text = "Yemedin değil mi..", isSent = false),
-        Message(text = "Ben de yemedim!", isSent = false),
-        Message(text = "Merhaba, nasılsın?", isSent = true),
-        Message(text = "İyiyim, teşekkürler. Sen nasılsın?", isSent = false),
-        Message(text = "Ben de iyiyim, teşekkürler.", isSent = true),
-        Message(text = "Ne yapıyorsun bu aralar?", isSent = false),
-        Message(text = "Çalışıyorum, sen?", isSent = true),
-        Message(text = "Ben hayatımda hiç..", isSent = true),
-        Message(text = "Yemedin değil mi..", isSent = false),
-        Message(text = "Ben de yemedim!", isSent = false)
-
-    )
+fun MessagesRow(messages: List<WebSocketListener.Message>) {
     MessageList(messages = messages)
 }
 
 @Composable
-fun Balloon(
-    message: String,
-    isFromMe: Boolean,
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(3.dp)
-) {
-    val backgroundColor = if (isFromMe) {
-        Color(189, 143, 163, 255)
-    } else {
-        Color.White
-    }
-    Box(
-        modifier = modifier
-            .padding(contentPadding)
-            .defaultMinSize(238.dp, 43.dp)
-            .background(
-                backgroundColor,
-                shape = RoundedCornerShape(10.dp)
-            ),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Text(
-            text = message,
-            textAlign = if (isFromMe) TextAlign.End else TextAlign.Start,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-}
-
-@Composable
 fun MessageList(
-    messages: List<Message>,
+    messages: List<WebSocketListener.Message>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(8.dp)
 ) {
@@ -342,6 +286,70 @@ fun MessageList(
                 }
             }
 
+        }
+    }
+}
+
+@Composable
+fun Balloon(
+    message: String,
+    isFromMe: Boolean,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(3.dp)
+) {
+    val backgroundColor = if (isFromMe) {
+        Color(6, 90, 101, 255)
+    } else {
+        Color.White
+    }
+    Box(
+        modifier = modifier
+            .padding(contentPadding)
+            .defaultMinSize(238.dp, 43.dp)
+            .background(
+                backgroundColor,
+                shape = RoundedCornerShape(10.dp)
+            ),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Text(
+            text = message,
+            textAlign = if (isFromMe) TextAlign.End else TextAlign.Start,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}
+
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
+@Composable
+fun BottomNavigationForInMessagePage(navController: NavController, userId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.homeblack, "home_page"),
+        NavigationItem(
+            "Bildirimler",
+            R.drawable.notifications_black,
+            "notifications_page/${userId}"
+        ),
+        NavigationItem("Ekle", R.drawable.add_black, "create_quote_page/${userId}"),
+        NavigationItem("Mesajlar", R.drawable.chat, "messages_page/${userId}"),
+        NavigationItem("Profil", R.drawable.profile_black, "my_profile_page/${userId}")
+    )
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed { index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
         }
     }
 }

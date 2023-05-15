@@ -1,7 +1,6 @@
 package com.onurdemirbas.quicktation.viewmodel
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.onurdemirbas.quicktation.database.UserDatabase
-import com.onurdemirbas.quicktation.database.UserInfo
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.model.User
 import com.onurdemirbas.quicktation.repository.QuicktationRepository
@@ -35,8 +33,6 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepos
     var likeCount = -1
     private val _ready = MutableLiveData(false)
     val ready: LiveData<Boolean> get() = _ready
-    private val likeCounter = MutableStateFlow(-1)
-    private val isLiked = MutableStateFlow(false)
     fun setReady(value: Boolean) {
         _ready.value = value
     }
@@ -149,30 +145,24 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepos
         }
     }
 
-//    private val _errorMessage = MutableStateFlow("")
-//    val errorMessage: StateFlow<String> get() = _errorMessage
-//    private val _isLoading = MutableStateFlow(false)
-//    val isLoading: StateFlow<Boolean> get() = _isLoading
-//    private val _mainList = MutableStateFlow<List<Quotation>>(emptyList())
-//    val mainList: StateFlow<List<Quotation>> get() = _mainList
-
-    suspend fun getUser(): UserInfo {
-        return userDao.getUser()
-    }
+//
+//    suspend fun getUser(): UserInfo {
+//        return userDao.getUser()
+//    }
     suspend fun getUserId(): Int? {
         val userInfo = userDao.getUser()
         return userInfo.userId
     }
-
-    suspend fun anyData(): Int {
-        return userDao.anyData()
-    }
-
-    suspend fun insert(user:UserInfo) {
-        userDao.insert(user)
-    }
-
-    suspend fun delete(user: UserInfo) {
-        userDao.delete(user)
-    }
+//
+//    suspend fun anyData(): Int {
+//        return userDao.anyData()
+//    }
+//
+//    suspend fun insert(user:UserInfo) {
+//        userDao.insert(user)
+//    }
+//
+//    suspend fun delete(user: UserInfo) {
+//        userDao.delete(user)
+//    }
 }

@@ -1,16 +1,16 @@
+@file:Suppress("DEPRECATION")
+
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -50,86 +50,25 @@ import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.MyProfileViewModel
 import kotlinx.coroutines.*
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileViewModel = hiltViewModel()) {
     viewModel.loadQuotes(myId)
-    val interactionSource =  MutableInteractionSource()
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    )
+    Scaffold(topBar = {}, content = {
+        Surface(Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
+        }
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        )
         {
             ProfileRow(navController = navController, myId = myId)
         }
-
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.homeblack),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$myId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${myId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/$myId") }
-                        .size(28.dp, 31.dp))
-            }
-        }
-    }
+    }, bottomBar = {
+        BottomNavigationForMyProfilePage(navController = navController, userId = myId)
+    })
 }
 
 @OptIn(ExperimentalCoilApi::class)
@@ -143,10 +82,12 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
         Room.databaseBuilder(context, UserDatabase::class.java, "UserInfo").build()
     val userDao = db.UserDao()
     if (exit) {
-        viewModel.viewModelScope.launch {
-            val userDb = userDao.getUser()
-            userDao.delete(userDb)
-            navController.navigate("login_page")
+        LaunchedEffect(key1 = myId) {
+            viewModel.viewModelScope.launch {
+                val userDb = userDao.getUser()
+                userDao.delete(userDb)
+                navController.navigate("login_page")
+            }
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -516,6 +457,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp)
                         .fillMaxWidth()){
+                        Spacer(modifier = Modifier.padding(0.dp))
                         IconButton(onClick = {
                             if (playing.value) {
                                 playing.value = false
@@ -560,7 +502,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             enabled = true,
                             colors = SliderDefaults.colors(thumbColor = Color.White, disabledThumbColor = Color.White, activeTickColor = Color.White, inactiveTickColor = Color.White, activeTrackColor = Color.White, inactiveTrackColor = Color.White, disabledActiveTickColor = Color.White, disabledActiveTrackColor = Color.White, disabledInactiveTickColor = Color.White, disabledInactiveTrackColor = Color.White))
                         Text(text =
-                        if(seconds > 10) {
+                        if(seconds > 9) {
                             "$minute:$seconds"
                         }
                         else
@@ -751,5 +693,34 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                     }
                 }
             }
+    }
+}
+
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
+@Composable
+fun BottomNavigationForMyProfilePage(navController: NavController, userId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.homeblack, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${userId}"),
+        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${userId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${userId}"),
+        NavigationItem("Profil", R.drawable.profile,"my_profile_page/${userId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
+        }
     }
 }

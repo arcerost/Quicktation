@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -229,14 +228,26 @@ class MainActivity: ComponentActivity() {
                         val text = remember { it.arguments?.getString("text")}
                         SearchPage(myId!!,text!!,navController)
                     }
-                    composable("in_message_page/{myId}", arguments = listOf(
+                    composable("in_message_page/{myId}/{toUserId}/{userName}/{userNick}", arguments = listOf(
                         navArgument("myId"){
                             type = NavType.IntType
+                        },
+                        navArgument("toUserId"){
+                            type = NavType.IntType
+                        },
+                        navArgument("userName"){
+                            type = NavType.StringType
+                        },
+                        navArgument("userNick"){
+                            type = NavType.StringType
                         }
                     ))
                     {
                         val myId = remember { it.arguments?.getInt("myId")}
-                        InMessagePage(navController = navController, myId!!)
+                        val toUserId = remember { it.arguments?.getInt("toUserId")}
+                        val userName = remember { it.arguments?.getString("userName")}
+                        val userNick = remember { it.arguments?.getString("userNick")}
+                        InMessagePage(navController = navController, myId!!, toUserId!!, userName!!, userNick!!)
                     }
                 }
             }

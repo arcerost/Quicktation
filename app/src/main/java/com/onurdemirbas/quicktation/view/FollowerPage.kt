@@ -1,5 +1,6 @@
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
@@ -43,90 +44,30 @@ import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.FollowerViewModel
 import kotlinx.coroutines.*
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
-    Log.d("userid","first, userid: $userId, touserid: $toUserId")
-    Log.d("s","$amIFollow")
     viewModel.viewModelScope.launch{
         viewModel.loadFollowers(userId,toUserId,action)
     }
-    val interactionSource =  MutableInteractionSource()
     val photo = viewModel.userPhoto.collectAsState(initial = "").value?:""
-    Surface(Modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
-    }
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    )
-    {
-        FollowerProfileRow(navController,userId, toUserId, photo, namesurname, likeCount, followCount, followerCount, action ,viewModel)
-    }
-    //BottomBar
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .fillMaxWidth(), contentAlignment = Alignment.BottomStart
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(height = 50.dp, width = 500.dp), color = Color(
-                0xFFC1C1C1
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-            }
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.homeblack),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("home_page") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.notifications_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("notifications_page/$userId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.add_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("create_quote_page/$userId") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.chat_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("messages_page/${userId}") }
-                        .size(28.dp, 31.dp))
-                Image(painter = painterResource(id = R.drawable.profile_black),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(
-                            interactionSource,
-                            indication = null
-                        ) { navController.navigate("my_profile_page/$userId") }
-                        .size(28.dp, 31.dp))
-            }
+    Scaffold(topBar = {
+
+    }, content = {
+        Surface(Modifier.fillMaxSize()) {
+            Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
         }
-    }
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        )
+        {
+            FollowerProfileRow(navController,userId, toUserId, photo, namesurname, likeCount, followCount, followerCount, action ,viewModel)
+        }
+    }, bottomBar = {
+        BottomNavigationForFollowerPage(navController = navController, userId = userId)
+    })
 }
 
 
@@ -747,24 +688,23 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
             }
             Text(
                 text = userName,
-                modifier = Modifier.defaultMinSize(80.dp, 30.dp).clickable {
-                    if(action == "follows")
-                    {
-                        if (myId == toUserId) {
-                            navController.navigate("my_profile_page/$myId")
-                        } else {
-                            navController.navigate("other_profile_page/$toUserId/$myId")
+                modifier = Modifier
+                    .defaultMinSize(80.dp, 30.dp)
+                    .clickable {
+                        if (action == "follows") {
+                            if (myId == toUserId) {
+                                navController.navigate("my_profile_page/$myId")
+                            } else {
+                                navController.navigate("other_profile_page/$toUserId/$myId")
+                            }
+                        } else if (action == "followers") {
+                            if (myId == userIdFromRow) {
+                                navController.navigate("my_profile_page/$myId")
+                            } else {
+                                navController.navigate("other_profile_page/$userIdFromRow/$myId")
+                            }
                         }
-                    }
-                    else if(action == "followers")
-                    {
-                        if (myId == userIdFromRow) {
-                            navController.navigate("my_profile_page/$myId")
-                        } else {
-                            navController.navigate("other_profile_page/$userIdFromRow/$myId")
-                        }
-                    }
-                },
+                    },
                 fontSize = 16.sp,
                 fontFamily = openSansFontFamily,
             )
@@ -863,6 +803,36 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
                     }
                 }
             }
+        }
+    }
+}
+
+
+@SuppressLint("SuspiciousIndentation")
+@Composable
+fun BottomNavigationForFollowerPage(navController: NavController, userId: Int) {
+    val selectedIndex = remember { mutableStateOf(0) }
+    val navigationItems = listOf(
+        NavigationItem("Ana Sayfa", R.drawable.home, "home_page"),
+        NavigationItem("Bildirimler", R.drawable.notifications_black,"notifications_page/${userId}"),
+        NavigationItem("Ekle", R.drawable.add_black,"create_quote_page/${userId}"),
+        NavigationItem("Mesajlar", R.drawable.chat_black,"messages_page/${userId}"),
+        NavigationItem("Profil", R.drawable.profile_black,"my_profile_page/${userId}"))
+    BottomNavigation(backgroundColor = Color.DarkGray, contentColor = LocalContentColor.current) {
+        navigationItems.forEachIndexed{ index, item ->
+            BottomNavigationItem(
+                icon = { CustomIcon(item.iconResId, contentDescription = item.title) },
+                selected = selectedIndex.value == index,
+                onClick = {
+                    selectedIndex.value = index
+                    navController.navigate(item.route){
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.Black
+            )
         }
     }
 }

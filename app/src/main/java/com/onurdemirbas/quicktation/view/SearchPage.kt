@@ -1,6 +1,9 @@
+@file:Suppress("DEPRECATION")
+
 package com.onurdemirbas.quicktation.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.CountDownTimer
@@ -9,7 +12,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,62 +46,11 @@ import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
 import kotlinx.coroutines.runBlocking
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SearchPage(myId: Int, text:String, navController:NavController,viewModel: HomeViewModel= hiltViewModel()) {
     viewModel.searchQuote(userId = myId,"quote",text,0)
-    val interactionSource =  MutableInteractionSource()
-    Scaffold(Modifier.fillMaxSize(), bottomBar = {
-        BottomNavigation {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Image(painter = painterResource(id = R.drawable.backgroundbottombar), contentDescription = "background", contentScale = ContentScale.FillWidth)
-                Row(
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(painter = painterResource(id = R.drawable.home),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("home_page") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.notifications_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("notifications_page/${myId}") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.add_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("create_quote_page/$myId") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.chat_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("messages_page/${myId}") }
-                            .size(28.dp, 31.dp))
-                    Image(painter = painterResource(id = R.drawable.profile_black),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource,
-                                indication = null
-                            ) { navController.navigate("my_profile_page/${myId}") }
-                            .size(28.dp, 31.dp))
-                }
-            }
-        }
-    }) {
+    Scaffold(topBar = {}, content = {
         Surface(Modifier.fillMaxSize()) {
             Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
         }
@@ -117,7 +68,9 @@ fun SearchPage(myId: Int, text:String, navController:NavController,viewModel: Ho
                 PostListSearch(navController,viewModel,myId,text)
             }
         }
-    }
+    }, bottomBar = {
+        BottomNavigationForHomePage(navController = navController, myId = myId)
+    })
 }
 
 private fun getVideoDurationSeconds(player: ExoPlayer): Int {
@@ -127,7 +80,7 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 
 @Composable
 fun PostListSearch(navController: NavController, viewModel: HomeViewModel = hiltViewModel(), myId: Int, key: String) {
-    val postList = viewModel.quotes.value
+    val postList by viewModel.quotes.collectAsState()
     val errorMessage = remember { viewModel.errorMessage }
     val context = LocalContext.current
     if (errorMessage.isNotEmpty()) {
@@ -143,7 +96,7 @@ fun PostListSearch(navController: NavController, viewModel: HomeViewModel = hilt
 fun PostListSearchView(posts: List<Quotation>, navController: NavController, myId:Int, key: String, viewModel: HomeViewModel = hiltViewModel()) {
     val context= LocalContext.current
     val scanIndex = viewModel.scanIndex
-    var postList = viewModel.quotes.value  //cause postlist getting new values with scanindex
+    val postList = viewModel.quotes.collectAsState().value  //cause postlist getting new values with scanindex
     val errorMessage = remember { viewModel.errorMessage }
     var checkState by remember { mutableStateOf(false) }
     val state = rememberLazyListState()
@@ -164,14 +117,18 @@ fun PostListSearchView(posts: List<Quotation>, navController: NavController, myI
 //                            Toast.makeText(context,"Yeni içerik yok",Toast.LENGTH_LONG).show()
                         }
                         else {
-                            runBlocking {
-                                viewModel.loadSearchScans(myId, "quote", key,scanIndex)
-                                postList = viewModel.quotes.value
-                                checkState = true
-                            }
+                            viewModel.loadSearchScans(myId, "quote", key,scanIndex)
+                            checkState = true
                         }
                     }
                 }
+            }
+            if(checkState) {
+                PostListSearchView(posts = postList, navController = navController, myId = myId,key)
+                if (errorMessage.isNotEmpty()) {
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+                checkState= false
             }
         }
     }
@@ -373,6 +330,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                                             ) -> {
                                                 navController.navigate("create_quote_sound_page/$myId/$userId/$quoteText/$username/$quoteId")
                                             }
+
                                             else -> {
                                                 launcher.launch(Manifest.permission.RECORD_AUDIO)
                                             }

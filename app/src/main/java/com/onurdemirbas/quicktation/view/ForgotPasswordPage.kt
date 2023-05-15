@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -27,7 +26,6 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.ui.theme.nunitoFontFamily
 import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.viewmodel.ForgotPasswordViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -41,7 +39,6 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
     val openDialog2 = remember { mutableStateOf(false) }
     val maxChar = 6
     val context = LocalContext.current
-    var errorMessage: MutableState<String>
     fun md5(input:String): String {
         val md = MessageDigest.getInstance("MD5")
         return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
@@ -98,17 +95,15 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                         if (email.value.text != "") {
                             viewModel.forgotPassword(email = email.value.text)
                             viewModel.viewModelScope.launch {
-                                delay(1000)
-                                errorMessage = viewModel.errorMessage
-                                if (errorMessage.value.isEmpty()) {
-                                    println("Başarılı Yollama")
-                                    openDialog.value = true
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        errorMessage.value,
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                viewModel.errorMessage.collect { message ->
+                                    if (message.isNotEmpty()) {
+                                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                    }
+                                    else
+                                    {
+                                        println("Başarılı Yollama")
+                                        openDialog.value = true
+                                    }
                                 }
                             }
                         } else
@@ -170,18 +165,16 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                         onClick = {
                             viewModel.checkCode(email.value.text, code.value.text)
                             viewModel.viewModelScope.launch {
-                                delay(1000)
-                                errorMessage = viewModel.errorMessage
-                                if (errorMessage.value.isEmpty()) {
-                                    println("Başarılı Doğrulama")
-                                    openDialog.value = !openDialog.value
-                                    openDialog2.value = !openDialog2.value
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        errorMessage.value,
-                                        Toast.LENGTH_LONG
-                                    ).show()
+                                viewModel.errorMessage.collect { message ->
+                                    if (message.isNotEmpty()) {
+                                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                    }
+                                    else
+                                    {
+                                        println("Başarılı Doğrulama")
+                                        openDialog.value = !openDialog.value
+                                        openDialog2.value = !openDialog2.value
+                                    }
                                 }
                             }
                         },
@@ -252,16 +245,14 @@ fun ForgotPasswordPage(navController: NavController, viewModel: ForgotPasswordVi
                                     navController
                                 )
                                 viewModel.viewModelScope.launch {
-                                    delay(1000)
-                                    errorMessage = viewModel.errorMessage
-                                    if (errorMessage.value.isEmpty()) {
-                                        openDialog2.value = !openDialog2.value
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            errorMessage.value,
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                    viewModel.errorMessage.collect { message ->
+                                        if (message.isNotEmpty()) {
+                                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                        }
+                                        else
+                                        {
+                                            openDialog2.value = !openDialog2.value
+                                        }
                                     }
                                 }
                             },

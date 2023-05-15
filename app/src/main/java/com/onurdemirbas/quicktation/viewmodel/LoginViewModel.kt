@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val repository: QuicktationRepository) : ViewModel(){
+open class LoginViewModel @Inject constructor(private val repository: QuicktationRepository) : ViewModel(){
     var errorMessage = mutableStateOf("")
     var id = mutableStateOf(-1)
     fun beLogin(

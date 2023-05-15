@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "247404458019",
+    "project_id": "quicktation-83f48",
+    "storage_bucket": "quicktation-83f48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247404458019:android:0eeeb419495c0389a60196",
+        "android_client_info": {
+          "package_name": "com.onurdemirbas.quicktation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247404458019-ta22mq9qt9ojpgbgek78p85nmls03fig.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.onurdemirbas.quicktation",
+            "certificate_hash": "ae77e72af30f23eee28170ad99ec949765e96855"
+          }
+        },
+        {
+          "client_id": "247404458019-lc9djvjp04hqabnq25vvs8jkhcujhgd6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjipK1Ds_0qA4JMwSSNohqMjvVGhEQ9EA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247404458019-lc9djvjp04hqabnq25vvs8jkhcujhgd6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
