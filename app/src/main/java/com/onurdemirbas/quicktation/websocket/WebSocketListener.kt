@@ -9,7 +9,21 @@ import org.json.JSONException
 import org.json.JSONObject
 
 class WebSocketListener(private val myId: Int) : okhttp3.WebSocketListener() {
-    data class Message(val text: String, val fromUserId: Int, val toUserId: Int, val isSent: Boolean)
+    data class Message(
+        val text: String,
+        val fromUserId: Int,
+        val toUserId: Int,
+        private val sent: Boolean
+    ) : BaseMessage {
+        override val messageText: String
+            get() = text
+        override val receiverId: Int
+            get() = toUserId
+        override val senderId: Int
+            get() = fromUserId
+        override val isSent: Boolean
+            get() = sent
+    }
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages: StateFlow<List<Message>> = _messages
     override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -20,7 +34,6 @@ class WebSocketListener(private val myId: Int) : okhttp3.WebSocketListener() {
     override fun onMessage(webSocket: WebSocket, text: String) {
         try {
             val jsonReceived = JSONObject(text)
-            outPut("geldi")
             when (jsonReceived.optString("type")) {
                 "sendMessage" -> {
                     val messageText = jsonReceived.optString("messageText")

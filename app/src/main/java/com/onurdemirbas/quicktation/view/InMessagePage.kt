@@ -1,6 +1,7 @@
 package com.onurdemirbas.quicktation.view
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.graphics.Rect
 import android.util.Log
 import android.view.ViewTreeObserver
@@ -36,16 +37,18 @@ import com.onurdemirbas.quicktation.ui.theme.openSansFontFamily
 import com.onurdemirbas.quicktation.viewmodel.InMessageViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import com.onurdemirbas.quicktation.util.Constants.MEDIA_URL
 import com.onurdemirbas.quicktation.websocket.AppState
-import com.onurdemirbas.quicktation.websocket.WebSocketListener
+import com.onurdemirbas.quicktation.websocket.BaseMessage
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalCoilApi::class, ExperimentalComposeUiApi::class)
@@ -58,6 +61,7 @@ fun InMessagePage(navController: NavController, myId: Int, toUserId: Int, userNa
     val userPhoto = userInfo.photo ?: ""
     LaunchedEffect(key1 = myId){
         viewModel.loadUser(myId, toUserId)
+        viewModel.loadRoom(4)
     }
     val message = remember { mutableStateOf(TextFieldValue()) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -65,13 +69,10 @@ fun InMessagePage(navController: NavController, myId: Int, toUserId: Int, userNa
     val focusManager = LocalFocusManager.current
     val userPhotoUrl = remember(userPhoto) { MEDIA_URL + userPhoto}
     var keyboardOpen by rememberSaveable { mutableStateOf(false) }
-    val messages = listener.messages.collectAsState().value
+    val messagesFromApi = viewModel.messageList.collectAsState().value
+    val messagesFromWebSocket = listener.messages.collectAsState().value
+    val allMessages = messagesFromApi + messagesFromWebSocket
     val bottomBarHeight = 58.dp
-//    DisposableEffect(Unit) {
-//        onDispose {
-//            webSocket.close(WebSocketListener.NORMAL_CLOSE_STATUS, "InMessagePage closed")    // mesaj sayfasında websocket'i kapatmak istiyorsan burayı aç
-//        }
-//    }
     val view = LocalView.current
     DisposableEffect(view) {
         val listenerr = ViewTreeObserver.OnGlobalLayoutListener {
@@ -150,7 +151,7 @@ fun InMessagePage(navController: NavController, myId: Int, toUserId: Int, userNa
                         }
                         Spacer(modifier = Modifier.padding(top = 10.dp))
                         Divider(Modifier.padding(start = 20.dp, end = 20.dp), color = Color.Black, thickness = 1.dp)
-                        MessagesRow(messages)
+                        MessagesRow(messages = allMessages)
                     }
                 }
                 //message send bar
@@ -255,18 +256,22 @@ fun InMessagePage(navController: NavController, myId: Int, toUserId: Int, userNa
 }
 
 @Composable
-fun MessagesRow(messages: List<WebSocketListener.Message>) {
+fun MessagesRow(messages: List<BaseMessage>) {
     MessageList(messages = messages)
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageList(
-    messages: List<WebSocketListener.Message>,
+    messages: List<BaseMessage>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(8.dp)
 ) {
+    val listState = rememberLazyListState()
+    val keyboardVisibility = rememberKeyboardVisibility()
     LazyColumn(
         modifier = modifier,
+        state = listState,
         contentPadding = contentPadding,
         reverseLayout = false,
     ) {
@@ -282,12 +287,37 @@ fun MessageList(
                         .align(if (message.isSent) Alignment.CenterVertically else Alignment.CenterVertically)
                         .let { if (message.isSent) it.align(Alignment.Top) else it.align(Alignment.Bottom) }
                 ) {
-                    Balloon(message.text, message.isSent)
+                    Balloon(message.messageText, message.isSent)
                 }
             }
 
         }
     }
+    LaunchedEffect(key1 = keyboardVisibility.value, key2 = messages) {
+        if (messages.isNotEmpty()) {
+            listState.scrollToItem(messages.size - 1)
+        }
+    }
+}
+@Composable
+fun rememberKeyboardVisibility(): State<Boolean> {
+    val context = LocalContext.current
+    val keyboardVisibility = remember { mutableStateOf(false) }
+    DisposableEffect(context) {
+        val decorView = (context as Activity).window.decorView
+        val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            decorView.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = decorView.rootView.height
+            val keyboardHeight = screenHeight - rect.bottom
+            keyboardVisibility.value = keyboardHeight > screenHeight * 0.15
+        }
+        decorView.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
+        onDispose {
+            decorView.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+        }
+    }
+    return keyboardVisibility
 }
 
 @Composable

@@ -1,3 +1,3 @@
 package com.onurdemirbas.quicktation.model
 
-data class MessageDetailResponseList(val detail: List<DetailMessage>)
+data class MessageDetailResponseList(val messages: List<DetailMessage>)
