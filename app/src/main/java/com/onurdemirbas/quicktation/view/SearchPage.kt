@@ -44,7 +44,6 @@ import com.onurdemirbas.quicktation.R
 import com.onurdemirbas.quicktation.model.Quotation
 import com.onurdemirbas.quicktation.util.Constants
 import com.onurdemirbas.quicktation.viewmodel.HomeViewModel
-import kotlinx.coroutines.runBlocking
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -151,27 +150,16 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
-    val amILike = post.amIlike
-    val likeCount = post.likeCount
+    val mainList = viewModel.quotes.value
+    val currentPost = mainList.firstOrNull { it.id == post.id } ?: post
+    val amILike = currentPost.amIlike
+    val likeCount = currentPost.likeCount
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
     val userId = post.userId
     val url = Constants.MEDIA_URL +quoteUrl
     val playing = remember { mutableStateOf(false) }
-    val mainList = viewModel.mainList.value
-    var countLike by remember { mutableStateOf(-1) }
-    var likeCountFromVm: Int
-    var amILikeFromVm: Int
-    var color by remember { mutableStateOf(Color.Black) }
     val context = LocalContext.current
-    countLike = likeCount
-    color = if(amILike == 0) {
-        Color.White
-    }
-    else
-        Color.Yellow
-
-
     //MEDIAPLAYERSTARTED
     var position by remember { mutableStateOf(0F) }
     var duration: Int
@@ -292,7 +280,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                             modifier = Modifier.padding(top = 15.dp))
                         Spacer(modifier = Modifier.padding(start=30.dp))
                         Text(
-                            text = "$countLike BEĞENİ" ,
+                            text = "$likeCount BEĞENİ" ,
                             color = Color.White,
                             modifier = Modifier
                                 .padding(top = 15.dp))
@@ -359,23 +347,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                             Spacer(modifier = Modifier.padding(start = 20.dp))
                             IconButton(
                                 onClick = {
-                                    runBlocking {
-                                        viewModel.amILike(myId,quoteId)
-                                        likeCountFromVm = viewModel.likeCount
-                                        amILikeFromVm = viewModel.isDeleted
-                                        countLike = likeCountFromVm
-                                        color = if(amILikeFromVm == 0) {
-                                            Color.Yellow
-                                        } else
-                                            Color.White
-                                        mainList.onEach {
-                                            if(quoteId == it.id)
-                                            {
-                                                it.amIlike = if(amILikeFromVm==0) 1 else 0
-                                                it.likeCount = likeCountFromVm
-                                            }
-                                        }
-                                    }
+                                    viewModel.likeButtonClicked(quoteId,myId){_,_ ->}
                                 },
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
@@ -383,7 +355,7 @@ fun MainSearchRow(viewModel: HomeViewModel = hiltViewModel(), post: Quotation, n
                                 Icon(
                                     painter = painterResource(id = R.drawable.like),
                                     contentDescription = "like",
-                                    tint = color,
+                                    tint = if(amILike == 1) Color.Yellow else Color.White,
                                     modifier = Modifier
                                         .size(21.dp, 20.dp)
                                 )

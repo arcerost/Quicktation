@@ -20,8 +20,8 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     var errorMessage = mutableStateOf("")
     var scanIndex = MutableStateFlow(0)
     var userInfo = MutableStateFlow(UserInfo(1,"","",1,1,1,1,"","","",""))
-    private val x: String? = null
-    var userPhoto = MutableStateFlow(x)
+    val amIFollow = MutableStateFlow(-1)
+    var userPhoto = MutableStateFlow("")
     fun loadFollowers(userId: Int, toUserId: Int, action: String) {
         viewModelScope.launch {
             when(val result = repository.postFollowerApi(userId, toUserId, action))
@@ -38,7 +38,7 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
             when(val result = repository.postMyProfileApi(toUserId, userId))
             {
                 is Resource.Success ->{
-                    userPhoto.value = result.data!!.response.userInfo.photo
+                    userPhoto.value = result.data!!.response.userInfo.photo?:""
                     userInfo.value = result.data.response.userInfo
                 }
                 is Resource.Error -> {
@@ -64,10 +64,8 @@ class FollowerViewModel@Inject constructor(private val repository: QuicktationRe
     }
 
     //Follow-Unfollow User
-    val amIFollow = MutableStateFlow(-1)
-    fun followUnFollowUser(userid: Int, toUserId: Int)
-    {
-        runBlocking {
+    fun followUnFollowUser(userid: Int, toUserId: Int) {
+        viewModelScope.launch {
             when(val result = repository.postFollowUnfollowUserApi(userid,toUserId)){
                 is Resource.Success -> {
                     amIFollow.value = result.data!!.response.amIfollow

@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +58,9 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
     LaunchedEffect(key1 = myId)
     {
         viewModel.loadQuotes(userId,myId)
+        viewModel.setReady(true)
     }
+    val ready by viewModel.ready.observeAsState(false)
     Scaffold(topBar = {}, content = {
         Surface(Modifier.fillMaxSize()) {
             Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
@@ -73,7 +76,10 @@ fun OtherProfilePage(navController: NavController, userId: Int, myId: Int, viewM
                 modifier = Modifier.fillMaxSize()
             )
             {
-                OtherProfileRow(navController = navController, userId = userId, myId = myId)
+                if(ready)
+                {
+                    OtherProfileRow(navController = navController, userId = userId, myId = myId)
+                }
             }
         }
     }, bottomBar = {
@@ -96,10 +102,10 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(Modifier.padding(top = 15.dp))
+            Spacer(Modifier.padding(top = 0.dp))
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.End,
@@ -117,7 +123,7 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
@@ -147,8 +153,8 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
+                Spacer(modifier = Modifier.padding(0.dp))
             }
-            Spacer(Modifier.padding(top = 15.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -157,30 +163,60 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                 TextButton(onClick = {
                     navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(
-                        text = "Takipçiler\n        ${user.value.followerCount}",
-                        fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takipçiler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "${user.value.followerCount}",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
                 }
                 TextButton(onClick = {
                     navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takip Edilenler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "${user.value.followCount}",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = "Takip Edilenler\n            ${user.value.followCount}",
+                        text = "Beğeniler",
                         fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "${user.value.likeCount}",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
                     )
                 }
-                Text(
-                    text = "Beğeniler\n       ${user.value.likeCount}",
-                    fontSize = 16.sp,
-                    fontFamily = openSansFontFamily,
-                    letterSpacing = 1.sp
-                )
             }
-            Spacer(modifier = Modifier.padding(top = 25.dp))
-            OtherProfilePostList(navController = navController, userId, myId)
+            Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize())
+            {
+                OtherProfilePostList(navController = navController, userId, myId)
+            }
         }
     }
     if (reportDialog) {
@@ -272,20 +308,19 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                             topStart = 20.dp, topEnd = 20.dp, bottomEnd = 0.dp, bottomStart = 0.dp
                         )
                     )
-                    .size(750.dp, 250.dp)
+                    .fillMaxWidth()
+                    .height(250.dp)
                     .windowInsetsPadding(WindowInsets.ime)
             ) {
                 Column(
                     verticalArrangement = Arrangement.SpaceAround,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.padding(top = 20.dp))
                     Divider(
                         color = Color.Black,
                         thickness = 3.dp,
                         modifier = Modifier.size(width = 30.dp, height = 3.dp)
                     )
-                    Spacer(modifier = Modifier.padding(top = 20.dp))
                     Button(
                         onClick = {
                             openDialog = !openDialog
@@ -315,7 +350,6 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.padding(5.dp))
                     Button(
                         onClick = {
                             navController.navigate("in_message_page/$myId/$userId/$userName/$nick")
@@ -344,7 +378,6 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.padding(5.dp))
                     check.value = amIFollow == 0
                     Button(
                         onClick = {
@@ -391,13 +424,15 @@ fun OtherProfileRow(navController: NavController, viewModel: OtherProfileViewMod
                                 contentDescription = "follow",
                                 modifier = Modifier.size(17.dp, 17.dp)
                             )
-                            Spacer(Modifier.padding(start = 25.dp))
-                            Text(
-                                text = if (check.value) "Takip Et" else "Takipten Çıkar",
-                                fontFamily = openSansBold,
-                                fontSize = 17.sp,
-                                color = Color.Black
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth())
+                            {
+                                Text(
+                                    text = if (check.value) "Takip Et" else "Takipten Çıkar",
+                                    fontFamily = openSansBold,
+                                    fontSize = 17.sp,
+                                    color = Color.Black
+                                )
+                            }
                         }
                     }
                 }

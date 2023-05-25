@@ -9,12 +9,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 class WebSocketListener(private val myId: Int) : okhttp3.WebSocketListener() {
-    data class Message(
-        val text: String,
-        val fromUserId: Int,
-        val toUserId: Int,
-        private val sent: Boolean
-    ) : BaseMessage {
+    data class Message(val text: String, val fromUserId: Int, val toUserId: Int, private val sent: Boolean) : BaseMessage {
         override val messageText: String
             get() = text
         override val receiverId: Int
@@ -71,7 +66,7 @@ class WebSocketListener(private val myId: Int) : okhttp3.WebSocketListener() {
     }
 
     fun sendMessage(webSocket: WebSocket, messageText: String, toUserId: Int) {
-        Log.d("idCheck","myId: $myId, toUserId: $toUserId")
+        outPut("myId: $myId, toUserId: $toUserId")
         val message = Message(messageText, myId, toUserId, true)
         _messages.value = _messages.value + message
         val jsonToSend = JSONObject()

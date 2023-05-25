@@ -60,10 +60,6 @@ interface ApiService {
     suspend fun postSearchQuoteApi(@Body request: Search): SearchQuoteResponse //quote
 
     @Headers("Content-Type:application/json")
-    @POST("")
-    suspend fun postInMessageApi(@Body request: Home) : HomeResponse //InmessageResponse
-
-    @Headers("Content-Type:application/json")
     @POST("likequote")
     suspend fun postLikeApi(@Body request: Like): LikeResponse
 
@@ -83,9 +79,9 @@ interface ApiService {
     @POST("profiledetail")
     suspend fun postMyProfileScanApi(@Body request: ProfileDetail) : MyProfileResponse
 
-    @Headers("Content-Type:application/json")
-    @POST("notification")
-    suspend fun postNotificationApi(@Body request: Notifications): ArrayList<NotificationsResponse>
+//    @Headers("Content-Type:application/json")
+//    @POST("notification")
+//    suspend fun postNotificationApi(@Body request: Notifications): ArrayList<NotificationsResponse>
 
     @Headers("Content-Type:application/json")
     @POST("quotationdetail")

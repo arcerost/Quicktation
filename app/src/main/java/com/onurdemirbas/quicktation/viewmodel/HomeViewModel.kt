@@ -138,21 +138,19 @@ class HomeViewModel @Inject constructor(private val repository: QuicktationRepos
                     updatedList[index] = updatedPost
                     mainList.value = updatedList
                 }
-
-                // Invoke the callback
                 callback(isLiked, newLikeCount)
             }
         }
     }
-
-//
-//    suspend fun getUser(): UserInfo {
-//        return userDao.getUser()
-//    }
     suspend fun getUserId(): Int? {
         val userInfo = userDao.getUser()
         return userInfo.userId
     }
+//
+//    suspend fun getUser(): UserInfo {
+//        return userDao.getUser()
+//    }
+
 //
 //    suspend fun anyData(): Int {
 //        return userDao.anyData()

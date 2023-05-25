@@ -19,10 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -32,7 +34,6 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.room.Room
 import coil.annotation.ExperimentalCoilApi
@@ -53,7 +54,11 @@ import kotlinx.coroutines.*
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileViewModel = hiltViewModel()) {
-    viewModel.loadQuotes(myId)
+    LaunchedEffect(key1 = Unit){
+        viewModel.loadQuotes(myId)
+        viewModel.setReady(true)
+    }
+    val ready by viewModel.ready.observeAsState(false)
     Scaffold(topBar = {}, content = {
         Surface(Modifier.fillMaxSize()) {
             Image(painter = painterResource(id = R.drawable.mainbg), contentDescription = "background image", contentScale = ContentScale.FillHeight)
@@ -64,7 +69,10 @@ fun MyProfilePage(navController: NavController,myId: Int,viewModel: MyProfileVie
             modifier = Modifier.fillMaxSize()
         )
         {
-            ProfileRow(navController = navController, myId = myId)
+            if(ready)
+            {
+                ProfileRow(navController = navController, myId = myId)
+            }
         }
     }, bottomBar = {
         BottomNavigationForMyProfilePage(navController = navController, userId = myId)
@@ -78,30 +86,23 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
     val openDialog2 = remember { mutableStateOf(false) }
     val user = viewModel.userInfo.collectAsState()
     var exit by remember { mutableStateOf(false) }
-    val db: UserDatabase =
-        Room.databaseBuilder(context, UserDatabase::class.java, "UserInfo").build()
+    val db: UserDatabase = Room.databaseBuilder(context, UserDatabase::class.java, "UserInfo").build()
     val userDao = db.UserDao()
     if (exit) {
         LaunchedEffect(key1 = myId) {
-            viewModel.viewModelScope.launch {
-                val userDb = userDao.getUser()
-                userDao.delete(userDb)
-                navController.navigate("login_page")
-            }
+            val userDb = userDao.getUser()
+            userDao.delete(userDb)
+            navController.navigate("login_page")
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.SpaceAround,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(Modifier.padding(top = 15.dp))
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Spacer(Modifier.padding(top = 0.dp)) //üstten boşluk
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = { openDialog2.value = !openDialog2.value }) {
                     Icon(
                         painter = painterResource(id = R.drawable.options),
@@ -112,11 +113,7 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                 }
                 Spacer(modifier = Modifier.padding(end = 25.dp))
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                 if (user.value.photo == null || user.value.photo == "" || user.value.photo == "null") {
                     Image(
                         painter = painterResource(id = R.drawable.pp),
@@ -143,168 +140,85 @@ fun ProfileRow(navController: NavController, viewModel: MyProfileViewModel = hil
                     modifier = Modifier.defaultMinSize(165.dp, 30.dp),
                     fontSize = 20.sp
                 )
-
+                Spacer(modifier = Modifier.padding(0.dp)) // for arrangement
             }
-            Spacer(Modifier.padding(top = 15.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = {
-                    navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                TextButton(
+                    onClick = {
+                        navController.navigate("follower_page/$myId/${user.value.id}/followers/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takipçiler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "${user.value.followerCount}",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
+                }
+                TextButton(
+                    onClick = {
+                        navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takip Edilenler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "${user.value.followCount}",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = "Takipçiler\n        ${user.value.followerCount}",
+                        text = "Beğeniler",
                         fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "${user.value.likeCount}",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
                     )
                 }
-                TextButton(onClick = {
-                    navController.navigate("follower_page/$myId/${user.value.id}/follows/${user.value.namesurname}/${user.value.likeCount}/${user.value.followCount}/${user.value.followerCount}/${user.value.amIfollow}")
-                }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(
-                        text = "Takip Edilenler\n            ${user.value.followCount}",
-                        fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
-                    )
-                }
-                Text(
-                    text = "Beğeniler\n       ${user.value.likeCount}",
-                    fontSize = 16.sp,
-                    fontFamily = openSansFontFamily,
-                    letterSpacing = 1.sp
-                )
             }
-            Spacer(modifier = Modifier.padding(top = 25.dp))
-            ProfilePostList(navController = navController, myId)
+            Column(verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize())
+            {
+                ProfilePostList(navController = navController, myId)
+            }
         }
     }
     if (openDialog2.value) {
-        Popup(
-            alignment = Alignment.BottomCenter,
+        MyPopup(
             onDismissRequest = { openDialog2.value = !openDialog2.value },
-            properties = PopupProperties(
-                focusable = true,
-                dismissOnBackPress = true,
-                dismissOnClickOutside = true
-            )
-        ) {
-            Box(
-                contentAlignment = Alignment.Center, modifier = Modifier
-                    .background(
-                        color = Color(4, 108, 122, 204),
-                        shape = RoundedCornerShape(
-                            topStart = 20.dp,
-                            topEnd = 20.dp,
-                            bottomEnd = 0.dp,
-                            bottomStart = 0.dp
-                        )
-                    )
-                    .size(750.dp, 220.dp)
-                    //.wrapContentSize()
-                    .windowInsetsPadding(WindowInsets.ime)
-            )
-            {
-                Column(
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Divider(
-                        color = Color.Black,
-                        thickness = 3.dp,
-                        modifier = Modifier.size(width = 30.dp, height = 3.dp)
-                    )
-                    Spacer(modifier = Modifier.padding(top = 20.dp))
-                    Button(
-                        onClick = {
-                            exit = !exit
-                        },
-                        border = BorderStroke(1.dp, color = Color.Black),
-                        modifier = Modifier.size(250.dp, 50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.logout),
-                                contentDescription = "exit",
-                                Modifier.size(25.dp)
-                            )
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            Text(
-                                text = "Çıkış Yap",
-                                fontFamily = openSansBold,
-                                fontSize = 17.sp,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.padding(top = 10.dp))
-                    Button(
-                        onClick = {
-
-                        },
-                        border = BorderStroke(1.dp, color = Color.Black),
-                        modifier = Modifier.size(250.dp, 50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.deletepost),
-                                contentDescription = "delete account",
-                                Modifier.size(25.dp)
-                            )
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            Text(
-                                text = "Hesabımı Sil",
-                                fontFamily = openSansBold,
-                                fontSize = 17.sp,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.padding(top = 10.dp))
-                    Button(
-                        onClick = {
-                            navController.navigate("edit_profile_page/$myId")
-                        },
-                        border = BorderStroke(1.dp, color = Color.Black),
-                        modifier = Modifier.size(250.dp, 50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.editprofile),
-                                contentDescription = "edit profile",
-                                Modifier.size(25.dp)
-                            )
-                            Spacer(modifier = Modifier.padding(start = 20.dp))
-                            Text(
-                                text = "Profilimi düzenle",
-                                fontFamily = openSansBold,
-                                fontSize = 17.sp,
-                                color = Color.Black
-                            )
-                        }
-                    }
-                }
-            }
-        }
+            onExitClick = { exit = !exit },
+            onDeleteAccountClick = { /*deleteaccount*/ },
+            onEditProfileClick = { navController.navigate("edit_profile_page/$myId") },
+        )
     }
 }
 
@@ -380,25 +294,16 @@ private fun getVideoDurationSeconds(player: ExoPlayer): Int {
 fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: QuoteFromMyProfile, navController: NavController, myId: Int) {
     val context = LocalContext.current
     val openDialog = remember { mutableStateOf(false) }
+    val mainList = viewModel.posts.value
+    val currentPost = mainList.firstOrNull { it.id == post.id } ?: post
+    val amILike = currentPost.amIlike
+    val likeCount = currentPost.likeCount
     val quoteId  = post.id
     val username = post.username
     val quoteUrl = post.quote_url
     val quoteText = post.quote_text
     val userPhoto = post.userphoto
-    val amILike = post.amIlike
-    val likeCount = post.likeCount
-    val mainList = viewModel.posts.value
-    var likeCountFromVm: Int
-    var amILikeFromVm: Int
-    var countLike by remember { mutableStateOf(-1) }
     val url = Constants.MEDIA_URL +quoteUrl
-    var color by remember { mutableStateOf(Color.Black) }
-    countLike = likeCount
-    color = if(amILike == 0) {
-        Color.White
-    }
-    else
-        Color.Yellow
     //MEDIAPLAYERSTARTED
     val playing = remember { mutableStateOf(false) }
     var position by remember { mutableStateOf(0F) }
@@ -512,7 +417,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             color = Color.White)
                         Spacer(modifier = Modifier.padding(start=0.dp)) // for arrangement
                         Text(
-                            text = "$countLike BEĞENİ",
+                            text = "$likeCount BEĞENİ",
                             color = Color.White)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
@@ -579,23 +484,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                         }
                         IconButton(
                             onClick = {
-                                runBlocking {
-                                    viewModel.amILike(myId,quoteId)
-                                    likeCountFromVm = viewModel.likeCount
-                                    amILikeFromVm = viewModel.isDeleted
-                                    countLike = likeCountFromVm
-                                    color = if(amILikeFromVm == 0) {
-                                        Color.Yellow
-                                    } else
-                                        Color.White
-                                    mainList.onEach {
-                                        if(quoteId == it.id)
-                                        {
-                                            it.amIlike = if(amILikeFromVm==0) 1 else 0
-                                            it.likeCount = likeCountFromVm
-                                        }
-                                    }
-                                }
+                                viewModel.likeButtonClicked(currentPost.id, myId) { _, _ ->}
                             },
                             modifier = Modifier
                                 .size(21.dp, 20.dp)
@@ -603,7 +492,7 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             Icon(
                                 painter = painterResource(id = R.drawable.like),
                                 contentDescription = "like",
-                                tint = color,
+                                tint = if(amILike == 1) Color.Yellow else Color.White,
                                 modifier = Modifier
                                     .size(21.dp, 20.dp)
                             )
@@ -658,10 +547,10 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                             bottomStart = 0.dp
                         )
                     )
-                    .size(750.dp, 150.dp)
+                    .fillMaxWidth().height(100.dp)
                     .windowInsetsPadding(WindowInsets.ime))
                 {
-                    Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+                    Column(verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
                         Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                             Button(onClick = {
@@ -689,10 +578,100 @@ fun ProfileQuoteRow(viewModel: MyProfileViewModel = hiltViewModel(), post: Quote
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.padding(0.dp))
                     }
                 }
             }
+    }
+}
+
+
+@Composable
+fun MyPopup(
+    onDismissRequest: () -> Unit,
+    onExitClick: () -> Unit,
+    onDeleteAccountClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
+) {
+    Popup(
+        alignment = Alignment.BottomCenter,
+        onDismissRequest = onDismissRequest,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .background(
+                    color = Color(4, 108, 122, 204),
+                    shape = RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomEnd = 0.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .fillMaxWidth().height(250.dp)
+                .windowInsetsPadding(WindowInsets.ime)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Divider(color = Color.Black, thickness = 3.dp, modifier = Modifier.size(width = 30.dp, height = 3.dp))
+                MyButton(
+                    onClick = onExitClick,
+                    icon = painterResource(id = R.drawable.logout),
+                    text = "Çıkış Yap"
+                )
+                MyButton(
+                    onClick = onDeleteAccountClick,
+                    icon = painterResource(id = R.drawable.deletepost),
+                    text = "Hesabımı Sil"
+                )
+                MyButton(
+                    onClick = onEditProfileClick,
+                    icon = painterResource(id = R.drawable.editprofile),
+                    text = "Profilimi düzenle"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MyButton(
+    onClick: () -> Unit,
+    icon: Painter,
+    text: String
+) {
+    Button(
+        onClick = onClick,
+        border = BorderStroke(1.dp, color = Color.Black),
+        modifier = Modifier.size(250.dp, 50.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                painter = icon,
+                contentDescription = text,
+                Modifier.size(25.dp)
+            )
+            Text(
+                text = text,
+                fontFamily = openSansBold,
+                fontSize = 17.sp,
+                color = Color.Black
+            )
+        }
     }
 }
 

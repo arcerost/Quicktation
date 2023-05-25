@@ -3,6 +3,8 @@ package com.onurdemirbas.quicktation.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.onurdemirbas.quicktation.model.QuoteFromMyProfile
@@ -26,6 +28,11 @@ class OtherProfileViewModel@Inject constructor(private val repository: Quicktati
     var scanIndex by mutableStateOf(0)
     var isDeleted = -1
     var likeCount = -1
+    private val _ready = MutableLiveData(false)
+    val ready: LiveData<Boolean> get() = _ready
+    fun setReady(value: Boolean) {
+        _ready.value = value
+    }
     fun loadQuotes(userid: Int, myUserId: Int) {
         viewModelScope.launch {
             when (val result = repository.postMyProfileApi(userid,myUserId)) {

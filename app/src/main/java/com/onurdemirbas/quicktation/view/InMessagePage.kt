@@ -260,15 +260,18 @@ fun MessagesRow(messages: List<BaseMessage>) {
     MessageList(messages = messages)
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MessageList(
     messages: List<BaseMessage>,
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(8.dp)
+    modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     val keyboardVisibility = rememberKeyboardVisibility()
+    val contentPadding = if (keyboardVisibility.value) {
+        PaddingValues(bottom = 20.dp)
+    } else {
+        PaddingValues(10.dp)
+    }
     LazyColumn(
         modifier = modifier,
         state = listState,
@@ -290,7 +293,6 @@ fun MessageList(
                     Balloon(message.messageText, message.isSent)
                 }
             }
-
         }
     }
     LaunchedEffect(key1 = keyboardVisibility.value, key2 = messages) {

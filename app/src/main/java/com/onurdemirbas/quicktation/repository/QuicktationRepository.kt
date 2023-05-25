@@ -15,7 +15,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Register.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -28,7 +28,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Login.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -41,7 +41,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /ForgotPassword.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -54,7 +54,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Auth.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -67,7 +67,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /UpdatePassword.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -80,7 +80,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 0 -> Resource.Success(response)
                 1 -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /HomePage.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -93,7 +93,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Like.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -106,7 +106,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /QuoteDetail.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -119,7 +119,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /QuoteDetailScan.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -132,20 +132,20 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Profile.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
         }
     }
     suspend fun postMyProfileScanApi(userId: Int, myUserId: Int, scanIndex: Int): Resource<MyProfileResponse> {
-        val request = ProfileDetail(userId,myUserId,0)
+        val request = ProfileDetail(userId,myUserId,scanIndex)
         return try {
             val response = api.postMyProfileScanApi(request)
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /MyScan.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -158,7 +158,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /LikeSound.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -171,7 +171,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Follower.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -184,7 +184,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Edit.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -197,7 +197,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Report.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -210,7 +210,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Delete.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -223,7 +223,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Follow.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -236,7 +236,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /CreateSound.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -249,7 +249,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Create.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -262,7 +262,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Search.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -275,7 +275,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /SQ.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -289,7 +289,7 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error) {
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /List.")
             }
         } catch (e: Exception) {
             Resource.Error(e.message.toString())
@@ -303,19 +303,19 @@ class QuicktationRepository @Inject constructor(private val api: ApiService) {
             when (response.error){
                 "0" -> Resource.Success(response)
                 "1" -> Resource.Error(response.errorText)
-                else -> Resource.Error("Beklenmeyen bir hata oluştu.")
+                else -> Resource.Error("Beklenmeyen bir hata oluştu /Detail.")
             }
         } catch (e: Exception){
             Resource.Error(e.message.toString())
         }
     }
 
-    suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>> {
-        val response = try{
-            api.postNotificationApi(Notifications(error))
-        }catch (e:Exception) {
-            return Resource.Error("error")
-        }
-        return Resource.Success(response)
-    }
+//    suspend fun getNotificationsList(error:String): Resource<ArrayList<NotificationsResponse>> {
+//        val response = try{
+//            api.postNotificationApi(Notifications(error))
+//        }catch (e:Exception) {
+//            return Resource.Error("error")
+//        }
+//        return Resource.Success(response)
+//    }
 }

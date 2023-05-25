@@ -1,13 +1,11 @@
 package com.onurdemirbas.quicktation.view
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -47,10 +45,10 @@ import kotlinx.coroutines.*
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun FollowerPage(navController: NavController, userId: Int, toUserId: Int, action: String,namesurname: String,likeCount: Int,followCount: Int,followerCount: Int, amIFollow: Int, viewModel: FollowerViewModel = hiltViewModel()) {
-    viewModel.viewModelScope.launch{
+    LaunchedEffect(key1 = userId) {
         viewModel.loadFollowers(userId,toUserId,action)
     }
-    val photo = viewModel.userPhoto.collectAsState(initial = "").value?:""
+    val photo = viewModel.userPhoto.collectAsState(initial = "").value
     Scaffold(topBar = {
 
     }, content = {
@@ -93,7 +91,7 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
     }
     if(exit)
     {
-        viewModel.viewModelScope.launch {
+        LaunchedEffect(key1 = Unit){
             val userDb = userDao.getUser()
             userDao.delete(userDb)
             navController.navigate("login_page")
@@ -173,27 +171,55 @@ fun FollowerProfileRow(navController: NavController, userId: Int, toUserId: Int,
                 TextButton(onClick = {
                     navController.navigate("follower_page/$userId/$toUserId/followers/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
-                    Text(
-                        text = "Takipçiler\n        $followerCount",
-                        fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takipçiler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "$followerCount",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
                 }
                 TextButton(onClick = {
                     navController.navigate("follower_page/$userId/$toUserId/follows/$namesurname/$likeCount/$followCount/$followerCount/$amIFollow")
                 }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Black)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Takip Edilenler",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                        Text(
+                            text = "$followCount",
+                            fontSize = 16.sp,
+                            fontFamily = openSansFontFamily
+                        )
+                    }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = "Takip Edilenler\n            $followCount",
+                        text = "Beğeniler",
                         fontSize = 16.sp,
-                        fontFamily = openSansFontFamily
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "$likeCount",
+                        fontSize = 16.sp,
+                        fontFamily = openSansFontFamily,
+                        letterSpacing = 1.sp
                     )
                 }
-                Text(
-                    text = "Beğeniler\n       $likeCount",
-                    fontSize = 16.sp,
-                    fontFamily = openSansFontFamily,
-                    letterSpacing = 1.sp
-                )
             }
             Spacer(modifier = Modifier.padding(top = 25.dp))
             FollowerList(navController = navController, toUserId, userId, action)
@@ -808,7 +834,7 @@ fun FollowerList(navController: NavController, post: Follow, userId: Int, action
 }
 
 
-@SuppressLint("SuspiciousIndentation")
+@SuppressLint("SuspiciousIndentation", "AutoboxingStateValueProperty")
 @Composable
 fun BottomNavigationForFollowerPage(navController: NavController, userId: Int) {
     val selectedIndex = remember { mutableStateOf(0) }

@@ -11,7 +11,6 @@ class AppState(myId: Int){
     init {
         val client = OkHttpClient()
         val req = Request.Builder().url("ws://63.32.138.61:4000/").build()
-        Log.d("deneme1","benim $myId")
         listener = WebSocketListener(myId)
         webSocket = client.newWebSocket(req, listener)
     }
