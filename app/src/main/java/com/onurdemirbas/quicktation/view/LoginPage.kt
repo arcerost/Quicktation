@@ -2,6 +2,7 @@
 
 package com.onurdemirbas.quicktation.view
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -55,6 +56,7 @@ fun md5(input: String): String {
 }
 
 
+@SuppressLint("AutoboxingStateValueProperty")
 @Composable
 fun LoginPage(navController: NavController,viewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current

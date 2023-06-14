@@ -223,12 +223,11 @@ fun HyperLinkText(
     modifier: Modifier = Modifier,
     fullText: String,
     linkText: List<String>,
+    onClick: () -> Unit,
     linkTextColor: Color  = Color.Yellow,
     linkTextFontWeight: FontWeight = FontWeight.Medium,
     linkTextDecoration: TextDecoration = TextDecoration.Underline,
-//    hyperLinks: List<String>,
     fontSize: TextUnit = TextUnit.Unspecified,
-    onClick: () -> Unit,
 ) {
     val annotatedString = buildAnnotatedString {
         append(fullText)
